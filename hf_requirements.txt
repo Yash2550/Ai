@@ -1,0 +1,10 @@
+gradio>=5.0.0
+Pillow>=11.0.0
+requests==2.31.0
+python-dotenv==1.0.1
+torch
+transformers
+huggingface_hub
+vtracer>=0.6.15
+reportlab>=4.1.0
+numpy
