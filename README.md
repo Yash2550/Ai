@@ -2,7 +2,7 @@
 title: Label Editor AI
 emoji: 🎨
 colorFrom: purple
-colorTo: cyan
+colorTo: blue
 sdk: gradio
 sdk_version: "5.0.0"
 app_file: gradio_app.py
