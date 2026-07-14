@@ -1,0 +1,675 @@
+"""
+Label Editor AI — Gradio Interface for Hugging Face Spaces
+==========================================================
+Wraps the core processing logic from app.py into a clean Gradio UI.
+Set RECRAFT_API_KEY and/or NANOBANANA_API_KEY in the HF Space Secrets.
+"""
+
+import os
+import base64
+import time
+import uuid
+import zipfile
+import tempfile
+import requests
+import urllib.parse
+import re
+import io
+
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
+
+# ---------------------------------------------------------------------------
+# Directories
+# ---------------------------------------------------------------------------
+RESULTS_DIR = "gradio_results"
+os.makedirs(RESULTS_DIR, exist_ok=True)
+
+# ---------------------------------------------------------------------------
+# API Keys
+# ---------------------------------------------------------------------------
+RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY", "").strip("'\"")
+NANOBANANA_API_KEY = os.getenv("NANOBANANA_API_KEY", "").strip("'\"")
+NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
+
+# ---------------------------------------------------------------------------
+# Font helpers (same as app.py)
+# ---------------------------------------------------------------------------
+_FONT_PATHS = [
+    "C:/Windows/Fonts/bahnschrift.ttf",
+    "C:/Windows/Fonts/seguibl.ttf",
+    "C:/Windows/Fonts/arialbd.ttf",
+    "C:/Windows/Fonts/impact.ttf",
+    "C:/Windows/Fonts/verdanab.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf",
+]
+
+def _get_font(size: int):
+    for fp in _FONT_PATHS:
+        try:
+            return ImageFont.truetype(fp, size)
+        except Exception:
+            continue
+    return ImageFont.load_default()
+
+# ---------------------------------------------------------------------------
+# Image helpers
+# ---------------------------------------------------------------------------
+def image_to_data_uri(img: Image.Image) -> str:
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, "PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    return f"data:image/png;base64,{b64}"
+
+def pil_from_data_uri(data_uri: str) -> Image.Image:
+    _, b64 = data_uri.split(",", 1)
+    return Image.open(io.BytesIO(base64.b64decode(b64)))
+
+# ---------------------------------------------------------------------------
+# Auto-translation (Google Translate free endpoint)
+# ---------------------------------------------------------------------------
+def translate_prompt(text: str) -> str:
+    if not text:
+        return ""
+    try:
+        url = (
+            "https://translate.googleapis.com/translate_a/single"
+            f"?client=gtx&sl=auto&tl=en&dt=t&q={urllib.parse.quote(text)}"
+        )
+        resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        if resp.status_code == 200:
+            result = resp.json()
+            return "".join(s[0] for s in result[0] if s[0]).strip()
+    except Exception:
+        pass
+    return text
+
+# ---------------------------------------------------------------------------
+# CLIPSeg mask generation
+# ---------------------------------------------------------------------------
+_clipseg_processor = None
+_clipseg_model = None
+
+def generate_mask_with_clipseg(pil_img: Image.Image, prompt: str) -> Image.Image:
+    global _clipseg_processor, _clipseg_model
+    try:
+        import torch
+        from transformers import CLIPSegProcessor, CLIPSegForImageSegmentation
+        img = pil_img.convert("RGB")
+        w, h = img.size
+        if _clipseg_model is None:
+            _clipseg_processor = CLIPSegProcessor.from_pretrained("CIDAS/clipseg-rd64-refined")
+            _clipseg_model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined")
+        inputs = _clipseg_processor(text=[prompt], images=[img], padding="max_length", return_tensors="pt")
+        with torch.no_grad():
+            outputs = _clipseg_model(**inputs)
+        import numpy as np
+        preds = torch.sigmoid(outputs.logits)
+        mask_array = (preds[0].cpu().numpy() * 255).astype("uint8")
+        mask_img = Image.fromarray(mask_array).resize((w, h), Image.Resampling.LANCZOS)
+        return mask_img.point(lambda p: 255 if p > 100 else 0)
+    except Exception:
+        pass
+    # Fallback: centre region mask
+    w, h = pil_img.size
+    mask = Image.new("L", (w, h), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.rectangle([int(w*0.3), int(h*0.3), int(w*0.7), int(h*0.7)], fill=255)
+    return mask
+
+# ---------------------------------------------------------------------------
+# Background colour sampling
+# ---------------------------------------------------------------------------
+def _sample_bg_color(img_rgb: Image.Image, mask_l: Image.Image) -> tuple:
+    import numpy as np
+    bbox = mask_l.getbbox()
+    if not bbox:
+        return (240, 240, 240)
+    left, top, right, bottom = bbox
+    w_img, h_img = img_rgb.size
+    pad_x = max(10, int((right - left) * 0.15))
+    pad_y = max(10, int((bottom - top) * 0.15))
+    x0, y0 = max(0, left-pad_x), max(0, top-pad_y)
+    x1, y1 = min(w_img, right+pad_x), min(h_img, bottom+pad_y)
+    region_img  = np.array(img_rgb.crop((x0, y0, x1, y1)))
+    region_mask = np.array(mask_l.crop((x0, y0, x1, y1)))
+    outside = region_img[region_mask < 128]
+    if len(outside) > 10:
+        return tuple(int(v) for v in np.median(outside, axis=0))
+    inside = region_img[region_mask >= 128]
+    if len(inside) > 0:
+        return tuple(int(v) for v in np.median(inside, axis=0))
+    return (240, 240, 240)
+
+def _pick_text_color(bg: tuple) -> tuple:
+    r, g, b = bg
+    return (10,10,10) if (0.299*r + 0.587*g + 0.114*b)/255 > 0.55 else (245,245,245)
+
+# ---------------------------------------------------------------------------
+# PIL text replacement
+# ---------------------------------------------------------------------------
+def professional_text_replace(base_img: Image.Image, mask_l: Image.Image,
+                               new_text: str) -> Image.Image:
+    base = base_img.convert("RGB")
+    w_img, h_img = base.size
+    mask_l = mask_l.resize((w_img, h_img), Image.Resampling.LANCZOS)
+    bbox = mask_l.getbbox()
+    if not bbox:
+        return base
+    left, top, right, bottom = bbox
+    box_w, box_h = right-left, bottom-top
+    bg_color = _sample_bg_color(base, mask_l)
+    result = base.copy()
+    draw_fill = ImageDraw.Draw(result)
+    pad = max(2, int(min(box_w, box_h) * 0.03))
+    draw_fill.rectangle((max(0,left-pad), max(0,top-pad),
+                          min(w_img,right+pad), min(h_img,bottom+pad)), fill=bg_color)
+    mask_blur = mask_l.filter(ImageFilter.GaussianBlur(radius=max(2, pad)))
+    result = Image.composite(result, base, mask_blur)
+
+    # Clean instruction words from text
+    display_text = new_text.upper().strip()
+    instruction_words = {"remove","delete","erase","replace","add","put","insert","change","with"}
+    if any(w in display_text.lower().split() for w in instruction_words):
+        for trigger in ["add","with","insert","replace","put"]:
+            idx = display_text.lower().rfind(trigger)
+            if idx >= 0:
+                remainder = display_text[idx+len(trigger):].strip()
+                if remainder:
+                    display_text = remainder
+                    break
+
+    target_h = int(box_h * 0.70)
+    font_size = max(12, target_h)
+    font = _get_font(font_size)
+    draw_tmp = ImageDraw.Draw(Image.new("RGB",(1,1)))
+    tb = draw_tmp.textbbox((0,0), display_text, font=font)
+    text_w, text_h = tb[2]-tb[0], tb[3]-tb[1]
+    max_text_w = int(box_w * 0.76)
+    if text_w > max_text_w and text_w > 0:
+        font_size = max(8, int(font_size * max_text_w / text_w))
+        font = _get_font(font_size)
+        tb = draw_tmp.textbbox((0,0), display_text, font=font)
+        text_w, text_h = tb[2]-tb[0], tb[3]-tb[1]
+
+    text_x = left + (box_w - text_w)//2 - tb[0]
+    text_y = top  + (box_h - text_h)//2 - tb[1]
+    text_color = _pick_text_color(bg_color)
+    draw = ImageDraw.Draw(result)
+    shadow_offset = max(1, font_size//30)
+    shadow_color = (0,0,0) if text_color != (10,10,10) else (200,200,200)
+    draw.text((text_x+shadow_offset, text_y+shadow_offset), display_text,
+              font=font, fill=(*shadow_color, 120))
+    draw.text((text_x, text_y), display_text, font=font, fill=text_color)
+    return result
+
+# ---------------------------------------------------------------------------
+# Recraft API calls
+# ---------------------------------------------------------------------------
+def run_recraft_inpainting(image_path, mask_path, prompt, negative_prompt=None):
+    if not RECRAFT_API_KEY:
+        raise RuntimeError("RECRAFT_API_KEY is not set in Secrets.")
+    url = "https://external.api.recraft.ai/v1/images/inpaint"
+    headers = {"Authorization": f"Bearer {RECRAFT_API_KEY}"}
+    with open(image_path,"rb") as img_f, open(mask_path,"rb") as mask_f:
+        files = {
+            "image": (os.path.basename(image_path), img_f, "image/png"),
+            "mask":  (os.path.basename(mask_path),  mask_f, "image/png"),
+        }
+        data = {"prompt": prompt, "response_format": "url"}
+        if negative_prompt:
+            data["negative_prompt"] = negative_prompt
+        resp = requests.post(url, headers=headers, files=files, data=data, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError(f"Recraft API error {resp.status_code}: {resp.text}")
+    return resp.json()["data"][0]["url"]
+
+def run_recraft_generations(prompt, image_size="1:1"):
+    if not RECRAFT_API_KEY:
+        raise RuntimeError("RECRAFT_API_KEY is not set in Secrets.")
+    size_map = {"1:1":"1024x1024","16:9":"1280x720","9:16":"720x1280",
+                "4:3":"1024x768","3:4":"768x1024"}
+    resolution = size_map.get(image_size, "1024x1024")
+    url = "https://external.api.recraft.ai/v1/images/generations"
+    headers = {"Authorization": f"Bearer {RECRAFT_API_KEY}", "Content-Type": "application/json"}
+    resp = requests.post(url, headers=headers,
+                         json={"prompt": prompt, "n": 1, "size": resolution}, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError(f"Recraft API error {resp.status_code}: {resp.text}")
+    return resp.json()["data"][0]["url"]
+
+# ---------------------------------------------------------------------------
+# Nano Banana API calls
+# ---------------------------------------------------------------------------
+def run_nanobanana_inpainting(image_data_uri, prompt, image_size="1:1"):
+    if not NANOBANANA_API_KEY:
+        raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
+    url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
+    headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
+    payload = {"image": image_data_uri, "prompt": prompt,
+               "model": "gemini-3.1-flash-lite-image", "n": 1, "size": image_size}
+    for attempt in range(3):
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code in (500,502,503,504):
+            time.sleep(2); continue
+        if resp.status_code != 200:
+            raise RuntimeError(f"Nano Banana error {resp.status_code}: {resp.text}")
+        data = resp.json().get("data", {})
+        url_val = data[0].get("url") if isinstance(data, list) else data.get("url")
+        if not url_val:
+            raise RuntimeError("Unexpected response from Nano Banana")
+        return url_val
+    raise RuntimeError("Nano Banana API failed after 3 attempts")
+
+def run_nanobanana_generations(prompt, image_size="1:1"):
+    if not NANOBANANA_API_KEY:
+        raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
+    url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
+    headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
+    payload = {"prompt": prompt, "model": "gemini-3.1-flash-lite-image", "n": 1, "size": image_size}
+    for attempt in range(3):
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code in (500,502,503,504):
+            time.sleep(2); continue
+        if resp.status_code != 200:
+            raise RuntimeError(f"Nano Banana error {resp.status_code}: {resp.text}")
+        data = resp.json().get("data", {})
+        url_val = data[0].get("url") if isinstance(data, list) else data.get("url")
+        if not url_val:
+            raise RuntimeError("Unexpected response from Nano Banana")
+        return url_val
+    raise RuntimeError("Nano Banana API failed after 3 attempts")
+
+# ---------------------------------------------------------------------------
+# Download format builders
+# ---------------------------------------------------------------------------
+def build_pdf(img: Image.Image) -> bytes:
+    px_w, px_h = img.size
+    dpi_x = float(img.info.get("dpi", (300,300))[0]) or 300.0
+    try:
+        from reportlab.lib.utils import ImageReader
+        from reportlab.pdfgen import canvas as rl_canvas
+        pt_w, pt_h = px_w*72/dpi_x, px_h*72/dpi_x
+        out = io.BytesIO()
+        c = rl_canvas.Canvas(out, pagesize=(pt_w, pt_h))
+        buf = io.BytesIO()
+        img.convert("RGB").save(buf, "PNG"); buf.seek(0)
+        c.drawImage(ImageReader(buf), 0, 0, width=pt_w, height=pt_h)
+        c.showPage(); c.save()
+        return out.getvalue()
+    except ImportError:
+        pass
+    out = io.BytesIO()
+    img.convert("RGB").save(out, "PDF", resolution=dpi_x)
+    return out.getvalue()
+
+def build_svg(img: Image.Image) -> bytes:
+    w, h = img.size
+    buf = io.BytesIO()
+    img.convert("RGB").save(buf, "PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    svg = (f'<?xml version="1.0" encoding="UTF-8"?>'
+           f'<svg xmlns="http://www.w3.org/2000/svg" '
+           f'xmlns:xlink="http://www.w3.org/1999/xlink" '
+           f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">'
+           f'<image x="0" y="0" width="{w}" height="{h}" '
+           f'xlink:href="data:image/png;base64,{b64}"/>'
+           f'</svg>')
+    return svg.encode("utf-8")
+
+def build_cdrx(img: Image.Image, stem: str) -> bytes:
+    svg_bytes = build_svg(img)
+    png_buf = io.BytesIO(); img.convert("RGB").save(png_buf, "PNG")
+    meta = (f'<?xml version="1.0" encoding="UTF-8"?>'
+            f'<cdrx-metadata xmlns="http://www.corel.com/coreldraw/2019/cdrx">'
+            f'<title>{stem}</title><application>CorelDRAW</application>'
+            f'<version>24.0</version><document>document.svg</document>'
+            f'<preview>preview.png</preview></cdrx-metadata>').encode("utf-8")
+    zb = io.BytesIO()
+    with zipfile.ZipFile(zb, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("document.svg", svg_bytes)
+        zf.writestr("preview.png", png_buf.getvalue())
+        zf.writestr("metadata.xml", meta)
+    return zb.getvalue()
+
+def build_gms(img: Image.Image, stem: str) -> bytes:
+    buf = io.BytesIO(); img.convert("RGB").save(buf, "PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    chunks = [b64[i:i+72] for i in range(0, len(b64), 72)]
+    b64_lines = '\n        & '.join(f'"{c}"' for c in chunks)
+    script = f"""' CorelDRAW Macro (.gms) — Label Editor AI
+Attribute VB_Name = "LabelEditorImport"
+Sub ImportEditedLabel()
+    Dim sBase64 As String
+    sBase64 = {b64_lines}
+    Dim sTempPath As String
+    sTempPath = Environ("TEMP") & "\\{stem}_label.png"
+    Dim iFile As Integer: iFile = FreeFile()
+    Open sTempPath For Binary As #iFile
+        Dim decoded() As Byte: decoded = DecodeBase64(sBase64)
+        Put #iFile, , decoded
+    Close #iFile
+    Dim importedObj As Shape
+    Set importedObj = ActiveLayer.Import(sTempPath)
+    If Not importedObj Is Nothing Then
+        importedObj.SetPositionEx cdrCenter, cdrCenter, ActivePage.SizeWidth/2, ActivePage.SizeHeight/2
+        MsgBox "Label imported!", vbInformation, "Label Editor AI"
+    End If
+End Sub
+Private Function DecodeBase64(s As String) As Byte()
+    Dim o As Object: Set o = CreateObject("MSXML2.DOMDocument")
+    Dim n As Object: Set n = o.createElement("b64")
+    n.DataType = "bin.base64": n.Text = s: DecodeBase64 = n.nodeTypedValue
+End Function"""
+    return script.encode("utf-8")
+
+def build_cgs(img: Image.Image, stem: str) -> bytes:
+    w, h = img.size
+    buf = io.BytesIO(); img.convert("RGB").save(buf, "PNG")
+    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+    cgs = (f'<?xml version="1.0" encoding="UTF-8"?>'
+           f'<cgs-styles xmlns="http://www.corel.com/coreldraw/styles/2015">'
+           f'<style name="{stem}" id="label-editor-ai">'
+           f'<fill type="bitmap" tiling="none">'
+           f'<bitmap width="{w}" height="{h}" format="png">'
+           f'<data encoding="base64">{b64}</data>'
+           f'</bitmap></fill><outline none="true"/></style></cgs-styles>')
+    return cgs.encode("utf-8")
+
+# ---------------------------------------------------------------------------
+# Save result PIL image to a temp file and return the path for Gradio File
+# ---------------------------------------------------------------------------
+def _save_temp(data: bytes, ext: str, stem: str) -> str:
+    path = os.path.join(RESULTS_DIR, f"{stem}.{ext}")
+    with open(path, "wb") as f:
+        f.write(data)
+    return path
+
+# ---------------------------------------------------------------------------
+# Core processing function (called by Gradio)
+# ---------------------------------------------------------------------------
+def process(
+    image,          # PIL Image or None
+    prompt,
+    mode,           # "Remove", "Add/Replace", "Text Replace", "Generate (no image)"
+    api_provider,   # "Recraft.ai", "Nano Banana"
+    negative_prompt,
+    overlay_image,  # PIL Image or None
+):
+    if not prompt or not prompt.strip():
+        return None, "❌ Please enter a prompt."
+
+    prompt = translate_prompt(prompt.strip())
+    provider = "recraft" if "Recraft" in api_provider else "nanobanana"
+    stem = str(uuid.uuid4())[:8]
+
+    # Validate keys
+    if provider == "recraft" and not RECRAFT_API_KEY:
+        return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
+    if provider == "nanobanana" and not NANOBANANA_API_KEY:
+        return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
+
+    try:
+        # ── Text-to-Image (Generate) ─────────────────────────────────────────
+        if mode == "Generate (no image)" or image is None:
+            status = "⏳ Generating image…"
+            enhanced = (prompt + ", professional commercial product label design, "
+                        "symmetrical layout, crisp design details")
+            if provider == "recraft":
+                url = run_recraft_generations(enhanced, "1:1")
+            else:
+                url = run_nanobanana_generations(enhanced, "1:1")
+            img_bytes = requests.get(url, timeout=30).content
+            result_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            return result_img, "✅ Image generated!"
+
+        # ── Inpainting modes ─────────────────────────────────────────────────
+        pil_img = image.convert("RGB")
+        original_w, original_h = pil_img.size
+
+        # Derive mask prompt
+        if mode == "Text Replace":
+            p_lower = prompt.lower()
+            for pat in [r'remove\s+(.*?)\s+(and|to|with|add)',
+                        r'replace\s+(.*?)\s+(with|by|to)',
+                        r'change\s+(.*?)\s+(to|with)']:
+                m = re.search(pat, p_lower)
+                if m:
+                    mask_prompt = m.group(1).strip(); break
+            else:
+                mask_prompt = prompt
+        else:
+            mask_prompt = prompt
+
+        # ── Text Replace: PIL-based ──────────────────────────────────────────
+        if mode == "Text Replace":
+            mask_l = generate_mask_with_clipseg(pil_img, mask_prompt)
+            result_img = professional_text_replace(pil_img, mask_l, prompt)
+            return result_img, "✅ Text replaced!"
+
+        # ── Overlay / Add with uploaded image ───────────────────────────────
+        if overlay_image is not None:
+            mask_l = generate_mask_with_clipseg(pil_img, mask_prompt)
+            overlay = overlay_image.convert("RGBA")
+            base_rgba = pil_img.convert("RGBA")
+            bbox = mask_l.getbbox() or (int(original_w*0.3), int(original_h*0.3),
+                                         int(original_w*0.7), int(original_h*0.7))
+            left, upper, right, lower = bbox
+            bw, bh = right-left, lower-upper
+            ow, oh = overlay.size
+            aspect = ow/oh
+            if bw/aspect <= bh:
+                nw, nh = bw, int(bw/aspect)
+            else:
+                nh, nw = bh, int(bh*aspect)
+            nw, nh = max(1,nw), max(1,nh)
+            overlay_resized = overlay.resize((nw, nh), Image.Resampling.LANCZOS)
+            ox, oy = left+(bw-nw)//2, upper+(bh-nh)//2
+            layer = Image.new("RGBA", base_rgba.size, (0,0,0,0))
+            layer.paste(overlay_resized, (ox, oy))
+            final_overlay = Image.composite(layer, Image.new("RGBA", base_rgba.size, (0,0,0,0)), mask_l)
+            result_img = Image.alpha_composite(base_rgba, final_overlay).convert("RGB")
+            return result_img, "✅ Overlay applied!"
+
+        # ── API inpainting (Remove / Add-Replace) ───────────────────────────
+        if provider == "recraft":
+            mask_l = generate_mask_with_clipseg(pil_img, mask_prompt)
+            # Save tmp files for Recraft multipart upload
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
+                img_tmp = tf.name
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
+                mask_tmp = tf.name
+            try:
+                pil_img.save(img_tmp, "PNG")
+                mask_l.save(mask_tmp, "PNG")
+                if mode == "Remove":
+                    inpaint_prompt = ("seamless product label background, clean surface, "
+                                      "high resolution, no logo, no text, smooth texture")
+                else:
+                    inpaint_prompt = (f"{prompt}, product label style, high resolution, "
+                                      "professional graphic design, seamlessly integrated")
+                url = run_recraft_inpainting(img_tmp, mask_tmp, inpaint_prompt, negative_prompt)
+            finally:
+                for p in (img_tmp, mask_tmp):
+                    try: os.remove(p)
+                    except OSError: pass
+        else:
+            data_uri = image_to_data_uri(pil_img)
+            inpaint_prompt = (f"Edit this product label image: {prompt}. "
+                              "Keep all other elements exactly the same. "
+                              "Only change what was requested.")
+            url = run_nanobanana_inpainting(data_uri, inpaint_prompt, "1:1")
+
+        img_bytes = requests.get(url, timeout=30).content
+        result = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+        rw, rh = result.size
+        if rh >= original_h * 1.7:
+            result = result.crop((0, 0, rw, original_h))
+        if result.size != (original_w, original_h):
+            result = result.resize((original_w, original_h), Image.Resampling.LANCZOS)
+        return result, "✅ Done!"
+
+    except Exception as exc:
+        return None, f"❌ Error: {exc}"
+
+# ---------------------------------------------------------------------------
+# Download handler — returns a file path for Gradio gr.File output
+# ---------------------------------------------------------------------------
+def download_result(result_img, fmt):
+    if result_img is None:
+        return None
+    if not isinstance(result_img, Image.Image):
+        result_img = Image.fromarray(result_img)
+    stem = str(uuid.uuid4())[:8]
+
+    if fmt == "PNG":
+        buf = io.BytesIO(); result_img.save(buf, "PNG")
+        return _save_temp(buf.getvalue(), "png", stem)
+    elif fmt == "JPG":
+        buf = io.BytesIO(); result_img.convert("RGB").save(buf, "JPEG", quality=100, subsampling=0)
+        return _save_temp(buf.getvalue(), "jpg", stem)
+    elif fmt == "PDF":
+        return _save_temp(build_pdf(result_img), "pdf", stem)
+    elif fmt == "SVG":
+        return _save_temp(build_svg(result_img), "svg", stem)
+    elif fmt == "CDR":
+        return _save_temp(build_svg(result_img), "cdr", stem)
+    elif fmt == "CDRx":
+        return _save_temp(build_cdrx(result_img, stem), "cdrx", stem)
+    elif fmt == "GMS":
+        return _save_temp(build_gms(result_img, stem), "gms", stem)
+    elif fmt == "CGS":
+        return _save_temp(build_cgs(result_img, stem), "cgs", stem)
+    return None
+
+# ---------------------------------------------------------------------------
+# Gradio UI
+# ---------------------------------------------------------------------------
+import gradio as gr
+
+CSS = """
+#title { text-align: center; }
+#title h1 { background: linear-gradient(135deg,#7c3aed,#0891b2);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.download-row { display: flex; flex-wrap: wrap; gap: 8px; }
+footer { display: none !important; }
+"""
+
+MODES = ["Remove", "Add/Replace", "Text Replace", "Generate (no image)"]
+PROVIDERS = ["Recraft.ai", "Nano Banana"]
+FORMATS = ["PNG", "JPG", "PDF", "SVG", "CDR", "CDRx", "GMS", "CGS"]
+
+with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
+
+    # ── Header ────────────────────────────────────────────────────────────
+    with gr.Column(elem_id="title"):
+        gr.Markdown("# 🎨 Label Editor AI\n"
+                    "### Remove · Add · Replace · Generate — powered by Recraft.ai & Nano Banana")
+
+    with gr.Row():
+        # ── Left column: inputs ──────────────────────────────────────────
+        with gr.Column(scale=1):
+            gr.Markdown("### 📥 Input")
+
+            input_image = gr.Image(
+                label="Upload product label image (leave empty for Generate mode)",
+                type="pil", sources=["upload","clipboard"], height=280
+            )
+            overlay_image = gr.Image(
+                label="Overlay image (optional — for Add mode with a custom graphic)",
+                type="pil", sources=["upload","clipboard"], height=160
+            )
+            prompt_box = gr.Textbox(
+                label="Prompt / Instruction",
+                placeholder='e.g. "Remove Gomzi Nutrition and add Maxlife" or '
+                            '"Replace brand name with NutriFit"',
+                lines=3,
+            )
+            with gr.Row():
+                mode_dd = gr.Dropdown(MODES, value="Remove", label="Mode")
+                provider_dd = gr.Dropdown(PROVIDERS, value="Recraft.ai", label="API Provider")
+
+            with gr.Accordion("⚙️ Advanced Options", open=False):
+                neg_prompt = gr.Textbox(
+                    label="Negative Prompt",
+                    value="blurry, low quality, distorted text, watermark, artifacts",
+                    lines=2,
+                )
+
+            run_btn = gr.Button("🚀 Run", variant="primary", size="lg")
+            status_box = gr.Textbox(label="Status", interactive=False, lines=1)
+
+        # ── Right column: result + download ──────────────────────────────
+        with gr.Column(scale=1):
+            gr.Markdown("### 📤 Result")
+
+            result_image = gr.Image(
+                label="Edited / Generated Image",
+                type="pil", interactive=False, height=360
+            )
+
+            gr.Markdown("#### ⬇️ Download As")
+            with gr.Row(elem_classes="download-row"):
+                fmt_dd = gr.Dropdown(
+                    FORMATS, value="PNG", label="Format",
+                    info="CDR/CDRx/GMS/CGS are CorelDRAW-compatible formats"
+                )
+                dl_btn = gr.Button("⬇️ Download", variant="secondary")
+
+            dl_file = gr.File(label="Your file is ready", visible=False)
+
+    # ── Examples ─────────────────────────────────────────────────────────
+    gr.Markdown("---\n### 💡 Example Prompts")
+    gr.Examples(
+        examples=[
+            [None, "A bright orange energy drink product label with bold typography", "Generate (no image)", "Recraft.ai"],
+            [None, "Professional whey protein supplement label, chocolate flavour", "Generate (no image)", "Recraft.ai"],
+        ],
+        inputs=[input_image, prompt_box, mode_dd, provider_dd],
+        label="Text-to-Image examples (no upload needed)",
+    )
+
+    # ── How to use CorelDRAW formats ─────────────────────────────────────
+    with gr.Accordion("ℹ️ How to use CorelDRAW formats", open=False):
+        gr.Markdown("""
+| Format | How to use |
+|--------|-----------|
+| **CDR** | Open directly in CorelDRAW 2019+ via File → Import |
+| **CDRx** | ZIP package — extract and open `document.svg` in CorelDRAW |
+| **GMS** | Tools → Macros → Run Macro inside CorelDRAW (embeds image) |
+| **CGS** | Object Styles panel → Import Styles in CorelDRAW |
+| **SVG** | Universal vector — works in CorelDRAW, Illustrator, Inkscape |
+| **PDF** | Print-ready, 300 DPI page — open in any CorelDRAW version |
+        """)
+
+    # ── Event wiring ─────────────────────────────────────────────────────
+    _result_state = gr.State(None)
+
+    def run_and_store(img, prompt, mode, provider, neg, overlay):
+        result, status = process(img, prompt, mode, provider, neg, overlay)
+        return result, result, status
+
+    run_btn.click(
+        fn=run_and_store,
+        inputs=[input_image, prompt_box, mode_dd, provider_dd, neg_prompt, overlay_image],
+        outputs=[result_image, _result_state, status_box],
+    )
+
+    def do_download(result, fmt):
+        path = download_result(result, fmt)
+        if path:
+            return gr.update(value=path, visible=True)
+        return gr.update(visible=False)
+
+    dl_btn.click(
+        fn=do_download,
+        inputs=[_result_state, fmt_dd],
+        outputs=[dl_file],
+    )
+
+if __name__ == "__main__":
+    demo.launch()

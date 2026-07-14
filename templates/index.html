@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="AI-powered product label editor — remove objects, add elements, or replace designs using SDXL generative in-painting." />
+  <title>Label Editor AI — Remove · Add · Replace</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ======================================================
+       CSS RESET & DESIGN TOKENS
+    ====================================================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --clr-bg: #f5f6fa;
+      --clr-surface: #ffffff;
+      --clr-surface-2: #f0f1f8;
+      --clr-surface-3: #e8eaf2;
+      --clr-border: rgba(99, 102, 241, 0.12);
+      --clr-border-glow: rgba(139, 92, 246, 0.3);
+
+      --clr-accent: #7c3aed;
+      /* violet */
+      --clr-accent-2: #0891b2;
+      /* cyan */
+      --clr-success: #059669;
+
+      --clr-text: #1e1b4b;
+      --clr-text-muted: #6b7280;
+      --clr-text-dim: #9ca3af;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+
+      --shadow-glow: 0 0 40px rgba(124, 58, 237, 0.12), 0 12px 40px rgba(124, 58, 237, 0.08);
+      --shadow-card: 0 2px 16px rgba(99, 102, 241, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+
+      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--clr-bg);
+      color: var(--clr-text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ======================================================
+       ANIMATED BACKGROUND GRID
+    ====================================================== */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(124, 58, 237, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.05) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    }
+
+    .bg-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.18;
+      pointer-events: none;
+      animation: orb-drift 12s ease-in-out infinite alternate;
+    }
+
+    .bg-orb-1 {
+      width: 600px;
+      height: 600px;
+      background: #c4b5fd;
+      top: -200px;
+      left: -200px;
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: #7dd3fc;
+      bottom: -100px;
+      right: -100px;
+      animation-delay: -6s;
+    }
+
+    @keyframes orb-drift {
+      to {
+        transform: translate(40px, 40px) scale(1.05);
+      }
+    }
+
+    /* ======================================================
+       LAYOUT
+    ====================================================== */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ======================================================
+       HEADER / HERO
+    ====================================================== */
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 60px 24px 40px;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--clr-accent);
+      margin-bottom: 24px;
+    }
+
+    .badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--clr-accent);
+      border-radius: 50%;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.4;
+        transform: scale(0.6);
+      }
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #1e1b4b 0%, var(--clr-accent) 60%, var(--clr-accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--clr-text-muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    /* ======================================================
+       CARDS
+    ====================================================== */
+    .card {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-card);
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .card:hover {
+      border-color: var(--clr-border-glow);
+      box-shadow: var(--shadow-glow);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--clr-accent);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--clr-border);
+    }
+
+    /* ======================================================
+       FILE DROP ZONE
+    ====================================================== */
+    .drop-zone {
+      position: relative;
+      border: 2px dashed rgba(139, 92, 246, 0.25);
+      border-radius: var(--radius-lg);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+      background: var(--clr-surface-2);
+      overflow: hidden;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--clr-accent);
+      background: rgba(139, 92, 246, 0.06);
+    }
+
+    .drop-zone.has-file {
+      border-style: solid;
+      border-color: var(--clr-success);
+      padding: 16px;
+    }
+
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .drop-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+      filter: grayscale(0.3);
+      transition: transform var(--transition);
+    }
+
+    .drop-zone:hover .drop-icon {
+      transform: translateY(-4px) scale(1.08);
+    }
+
+    .drop-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--clr-text);
+      margin-bottom: 6px;
+    }
+
+    .drop-sub {
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+    }
+
+    .file-preview {
+      display: none;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .drop-zone.has-file .drop-content {
+      display: none;
+    }
+
+    .drop-zone.has-file .file-preview {
+      display: flex;
+    }
+
+    .file-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      border: 2px solid var(--clr-success);
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      text-align: left;
+    }
+
+    .file-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--clr-text);
+      word-break: break-all;
+    }
+
+    .file-size {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+      margin-top: 2px;
+    }
+
+    .file-change {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--clr-accent);
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ======================================================
+       INPUTS
+    ====================================================== */
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    label.input-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      margin-bottom: 8px;
+      letter-spacing: 0.04em;
+    }
+
+    textarea,
+    input[type="text"] {
+      width: 100%;
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      color: var(--clr-text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 14px 16px;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+      resize: none;
+    }
+
+    textarea:focus,
+    input[type="text"]:focus {
+      border-color: var(--clr-accent);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    }
+
+    textarea::placeholder,
+    input[type="text"]::placeholder {
+      color: var(--clr-text-dim);
+    }
+
+    /* Prompt suggestions */
+    .prompt-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: var(--clr-surface-3);
+      border: 1px solid var(--clr-border);
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      transition: all var(--transition);
+      user-select: none;
+    }
+
+    .chip:hover {
+      background: rgba(139, 92, 246, 0.12);
+      border-color: var(--clr-accent);
+      color: var(--clr-accent);
+    }
+
+    /* ======================================================
+       ADVANCED TOGGLE
+    ====================================================== */
+    .advanced-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 16px;
+      width: fit-content;
+    }
+
+    .advanced-toggle:hover {
+      color: var(--clr-accent);
+    }
+
+    .advanced-toggle svg {
+      transition: transform var(--transition);
+    }
+
+    .advanced-toggle.open svg {
+      transform: rotate(180deg);
+    }
+
+    .advanced-panel {
+      display: none;
+      animation: slide-down 0.2s ease;
+    }
+
+    .advanced-panel.visible {
+      display: block;
+    }
+
+    @keyframes slide-down {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ======================================================
+       PROCESS BUTTON
+    ====================================================== */
+    .btn-process {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding: 18px 32px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: linear-gradient(135deg, var(--clr-accent) 0%, #7c3aed 50%, var(--clr-accent-2) 100%);
+      border: none;
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+      margin-top: 28px;
+    }
+
+    .btn-process::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+    }
+
+    .btn-process:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(139, 92, 246, 0.45);
+    }
+
+    .btn-process:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-process:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-icon {
+      font-size: 1.2rem;
+    }
+
+    .btn-text-idle,
+    .btn-text-busy {
+      position: absolute;
+      transition: all var(--transition);
+    }
+
+    .btn-text-busy {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .btn-process.loading .btn-text-idle {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+
+    .btn-process.loading .btn-text-busy {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Shimmer effect on loading */
+    @keyframes shimmer {
+      0% {
+        background-position: -400px 0;
+      }
+
+      100% {
+        background-position: 400px 0;
+      }
+    }
+
+    .btn-process.loading::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      background-size: 400px 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* ======================================================
+       PROGRESS TRACKER
+    ====================================================== */
+    #progress-tracker {
+      display: none;
+      margin-top: 24px;
+    }
+
+    #progress-tracker.visible {
+      display: block;
+    }
+
+    .progress-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      transition: all var(--transition);
+    }
+
+    .progress-step.active {
+      border-color: rgba(124, 58, 237, 0.35);
+      background: rgba(124, 58, 237, 0.06);
+    }
+
+    .progress-step.done {
+      border-color: rgba(5, 150, 105, 0.3);
+      background: rgba(5, 150, 105, 0.05);
+    }
+
+    .step-indicator {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+
+    .step-indicator.pending {
+      background: var(--clr-surface-3);
+      color: var(--clr-text-muted);
+      border: 1px solid var(--clr-border);
+    }
+
+    .step-indicator.active {
+      background: var(--clr-accent);
+      color: #fff;
+      animation: spin-ring 1.2s linear infinite;
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.5);
+    }
+
+    .step-indicator.done {
+      background: var(--clr-success);
+      color: #fff;
+    }
+
+    @keyframes spin-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.6);
+      }
+
+      50% {
+        box-shadow: 0 0 0 6px rgba(124, 58, 237, 0);
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+      }
+    }
+
+    .step-label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--clr-text-muted);
+    }
+
+    .progress-step.active .step-label {
+      color: var(--clr-text);
+    }
+
+    .progress-step.done .step-label {
+      color: var(--clr-success);
+    }
+
+    .step-time {
+      margin-left: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--clr-text-dim);
+    }
+
+    /* ======================================================
+       RESULTS
+    ====================================================== */
+    #results-section {
+      display: none;
+      margin-top: 40px;
+      animation: fade-up 0.5s ease;
+    }
+
+    #results-section.visible {
+      display: block;
+    }
+
+    @keyframes fade-up {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .image-panel {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--clr-border);
+      background: var(--clr-surface-2);
+    }
+
+    .image-panel-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      z-index: 2;
+    }
+
+    .label-original {
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--clr-text-muted);
+      border: 1px solid var(--clr-border);
+    }
+
+    .label-result {
+      background: rgba(124, 58, 237, 0.9);
+      color: #fff;
+    }
+
+    .compare-img {
+      width: 100%;
+      display: block;
+      object-fit: contain;
+      max-height: 480px;
+    }
+
+    /* Download button */
+    .btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px;
+      margin-top: 16px;
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      color: var(--clr-text);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .btn-download:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: var(--clr-accent);
+      color: var(--clr-accent);
+    }
+
+    /* ======================================================
+       ERROR TOAST
+    ====================================================== */
+    #error-toast {
+      display: none;
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(254, 226, 226, 0.95);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 16px 24px;
+      color: #b91c1c;
+      font-size: 0.85rem;
+      max-width: 520px;
+      width: calc(100% - 48px);
+      z-index: 9999;
+      backdrop-filter: blur(12px);
+      animation: toast-in 0.3s ease forwards;
+    }
+
+    #error-toast.visible {
+      display: block;
+    }
+
+    @keyframes toast-in {
+      to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .toast-close {
+      float: right;
+      cursor: pointer;
+      opacity: 0.6;
+      font-size: 1.1rem;
+      margin-left: 12px;
+    }
+
+    /* ======================================================
+       RATE LIMIT BANNER
+    ====================================================== */
+    #rate-limit-banner {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 620px;
+      z-index: 9999;
+      animation: toast-in 0.35s ease forwards;
+    }
+
+    .rate-limit-inner {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.97);
+      border: 1px solid rgba(251, 191, 36, 0.5);
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .rate-limit-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .rate-limit-body {
+      flex: 1;
+    }
+
+    .rate-limit-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 6px;
+    }
+
+    .rate-limit-desc {
+      font-size: 0.8rem;
+      color: var(--clr-text-muted);
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .rate-limit-desc strong {
+      color: var(--clr-text);
+    }
+
+    .rate-limit-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-billing {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #000;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: all var(--transition);
+    }
+
+    .btn-billing:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-retry {
+      padding: 9px 16px;
+      background: transparent;
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      color: var(--clr-text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+
+    .btn-retry:hover {
+      border-color: var(--clr-accent);
+      color: var(--clr-accent);
+    }
+
+    .rate-banner-close {
+      background: none;
+      border: none;
+      color: var(--clr-text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      flex-shrink: 0;
+      transition: color var(--transition);
+    }
+
+    .rate-banner-close:hover {
+      color: var(--clr-text);
+    }
+
+
+    .info-bar {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .info-chip {
+      flex: 1;
+      min-width: 180px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 18px 20px;
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+    }
+
+    .info-chip-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .info-chip-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--clr-text);
+      margin-bottom: 4px;
+    }
+
+    .info-chip-desc {
+      font-size: 0.73rem;
+      color: var(--clr-text-muted);
+      line-height: 1.5;
+    }
+
+    /* ======================================================
+       MODE TABS
+    ====================================================== */
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .mode-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 10px;
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all var(--transition);
+      text-align: center;
+    }
+
+    .mode-tab:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      background: rgba(139, 92, 246, 0.05);
+    }
+
+    .mode-tab.active {
+      border-color: var(--clr-accent);
+      background: rgba(139, 92, 246, 0.12);
+      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2);
+    }
+
+    .mode-tab[data-mode="add"].active {
+      border-color: var(--clr-accent-2);
+      background: rgba(6, 182, 212, 0.1);
+      box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.2);
+    }
+
+    .mode-tab[data-mode="replace"].active {
+      border-color: #f472b6;
+      background: rgba(244, 114, 182, 0.1);
+      box-shadow: 0 0 0 1px rgba(244, 114, 182, 0.2);
+    }
+
+    .mode-tab[data-mode="text_replace"].active {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+      box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25);
+    }
+
+    .mode-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .mode-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--clr-text);
+    }
+
+    .mode-desc {
+      font-size: 0.68rem;
+      color: var(--clr-text-muted);
+    }
+
+    .mode-hint {
+      font-size: 0.75rem;
+      color: var(--clr-text-muted);
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    /* ======================================================
+       FOOTER
+    ====================================================== */
+    footer {
+      text-align: center;
+      padding: 40px 24px 24px;
+      color: var(--clr-text-dim);
+      font-size: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    footer a {
+      color: var(--clr-accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* ======================================================
+       UTILITY
+    ====================================================== */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    .text-accent {
+      color: var(--clr-accent);
+    }
+
+    .mt-4 {
+      margin-top: 16px;
+    }
+
+    .mt-6 {
+      margin-top: 24px;
+    }
+
+    /* ======================================================
+       HISTORY PANEL
+    ====================================================== */
+    .history-panel {
+      position: relative;
+      z-index: 1;
+      max-width: 1060px;
+      margin: 0 auto 60px;
+      padding: 0 24px;
+    }
+
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .history-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--clr-text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .history-title .icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--clr-accent), var(--clr-accent-2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .history-count {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      background: var(--clr-surface-3);
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .history-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .history-card {
+      background: var(--clr-surface);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: all var(--transition);
+      cursor: default;
+    }
+
+    .history-card:hover {
+      border-color: var(--clr-border-glow);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+
+    .history-imgs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--clr-surface-3);
+      height: 130px;
+    }
+
+    .history-imgs img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .history-imgs .single-img {
+      grid-column: 1 / -1;
+    }
+
+    .history-meta {
+      padding: 12px 14px;
+    }
+
+    .history-prompt {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--clr-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+
+    .history-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .history-badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .hb-remove  { background: rgba(239,68,68,0.12);  color: #ef4444; }
+    .hb-add     { background: rgba(16,185,129,0.12); color: #10b981; }
+    .hb-replace { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    .hb-generate{ background: rgba(139,92,246,0.12); color: #8b5cf6; }
+
+    .history-time {
+      font-size: 0.65rem;
+      color: var(--clr-text-dim);
+      margin-left: auto;
+    }
+
+    .history-empty {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--clr-text-muted);
+      font-size: 0.85rem;
+      background: var(--clr-surface);
+      border: 1px dashed var(--clr-border);
+      border-radius: var(--radius-lg);
+    }
+
+    .history-empty .empty-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    /* ======================================================
+       SMART PROMPT CARD
+    ====================================================== */
+    .smart-card {
+      background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(8,145,178,0.06) 100%);
+      border: 1.5px solid rgba(124,58,237,0.22);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: 0 4px 32px rgba(124,58,237,0.08);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .smart-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--clr-accent), var(--clr-accent-2), #f472b6);
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .smart-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .smart-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--clr-accent), #f472b6);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+    }
+
+    .smart-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--clr-text);
+    }
+
+    .smart-subtitle {
+      font-size: 0.78rem;
+      color: var(--clr-text-muted);
+      margin-top: 2px;
+    }
+
+    .smart-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .smart-input {
+      flex: 1;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      border: 1.5px solid var(--clr-border);
+      border-radius: var(--radius-md);
+      background: var(--clr-surface);
+      color: var(--clr-text);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .smart-input:focus {
+      border-color: var(--clr-accent);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+    }
+
+    .smart-btn {
+      padding: 14px 28px;
+      background: linear-gradient(135deg, var(--clr-accent), #f472b6);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
+    }
+
+    .smart-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    }
+
+    .smart-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .smart-btn.loading::after {
+      content: '';
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .smart-status {
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--clr-border);
+      background: var(--clr-surface-2);
+    }
+
+    .smart-status.visible { display: flex; }
+
+    .smart-status .status-icon { font-size: 18px; }
+
+    .smart-match-badge {
+      margin-left: auto;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .badge-matched  { background: rgba(16,185,129,0.12); color: #10b981; }
+    .badge-new      { background: rgba(139,92,246,0.12);  color: #8b5cf6; }
+    .badge-error    { background: rgba(239,68,68,0.12);   color: #ef4444; }
+
+    .smart-result {
+      margin-top: 16px;
+      display: none;
+    }
+
+    .smart-result.visible { display: block; }
+
+    .smart-result-imgs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .smart-result-imgs img {
+      width: 100%;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--clr-border);
+      display: block;
+    }
+
+    .smart-result-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--clr-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 4px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Decorative background -->
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+
+  <!-- ============================================================
+     HEADER
+============================================================ -->
+  <header>
+    <div class="badge">
+      <span class="dot"></span>
+      Generative AI · In-Painting · Powered by SDXL
+    </div>
+
+    <h1>Label Editor AI</h1>
+    <p class="subtitle">
+      Upload a product label and let AI <strong style="color:var(--clr-accent)">remove</strong> unwanted elements,
+      <strong style="color:var(--clr-accent-2)">add</strong> new ones, or
+      <strong style="color:#f472b6">replace</strong> existing designs — no Photoshop needed.
+    </p>
+  </header>
+
+  <!-- ============================================================
+     MAIN CONTAINER
+============================================================ -->
+  <div class="container">
+
+    <!-- ✨ SMART PROMPT CARD -->
+    <div class="smart-card" id="smartCard">
+      <div class="smart-header">
+        <div class="smart-icon">✨</div>
+        <div>
+          <div class="smart-title">Smart Prompt — Just Describe What You Want</div>
+          <div class="smart-subtitle">AI searches your uploaded images automatically · edits the best match · or generates a new one</div>
+        </div>
+      </div>
+
+      <div class="smart-input-row">
+        <input
+          type="text"
+          id="smartPromptInput"
+          class="smart-input"
+          placeholder="e.g. Change the chocolate flavor to vanilla on the label…"
+          aria-label="Smart prompt input"
+        />
+        <button id="smartBtn" class="smart-btn" type="button">
+          <span id="smartBtnText">✨ Smart Edit</span>
+        </button>
+      </div>
+
+      <!-- Status row -->
+      <div class="smart-status" id="smartStatus">
+        <span class="status-icon" id="smartStatusIcon">🔍</span>
+        <span id="smartStatusText">Searching your image library…</span>
+        <span class="smart-match-badge" id="smartMatchBadge"></span>
+      </div>
+
+      <!-- Result -->
+      <div class="smart-result" id="smartResult">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" id="smartResultGrid">
+          <div id="smartOriginalWrap" style="display:none">
+            <div class="smart-result-label">📁 Matched Image</div>
+            <img id="smartOriginalImg" src="" alt="Matched original" />
+          </div>
+          <div id="smartResultWrap">
+            <div class="smart-result-label">✅ AI Result</div>
+            <img id="smartResultImg" src="" alt="Smart result" />
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px;justify-content:flex-end">
+          <a id="smartDownloadBtn" href="#" download="smart_result.png"
+             style="font-size:0.8rem;padding:8px 18px;background:var(--clr-accent);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-weight:600;">⬇ Download</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload & Prompt Card -->
+    <div class="card">
+      <div class="section-label">1 · Upload Image</div>
+
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="dropZone" role="button" aria-label="Upload image file">
+        <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp"
+          aria-label="Choose image file" />
+        <div class="drop-content">
+          <span class="drop-icon">🖼️</span>
+          <p class="drop-title">Drop your label image here</p>
+          <p class="drop-sub">or click to browse — PNG, JPG, WEBP · Max 20 MB</p>
+        </div>
+        <div class="file-preview" id="filePreview">
+          <img class="file-thumb" id="fileThumbnail" src="" alt="Preview" />
+          <div class="file-info">
+            <div class="file-name" id="fileName">—</div>
+            <div class="file-size" id="fileSize">—</div>
+          </div>
+          <span class="file-change">Change ↗</span>
+        </div>
+      </div>
+
+      <!-- Mode Switcher + Prompt -->
+      <div class="mt-6">
+        <div class="section-label">2 · Choose Mode &amp; Describe</div>
+
+        <!-- Mode tabs -->
+        <div class="mode-tabs" id="modeTabs" role="tablist">
+          <button class="mode-tab active" data-mode="remove" role="tab" aria-selected="true" id="tab-remove">
+            <span class="mode-icon">🗑️</span>
+            <span class="mode-name">Remove</span>
+            <span class="mode-desc">Erase &amp; reconstruct</span>
+          </button>
+          <button class="mode-tab" data-mode="add" role="tab" aria-selected="false" id="tab-add">
+            <span class="mode-icon">✏️</span>
+            <span class="mode-name">Add</span>
+            <span class="mode-desc">Insert new element</span>
+          </button>
+          <button class="mode-tab" data-mode="replace" role="tab" aria-selected="false" id="tab-replace">
+            <span class="mode-icon">🔄</span>
+            <span class="mode-name">Replace</span>
+            <span class="mode-desc">Swap one thing for another</span>
+          </button>
+          <button class="mode-tab" data-mode="text_replace" role="tab" aria-selected="false" id="tab-text_replace">
+            <span class="mode-icon">✨</span>
+            <span class="mode-name">Perfect Text</span>
+            <span class="mode-desc">Crisp brand replacement</span>
+          </button>
+        </div>
+
+        <!-- Mode descriptions -->
+        <div class="mode-hint" id="mode-hint-remove">Masks the target object and fills the area with seamless background
+          texture.</div>
+        <div class="mode-hint" id="mode-hint-add" style="display:none">Selects an empty region on the label and
+          generates your described element there.</div>
+        <div class="mode-hint" id="mode-hint-replace" style="display:none">Masks the existing element and replaces it
+          with what you describe.</div>
+        <div class="mode-hint" id="mode-hint-text_replace" style="display:none">⚡ <strong>Zero AI credits.</strong> Uses pixel-perfect font rendering to replace brand names and text — guaranteed sharp and readable, every time.</div>
+
+        <!-- Main prompt -->
+        <div class="input-group" style="margin-top:16px">
+          <label class="input-label" for="promptInput" id="promptLabel">What to remove</label>
+          <textarea id="promptInput" name="prompt" rows="3"
+            placeholder="e.g. the RU logo and Riseup Nutrition brand name"></textarea>
+          <div class="prompt-chips" id="promptChips">
+            <!-- chips injected by JS per mode -->
+          </div>
+        </div>
+
+        <!-- Mask prompt (shown only in Add mode) -->
+        <div class="input-group" id="maskPromptGroup" style="display:none;margin-top:4px">
+          <label class="input-label" for="maskPromptInput">Where to place it <span
+              style="color:var(--clr-text-dim)">(describe the target region)</span></label>
+          <input type="text" id="maskPromptInput" name="mask_prompt"
+            placeholder="e.g. the empty space in the bottom-right corner of the label" />
+        </div>
+
+        <!-- Overlay Image (shown only in Add and Replace modes) -->
+        <div class="input-group" id="overlayImageGroup" style="display:none;margin-top:12px">
+          <label class="input-label" for="overlayInput">Overlay Image <span style="color:var(--clr-text-dim)">(optional
+              - upload a logo or graphic to place instead of using AI text generation)</span></label>
+          <input type="file" id="overlayInput" name="overlay" accept="image/png,image/jpeg,image/webp"
+            style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text);" />
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="advanced-toggle" id="advancedToggle">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+          Advanced Options
+        </div>
+
+        <div class="advanced-panel" id="advancedPanel">
+          <div class="input-group" style="margin-bottom:12px">
+            <label class="input-label" for="apiProviderSelect">API Provider</label>
+            <select id="apiProviderSelect" name="api_provider"
+              style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text); font-family:inherit; font-size:13px; outline:none; cursor:pointer;">
+              <option value="recraft">Recraft.ai</option>
+              <option value="nanobanana">Nano Banana</option>
+            </select>
+          </div>
+          <div class="input-group" style="margin-bottom:12px">
+            <label class="input-label" for="imageSizeSelect">Output Image Size / Aspect Ratio</label>
+            <select id="imageSizeSelect" name="image_size"
+              style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text); font-family:inherit; font-size:13px; outline:none; cursor:pointer;">
+              <option value="1:1">Square (1:1)</option>
+              <option value="16:9">Landscape (16:9)</option>
+              <option value="9:16">Portrait (9:16)</option>
+              <option value="4:3">Standard (4:3)</option>
+              <option value="3:4">Vertical (3:4)</option>
+              <option value="3:1">Ultra-Wide Label (3:1)</option>
+              <option value="4:1">Panoramic Label (4:1)</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label" for="negativePromptInput">Negative Prompt <span
+                style="color:var(--clr-text-dim)">(what to avoid)</span></label>
+            <input type="text" id="negativePromptInput" name="negative_prompt"
+              placeholder="blurry, low quality, distorted text, watermark, artifacts" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Process Button -->
+      <button class="btn-process" id="processBtn" type="button" aria-live="polite">
+        <span class="btn-icon" aria-hidden="true">✨</span>
+        <span class="btn-text-idle">Generate Inpainted Image</span>
+        <span class="btn-text-busy">Processing with AI...</span>
+      </button>
+
+      <!-- Progress Tracker -->
+      <div id="progress-tracker">
+        <div class="progress-steps">
+          <div class="progress-step" id="step-upload">
+            <div class="step-indicator pending" id="indicator-upload">1</div>
+            <span class="step-label">Preparing &amp; uploading image</span>
+            <span class="step-time" id="time-upload"></span>
+          </div>
+          <div class="progress-step" id="step-mask">
+            <div class="step-indicator pending" id="indicator-mask">2</div>
+            <span class="step-label">Generating segmentation mask (CLIPSeg)</span>
+            <span class="step-time" id="time-mask"></span>
+          </div>
+          <div class="progress-step" id="step-inpaint">
+            <div class="step-indicator pending" id="indicator-inpaint">3</div>
+            <span class="step-label">Running SDXL In-Painting reconstruction</span>
+            <span class="step-time" id="time-inpaint"></span>
+          </div>
+          <div class="progress-step" id="step-save">
+            <div class="step-indicator pending" id="indicator-save">4</div>
+            <span class="step-label">Saving and delivering result</span>
+            <span class="step-time" id="time-save"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+       RESULTS
+  ============================================================ -->
+    <div id="results-section">
+      <div class="card">
+        <div class="section-label">3 · Result</div>
+        <div class="compare-grid">
+          <!-- Hidden original (kept for JS compatibility) -->
+          <div class="image-panel" id="originalPanel" style="display:none;">
+            <span class="image-panel-label label-original">Original</span>
+            <img class="compare-img" id="originalImage" src="" alt="Original uploaded label" />
+          </div>
+          <!-- Result -->
+          <div class="image-panel" style="grid-column: 1 / -1;">
+            <span class="image-panel-label label-result">✨ Result</span>
+            <img class="compare-img" id="resultImage" src="" alt="AI result" />
+          </div>
+        </div>
+
+        <div class="download-group"
+          style="display:flex; flex-direction:column; gap:10px; margin-top:20px; align-items:center;">
+          <div
+            style="font-weight:600; color:var(--clr-text-dim); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">
+            Download Options</div>
+
+          <!-- Row 1 — Raster formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadPngBtn" href="#" download="edited_label.png"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px;">
+              🖼️ PNG
+            </a>
+            <a class="btn-download" id="downloadJpgBtn" href="#" download="edited_label.jpg"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#e28743; border-color:#e28743; color:#fff;">
+              📸 JPG
+            </a>
+            <a class="btn-download" id="downloadPdfBtn" href="#" download="edited_label.pdf"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#c0392b; border-color:#c0392b; color:#fff;">
+              📄 PDF
+            </a>
+          </div>
+
+          <!-- Row 2 — Vector / CorelDRAW formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadSvgBtn" href="#" download="edited_label.svg"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
+              📐 SVG
+            </a>
+            <a class="btn-download" id="downloadCdrBtn" href="#" download="edited_label.cdr"
+              title="CorelDRAW import-compatible SVG container"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#43a047; border-color:#43a047; color:#fff;">
+              🎨 CDR
+            </a>
+            <a class="btn-download" id="downloadCdrxBtn" href="#" download="edited_label.cdrx"
+              title="CorelDRAW X ZIP exchange package"
+              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#00796b; border-color:#00796b; color:#fff;">
+              📦 CDRx
+            </a>
+          </div>
+
+          <!-- Row 3 — CorelDRAW macro/style formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadGmsBtn" href="#" download="edited_label.gms"
+              title="CorelDRAW VBA macro script — run inside CorelDRAW to import image"
+              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#6a1b9a; border-color:#6a1b9a; color:#fff;">
+              ⚙️ GMS (CorelDRAW Macro)
+            </a>
+            <a class="btn-download" id="downloadCgsBtn" href="#" download="edited_label.cgs"
+              title="CorelDRAW Custom Graphic Style — import via Object Styles panel"
+              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#1565c0; border-color:#1565c0; color:#fff;">
+              🎭 CGS (CorelDRAW Style)
+            </a>
+          </div>
+
+          <!-- Format info note -->
+          <div style="font-size:11px; color:var(--clr-text-dim); text-align:center; max-width:520px; line-height:1.6; padding:0 8px;">
+            <strong>CDR / CDRx / GMS / CGS</strong> are CorelDRAW-compatible formats.
+            CDR &amp; CDRx can be opened directly in CorelDRAW 2019+.
+            GMS runs as a macro to import the image. CGS loads as an Object Style.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Chips -->
+    <div class="info-bar">
+      <div class="info-chip">
+        <span class="info-chip-icon">🧠</span>
+        <div>
+          <div class="info-chip-title">SDXL In-Painting</div>
+          <div class="info-chip-desc">Stable Diffusion XL reconstructs backgrounds with photorealistic texture and
+            colour matching.</div>
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">🎯</span>
+        <div>
+          <div class="info-chip-title">CLIPSeg Masking</div>
+          <div class="info-chip-desc">Text-guided segmentation precisely isolates objects so only the target area is
+            changed.</div>
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">☁️</span>
+        <div>
+          <div class="info-chip-title">Cloud Processing</div>
+          <div class="info-chip-desc">Your machine stays lightweight — all GPU compute is handled by cloud
+            infrastructure.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- Error Toast -->
+  <div id="error-toast" role="alert" aria-live="assertive">
+    <span class="toast-close" id="toastClose" aria-label="Dismiss">✕</span>
+    <strong>Error:</strong> <span id="error-message">Something went wrong.</span>
+  </div>
+
+  <!-- Rate-limit Banner -->
+  <div id="rate-limit-banner" role="alert" style="display:none">
+    <div class="rate-limit-inner">
+      <span class="rate-limit-icon">⚡</span>
+      <div class="rate-limit-body">
+        <div class="rate-limit-title">Replicate Free-Tier Rate Limit Reached</div>
+        <div class="rate-limit-desc">
+          Your free account has a burst limit of <strong>1 request</strong> per window.
+          Add a payment method to unlock full rate limits — you only pay per image (~$0.03–$0.07).
+        </div>
+        <div class="rate-limit-actions">
+          <a href="https://replicate.com/account/billing" target="_blank" rel="noopener" class="btn-billing">
+            💳 &nbsp;Add Payment Method on Replicate
+          </a>
+          <button class="btn-retry" id="retryBtn">↩ Retry Request</button>
+        </div>
+      </div>
+      <button class="rate-banner-close" id="rateBannerClose" aria-label="Dismiss">✕</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+     FOOTER
+============================================================ -->
+  <footer>
+    <p>
+      Label Inpainter · Built with <a href="https://flask.palletsprojects.com/" target="_blank" rel="noopener">Flask</a>
+      &amp; <a href="https://replicate.com/" target="_blank" rel="noopener">Replicate API</a> ·
+      Models: <a href="https://replicate.com/stability-ai/stable-diffusion-inpainting" target="_blank"
+        rel="noopener">SDXL Inpainting</a>
+      &amp; <a href="https://replicate.com/cjwbw/clipseg" target="_blank" rel="noopener">CLIPSeg</a>
+    </p>
+  </footer>
+
+  <!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- DOM refs ---- */
+      const dropZone = document.getElementById('dropZone');
+      const imageInput = document.getElementById('imageInput');
+      const fileThumbnail = document.getElementById('fileThumbnail');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const promptInput = document.getElementById('promptInput');
+      const negPromptInput = document.getElementById('negativePromptInput');
+      const processBtn = document.getElementById('processBtn');
+      const progressTracker = document.getElementById('progress-tracker');
+      const resultsSection = document.getElementById('results-section');
+      const originalImage = document.getElementById('originalImage');
+      const resultImage = document.getElementById('resultImage');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const errorToast = document.getElementById('error-toast');
+      const errorMessage = document.getElementById('error-message');
+      const advancedToggle = document.getElementById('advancedToggle');
+      const advancedPanel = document.getElementById('advancedPanel');
+
+      /* ---- Helpers ---- */
+      function humanSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+
+      function showError(msg) {
+        errorMessage.textContent = msg;
+        errorToast.classList.add('visible');
+        setTimeout(() => errorToast.classList.remove('visible'), 8000);
+      }
+
+      document.getElementById('toastClose').addEventListener('click', () => {
+        errorToast.classList.remove('visible');
+      });
+
+      /* ---- Rate-limit banner ---- */
+      document.getElementById('rateBannerClose').addEventListener('click', () => {
+        document.getElementById('rate-limit-banner').style.display = 'none';
+      });
+      document.getElementById('retryBtn').addEventListener('click', () => {
+        document.getElementById('rate-limit-banner').style.display = 'none';
+        processBtn.click();
+      });
+
+      /* ---- Advanced toggle ---- */
+      advancedToggle.addEventListener('click', () => {
+        advancedToggle.classList.toggle('open');
+        advancedPanel.classList.toggle('visible');
+      });
+
+      /* ================================================================
+         MODE SWITCHER
+      ================================================================ */
+      const MODE_CONFIG = {
+        remove: {
+          label: 'What to remove',
+          placeholder: 'e.g. the RU logo and Riseup Nutrition brand name',
+          btnIcon: '🗑️',
+          btnText: 'Remove Element',
+          resultLabel: '🗑️ Removed',
+          chips: [
+            { label: 'Brand logo', prompt: 'the brand logo' },
+            { label: 'All text', prompt: 'all text on the label' },
+            { label: 'Nutrition facts', prompt: 'the nutrition facts table' },
+            { label: 'Barcode', prompt: 'the barcode' },
+            { label: 'Top banner', prompt: 'the top banner' },
+          ],
+        },
+        add: {
+          label: 'What to add',
+          placeholder: 'e.g. a gold star badge with "New Formula" text',
+          btnIcon: '✏️',
+          btnText: 'Add Element',
+          resultLabel: '✏️ Added',
+          chips: [
+            { label: 'Star badge', prompt: 'a gold star quality badge' },
+            { label: '"New" sticker', prompt: 'a bright red "New" sticker' },
+            { label: 'Cert seal', prompt: 'a round certification seal' },
+            { label: 'QR code', prompt: 'a black and white QR code' },
+            { label: 'Flavour ribbon', prompt: 'a ribbon banner with flavour name' },
+          ],
+        },
+        replace: {
+          label: 'Replace what → with what',
+          placeholder: 'e.g. replace the logo with a golden lion crest',
+          btnIcon: '🔄',
+          btnText: 'Replace Element',
+          resultLabel: '🔄 Replaced',
+          chips: [
+            { label: 'Logo → crest', prompt: 'replace the logo with a golden lion crest' },
+            { label: 'Banner → gradient', prompt: 'replace the top banner with a gradient stripe' },
+            { label: 'BG → marble', prompt: 'replace the background with white marble texture' },
+            { label: 'Color → dark', prompt: 'replace the colour scheme with dark navy and gold' },
+            { label: 'Text → serif', prompt: 'replace the product name text with elegant serif font' },
+          ],
+        },
+        text_replace: {
+          label: 'Describe: remove X and add Y (brand name)',
+          placeholder: 'e.g. Remove Gomzi Nutrition and add Maxlife',
+          btnIcon: '✨',
+          btnText: 'Generate Perfect Text ✨',
+          resultLabel: '✨ Perfect Text Applied',
+          chips: [
+            { label: 'Gomzi → Maxlife', prompt: 'Remove Gomzi Nutrition and add Maxlife' },
+            { label: 'Brand → MyBrand', prompt: 'Replace the brand name with MyBrand' },
+            { label: 'Remove brand name', prompt: 'Remove the brand name text' },
+            { label: 'Add PREMIUM', prompt: 'Add PREMIUM' },
+            { label: 'Add PRO SERIES', prompt: 'Add PRO SERIES' },
+          ],
+        },
+      };
+
+      let currentMode = 'remove';
+
+      function applyMode(mode) {
+        currentMode = mode;
+        const cfg = MODE_CONFIG[mode];
+
+        /* tabs */
+        document.querySelectorAll('.mode-tab').forEach(t => {
+          const isActive = t.dataset.mode === mode;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive);
+        });
+
+        /* hints */
+        ['remove', 'add', 'replace', 'text_replace'].forEach(m => {
+          const el = document.getElementById('mode-hint-' + m);
+          if (el) el.style.display = m === mode ? '' : 'none';
+        });
+
+        /* label + placeholder */
+        const lbl = document.getElementById('promptLabel');
+        if (lbl) lbl.textContent = cfg.label;
+        promptInput.placeholder = cfg.placeholder;
+        promptInput.value = '';
+
+        /* mask-prompt field (Add mode only) */
+        const maskGroup = document.getElementById('maskPromptGroup');
+        if (maskGroup) maskGroup.style.display = mode === 'add' ? '' : 'none';
+
+        /* overlay-image field (Add & Replace modes only) */
+        const overlayGroup = document.getElementById('overlayImageGroup');
+        if (overlayGroup) overlayGroup.style.display = (mode === 'add' || mode === 'replace') ? '' : 'none';
+
+        /* chips */
+        const chipsEl = document.getElementById('promptChips');
+        if (chipsEl) {
+          chipsEl.innerHTML = cfg.chips.map(c =>
+            '<span class="chip" data-prompt="' + c.prompt + '">' + c.label + '</span>'
+          ).join('');
+        }
+
+        /* button */
+        const btnIcon = document.querySelector('.btn-icon');
+        const btnText = document.querySelector('.btn-text-idle');
+        if (btnIcon) btnIcon.textContent = cfg.btnIcon;
+        if (btnText) btnText.textContent = cfg.btnText;
+      }
+
+      /* init */
+      applyMode('remove');
+
+      /* tab clicks */
+      const modeTabs = document.getElementById('modeTabs');
+      if (modeTabs) {
+        modeTabs.addEventListener('click', function (e) {
+          const tab = e.target.closest('.mode-tab');
+          if (tab && tab.dataset.mode) applyMode(tab.dataset.mode);
+        });
+      }
+
+      /* chip clicks (delegated so it works after innerHTML re-render) */
+      document.getElementById('promptChips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (chip) {
+          promptInput.value = chip.dataset.prompt;
+          promptInput.focus();
+        }
+      });
+
+      /* ================================================================
+         DRAG & DROP / FILE SELECT
+      ================================================================ */
+      ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        });
+      });
+      ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'));
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files[0]) handleFileSelected(e.dataTransfer.files[0]);
+      });
+
+      imageInput.addEventListener('change', () => {
+        if (imageInput.files[0]) handleFileSelected(imageInput.files[0]);
+      });
+
+      function handleFileSelected(file) {
+        if (!file.type.startsWith('image/')) {
+          showError('Please select a valid image file (PNG, JPG, or WEBP).');
+          return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+          showError('Image exceeds the 20 MB size limit.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          fileThumbnail.src = e.target.result;
+          fileName.textContent = file.name;
+          fileSize.textContent = humanSize(file.size);
+          dropZone.classList.add('has-file');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      /* ================================================================
+         PROGRESS STEPS
+      ================================================================ */
+      const STEPS = ['upload', 'mask', 'inpaint', 'save'];
+      let stepTimers = {};
+      let stepTimeout1, stepTimeout2;
+
+      function resetProgress() {
+        STEPS.forEach(s => {
+          document.getElementById('step-' + s).className = 'progress-step';
+          document.getElementById('indicator-' + s).className = 'step-indicator pending';
+          document.getElementById('indicator-' + s).textContent = STEPS.indexOf(s) + 1;
+          document.getElementById('time-' + s).textContent = '';
+        });
+        progressTracker.classList.remove('visible');
+        progressTracker.style.display = 'none';
+      }
+
+      function activateStep(name) {
+        document.getElementById('step-' + name).classList.add('active');
+        const ind = document.getElementById('indicator-' + name);
+        ind.className = 'step-indicator active';
+        ind.textContent = '⟳';
+        stepTimers[name] = Date.now();
+      }
+
+      function completeStep(name) {
+        const step = document.getElementById('step-' + name);
+        const ind = document.getElementById('indicator-' + name);
+        const t = document.getElementById('time-' + name);
+        step.classList.remove('active');
+        step.classList.add('done');
+        ind.className = 'step-indicator done';
+        ind.textContent = '✓';
+        t.textContent = ((Date.now() - (stepTimers[name] || Date.now())) / 1000).toFixed(1) + 's';
+      }
+
+      function startVisualProgress() {
+        const provider = document.getElementById('apiProvider');
+        const isPixapi = provider && provider.value !== 'recraft';
+        const hasImage = imageInput.files && imageInput.files[0];
+
+        // Update step labels based on provider
+        if (isPixapi && hasImage) {
+          document.querySelector('#step-mask .step-label').textContent = 'Analyzing image content';
+          document.querySelector('#step-inpaint .step-label').textContent = 'Running Gemini AI Image Edit';
+        } else if (hasImage) {
+          document.querySelector('#step-mask .step-label').textContent = 'Generating segmentation mask (CLIPSeg)';
+          document.querySelector('#step-inpaint .step-label').textContent = 'Running SDXL In-Painting reconstruction';
+        }
+
+        progressTracker.style.display = 'block';
+        progressTracker.classList.add('visible');
+        activateStep('upload');
+
+        if (isPixapi && hasImage) {
+          // For Pixapi: skip mask step quickly since CLIPSeg is not used
+          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 800);
+          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 1500);
+        } else {
+          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 1500);
+          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 6000);
+        }
+      }
+
+      function finishVisualProgress() {
+        clearTimeout(stepTimeout1);
+        clearTimeout(stepTimeout2);
+        completeStep('upload');
+        completeStep('mask');
+        completeStep('inpaint');
+        activateStep('save');
+        setTimeout(() => completeStep('save'), 600);
+      }
+
+      /* ================================================================
+         PROCESS BUTTON
+      ================================================================ */
+      processBtn.addEventListener('click', async () => {
+        const file = imageInput.files[0];
+        const prompt = promptInput.value.trim();
+
+        if (!file && !prompt) {
+          showError('Please upload an image or provide a prompt.');
+          return;
+        } 
+        if (!prompt) {
+          showError('Please describe what you want to ' + currentMode + '.');
+          return;
+        }
+
+        resetProgress();
+        resultsSection.classList.remove('visible');
+        resultsSection.style.display = 'none';
+        processBtn.disabled = true;
+        processBtn.classList.add('loading');
+        startVisualProgress();
+
+        const formData = new FormData();
+        if (file) {
+          formData.append('image', file);
+        }
+        formData.append('prompt', prompt);
+        formData.append('mode', currentMode);
+
+        const maskInput = document.getElementById('maskPromptInput');
+        if (maskInput && maskInput.value.trim()) {
+          formData.append('mask_prompt', maskInput.value.trim());
+        }
+        const negPrompt = negPromptInput.value.trim();
+        if (negPrompt) formData.append('negative_prompt', negPrompt);
+
+        const overlayInput = document.getElementById('overlayInput');
+        if (overlayInput && overlayInput.files[0]) {
+          formData.append('overlay', overlayInput.files[0]);
+        }
+
+        const apiProviderSelect = document.getElementById('apiProviderSelect');
+        if (apiProviderSelect) {
+          formData.append('api_provider', apiProviderSelect.value);
+        }
+
+        const imageSizeSelect = document.getElementById('imageSizeSelect');
+        if (imageSizeSelect) {
+          formData.append('image_size', imageSizeSelect.value);
+        }
+
+        try {
+          const response = await fetch('/process', { method: 'POST', body: formData });
+          const data = await response.json();
+
+          if (response.status === 429 || data.error === 'rate_limit') {
+            document.getElementById('rate-limit-banner').style.display = 'block';
+            resetProgress();
+            return;
+          }
+          if (!response.ok || data.error) {
+            showError(data.error || 'Server error: ' + response.status);
+            resetProgress();
+            return;
+          }
+
+          finishVisualProgress();
+          await new Promise(r => setTimeout(r, 800));
+
+          if (data.original_image) {
+            originalImage.src = data.original_image + '?t=' + Date.now();
+          }
+          resultImage.src = data.result_image + '?t=' + Date.now();
+          const resultFilename = data.result_image.split('/').pop();
+
+          document.getElementById('downloadPngBtn').href = '/download/' + resultFilename + '/png';
+          document.getElementById('downloadPngBtn').download = currentMode + '_result.png';
+
+          document.getElementById('downloadJpgBtn').href = '/download/' + resultFilename + '/jpg';
+          document.getElementById('downloadJpgBtn').download = currentMode + '_result.jpg';
+
+          document.getElementById('downloadPdfBtn').href = '/download/' + resultFilename + '/pdf';
+          document.getElementById('downloadPdfBtn').download = currentMode + '_result.pdf';
+
+          document.getElementById('downloadSvgBtn').href = '/download/' + resultFilename + '/svg';
+          document.getElementById('downloadSvgBtn').download = currentMode + '_result.svg';
+
+          document.getElementById('downloadCdrBtn').href = '/download/' + resultFilename + '/cdr';
+          document.getElementById('downloadCdrBtn').download = currentMode + '_result.cdr';
+
+          document.getElementById('downloadCdrxBtn').href = '/download/' + resultFilename + '/cdrx';
+          document.getElementById('downloadCdrxBtn').download = currentMode + '_result.cdrx';
+
+          document.getElementById('downloadGmsBtn').href = '/download/' + resultFilename + '/gms';
+          document.getElementById('downloadGmsBtn').download = currentMode + '_result.gms';
+
+          document.getElementById('downloadCgsBtn').href = '/download/' + resultFilename + '/cgs';
+          document.getElementById('downloadCgsBtn').download = currentMode + '_result.cgs';
+          document.querySelector('.label-result').textContent = MODE_CONFIG[currentMode].resultLabel;
+
+          resultsSection.style.display = 'block';
+          setTimeout(() => {
+            resultsSection.classList.add('visible');
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 50);
+
+          // Refresh history panel after a short delay so the DB has committed
+          setTimeout(loadHistory, 1200);
+
+        } catch (err) {
+          showError('Network error — is the Flask server running?');
+          resetProgress();
+          console.error(err);
+        } finally {
+          processBtn.disabled = false;
+          processBtn.classList.remove('loading');
+        }
+      });
+
+    // =========================================================
+    // SMART PROMPT — /smart-process endpoint
+    // =========================================================
+    const smartBtn         = document.getElementById('smartBtn');
+    const smartInput       = document.getElementById('smartPromptInput');
+    const smartStatus      = document.getElementById('smartStatus');
+    const smartStatusIcon  = document.getElementById('smartStatusIcon');
+    const smartStatusText  = document.getElementById('smartStatusText');
+    const smartMatchBadge  = document.getElementById('smartMatchBadge');
+    const smartResult      = document.getElementById('smartResult');
+    const smartOriginalWrap= document.getElementById('smartOriginalWrap');
+    const smartOriginalImg = document.getElementById('smartOriginalImg');
+    const smartResultImg   = document.getElementById('smartResultImg');
+    const smartDownloadBtn = document.getElementById('smartDownloadBtn');
+
+    function setSmartStatus(icon, text, badgeText, badgeClass) {
+      smartStatusIcon.textContent = icon;
+      smartStatusText.textContent = text;
+      smartMatchBadge.textContent = badgeText || '';
+      smartMatchBadge.className   = 'smart-match-badge ' + (badgeClass || '');
+      smartStatus.classList.add('visible');
+    }
+
+    smartBtn.addEventListener('click', async () => {
+      const prompt = smartInput.value.trim();
+      if (!prompt) { smartInput.focus(); return; }
+
+      // Reset
+      smartResult.classList.remove('visible');
+      smartOriginalWrap.style.display = 'none';
+      smartBtn.disabled = true;
+      smartBtn.classList.add('loading');
+      document.getElementById('smartBtnText').textContent = 'Processing…';
+      setSmartStatus('🔍', 'Searching your image library…', '', '');
+
+      try {
+        const apiProvider = document.getElementById('apiProviderSelect')
+          ? document.getElementById('apiProviderSelect').value
+          : 'nanobanana';
+
+        const res = await fetch('/smart-process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, api_provider: apiProvider }),
+        });
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setSmartStatus('❌', data.error || 'Server error', 'Error', 'badge-error');
+          return;
+        }
+
+        // Show result
+        smartResultImg.src = data.result_image + '?t=' + Date.now();
+        smartDownloadBtn.href = data.result_image;
+        smartDownloadBtn.download = 'smart_result.png';
+
+        if (data.matched && data.original_image) {
+          smartOriginalImg.src = data.original_image + '?t=' + Date.now();
+          smartOriginalWrap.style.display = 'block';
+          setSmartStatus(
+            '✅', `Matched "${data.matched_name}" (score: ${data.match_score}) — edited with AI`,
+            'Image Found', 'badge-matched'
+          );
+        } else {
+          smartOriginalWrap.style.display = 'none';
+          setSmartStatus('✨', 'No match found — generated a brand new image', 'New Image', 'badge-new');
+        }
+
+        smartResult.classList.add('visible');
+        setTimeout(() => loadHistory(), 1200);
+
+      } catch (err) {
+        setSmartStatus('❌', 'Network error — is Flask running?', 'Error', 'badge-error');
+        console.error(err);
+      } finally {
+        smartBtn.disabled = false;
+        smartBtn.classList.remove('loading');
+        document.getElementById('smartBtnText').textContent = '✨ Smart Edit';
+      }
+    });
+
+    // Allow Enter key to trigger smart search
+    smartInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') smartBtn.click();
+    });
+
+    // Load history on page start
+    loadHistory();
+
+    // =========================================================
+    // HISTORY PANEL — load from /history endpoint
+    // =========================================================
+    async function loadHistory() {
+      try {
+        const res = await fetch('/history');
+        if (!res.ok) return;
+        const jobs = await res.json();
+        const grid = document.getElementById('historyGrid');
+        const count = document.getElementById('historyCount');
+
+        count.textContent = jobs.length + (jobs.length === 1 ? ' job' : ' jobs');
+
+        if (jobs.length === 0) {
+          grid.innerHTML = `
+            <div class="history-empty">
+              <div class="empty-icon">🖼️</div>
+              <p>No edits yet. Upload a label and run your first AI edit!</p>
+            </div>`;
+          return;
+        }
+
+        grid.innerHTML = jobs.map(job => {
+          const modeClass = 'hb-' + job.mode;
+          const hasOriginal = !!job.original_url;
+          const imgsHtml = hasOriginal
+            ? `<img src="${job.original_url}" alt="Original: ${job.original_name}" loading="lazy" />
+               <img src="${job.result_url}" alt="Result" loading="lazy" />`
+            : `<img class="single-img" src="${job.result_url}" alt="Generated result" loading="lazy" />`;
+
+          return `
+          <article class="history-card">
+            <div class="history-imgs">${imgsHtml}</div>
+            <div class="history-meta">
+              <div class="history-prompt" title="${job.prompt}">${job.prompt}</div>
+              <div class="history-info">
+                <span class="history-badge ${modeClass}">${job.mode}</span>
+                <span class="history-badge" style="background:rgba(8,145,178,0.1);color:#0891b2">${job.api_provider}</span>
+                <span class="history-time">${job.created_at}</span>
+              </div>
+            </div>
+          </article>`;
+        }).join('');
+
+      } catch (e) {
+        console.warn('History load failed:', e);
+      }
+    }
+
+    })();
+  </script>
+
+  <!-- ============================================================
+     HISTORY PANEL
+============================================================ -->
+  <section class="history-panel" id="historyPanel" aria-label="Job history">
+    <div class="history-header">
+      <h2 class="history-title">
+        <span class="icon">🗂️</span>
+        Upload &amp; Edit History
+      </h2>
+      <span class="history-count" id="historyCount">0 jobs</span>
+    </div>
+    <div class="history-grid" id="historyGrid">
+      <div class="history-empty">
+        <div class="empty-icon">🖼️</div>
+        <p>No edits yet. Upload a label and run your first AI edit!</p>
+      </div>
+    </div>
+  </section>
+
+</body>
+
+</html>
