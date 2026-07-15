@@ -88,12 +88,21 @@ def translate_prompt(text: str) -> str:
         pass
     return text
 
+try:
+    import spaces
+except ImportError:
+    class spaces:
+        @staticmethod
+        def GPU(func):
+            return func
+
 # ---------------------------------------------------------------------------
 # CLIPSeg mask generation
 # ---------------------------------------------------------------------------
 _clipseg_processor = None
 _clipseg_model = None
 
+@spaces.GPU
 def generate_mask_with_clipseg(pil_img: Image.Image, prompt: str) -> Image.Image:
     global _clipseg_processor, _clipseg_model
     try:
@@ -101,10 +110,13 @@ def generate_mask_with_clipseg(pil_img: Image.Image, prompt: str) -> Image.Image
         from transformers import CLIPSegProcessor, CLIPSegForImageSegmentation
         img = pil_img.convert("RGB")
         w, h = img.size
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         if _clipseg_model is None:
             _clipseg_processor = CLIPSegProcessor.from_pretrained("CIDAS/clipseg-rd64-refined")
-            _clipseg_model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined")
-        inputs = _clipseg_processor(text=[prompt], images=[img], padding="max_length", return_tensors="pt")
+            _clipseg_model = CLIPSegForImageSegmentation.from_pretrained("CIDAS/clipseg-rd64-refined").to(device)
+        else:
+            _clipseg_model = _clipseg_model.to(device)
+        inputs = _clipseg_processor(text=[prompt], images=[img], padding="max_length", return_tensors="pt").to(device)
         with torch.no_grad():
             outputs = _clipseg_model(**inputs)
         import numpy as np
