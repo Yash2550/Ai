@@ -648,6 +648,7 @@ def run_recraft_generations(
         "3:4": "768x1024",
         "3:1": "1280x720",
         "4:1": "1280x720",
+        "8:1": "1280x720",
     }
     resolution = size_map.get(image_size, "1024x1024")
 
@@ -1839,117 +1840,167 @@ def download_image(filename, fmt):
 
     stem = filename.rsplit(".", 1)[0]
 
-    # ── PNG ──────────────────────────────────────────────────────────────────
-    if fmt == "png":
-        return send_from_directory(app.config["RESULTS_FOLDER"], filename, as_attachment=True)
-
-    # ── JPEG ─────────────────────────────────────────────────────────────────
-    elif fmt in ("jpg", "jpeg"):
-        out_io = io.BytesIO()
+    # Upscale the image to 2K resolution (longest side at least 2560 pixels)
+    # We will save the upscaled image to a temporary file during the duration of the request.
+    import tempfile
+    
+    # 2K/QHD Target: we upscale the longest side to 2560 pixels to guarantee 2K print quality
+    TARGET_MAX_DIM = 2560
+    
+    temp_filepath = None
+    active_filepath = filepath
+    try:
         with Image.open(filepath) as img:
-            img.convert("RGB").save(out_io, "JPEG", quality=100, subsampling=0)
-        out_io.seek(0)
-        return send_file(
-            out_io,
-            mimetype="image/jpeg",
-            as_attachment=True,
-            download_name=stem + ".jpg",
-        )
+            w, h = img.size
+            if max(w, h) < TARGET_MAX_DIM:
+                scale = TARGET_MAX_DIM / float(max(w, h))
+                new_w = int(round(w * scale))
+                new_h = int(round(h * scale))
+                
+                try:
+                    resample_filter = Image.Resampling.LANCZOS
+                except AttributeError:
+                    resample_filter = Image.ANTIALIAS
+                
+                img_upscaled = img.resize((new_w, new_h), resample_filter)
+                
+                # Create a temporary file to store the upscaled version
+                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+                    temp_filepath = tmp_file.name
+                
+                img_upscaled.save(temp_filepath, "PNG", dpi=(300, 300))
+                active_filepath = temp_filepath
+    except Exception as e:
+        app.logger.warning("Failed to upscale image for download: %s. Using original quality.", e)
+        active_filepath = filepath
 
-    # ── PDF ──────────────────────────────────────────────────────────────────
-    elif fmt == "pdf":
-        try:
-            pdf_bytes = _build_pdf_from_image(filepath)
-            out_io = io.BytesIO(pdf_bytes)
+    try:
+        # ── PNG ──────────────────────────────────────────────────────────────────
+        if fmt == "png":
+            if active_filepath != filepath:
+                with open(active_filepath, "rb") as f:
+                    file_data = f.read()
+                out_io = io.BytesIO(file_data)
+                return send_file(
+                    out_io,
+                    mimetype="image/png",
+                    as_attachment=True,
+                    download_name=stem + ".png",
+                )
+            else:
+                return send_from_directory(app.config["RESULTS_FOLDER"], filename, as_attachment=True)
+    
+        # ── JPEG ─────────────────────────────────────────────────────────────────
+        elif fmt in ("jpg", "jpeg"):
+            out_io = io.BytesIO()
+            with Image.open(active_filepath) as img:
+                img.convert("RGB").save(out_io, "JPEG", quality=100, subsampling=0)
+            out_io.seek(0)
             return send_file(
                 out_io,
-                mimetype="application/pdf",
+                mimetype="image/jpeg",
                 as_attachment=True,
-                download_name=stem + ".pdf",
+                download_name=stem + ".jpg",
             )
-        except Exception as exc:
-            app.logger.error("PDF export failed: %s", exc)
-            return f"PDF export failed: {exc}", 500
-
-    # ── SVG ──────────────────────────────────────────────────────────────────
-    elif fmt == "svg":
-        try:
-            svg_bytes = _build_svg_from_image(filepath)
-            out_io = io.BytesIO(svg_bytes)
-            return send_file(
-                out_io,
-                mimetype="image/svg+xml",
-                as_attachment=True,
-                download_name=stem + ".svg",
-            )
-        except Exception as exc:
-            app.logger.error("SVG export failed: %s", exc)
-            return f"SVG export failed: {exc}", 500
-
-    # ── CDR (CorelDRAW — SVG-compatible import) ───────────────────────────────
-    elif fmt == "cdr":
-        try:
-            # CorelDRAW imports SVG files; delivering SVG with .cdr extension
-            # is the most compatible open approach for CDR exchange.
-            svg_bytes = _build_svg_from_image(filepath)
-            out_io = io.BytesIO(svg_bytes)
-            return send_file(
-                out_io,
-                mimetype="application/octet-stream",
-                as_attachment=True,
-                download_name=stem + ".cdr",
-            )
-        except Exception as exc:
-            app.logger.error("CDR export failed: %s", exc)
-            return f"CDR export failed: {exc}", 500
-
-    # ── CDRx (CorelDRAW X ZIP exchange package) ──────────────────────────────
-    elif fmt == "cdrx":
-        try:
-            zip_bytes = _build_cdrx_zip(filepath, stem)
-            out_io = io.BytesIO(zip_bytes)
-            return send_file(
-                out_io,
-                mimetype="application/octet-stream",
-                as_attachment=True,
-                download_name=stem + ".cdrx",
-            )
-        except Exception as exc:
-            app.logger.error("CDRx export failed: %s", exc)
-            return f"CDRx export failed: {exc}", 500
-
-    # ── GMS (CorelDRAW VBA macro script) ────────────────────────────────────
-    elif fmt == "gms":
-        try:
-            gms_bytes = _build_gms_script(filepath, stem)
-            out_io = io.BytesIO(gms_bytes)
-            return send_file(
-                out_io,
-                mimetype="application/octet-stream",
-                as_attachment=True,
-                download_name=stem + ".gms",
-            )
-        except Exception as exc:
-            app.logger.error("GMS export failed: %s", exc)
-            return f"GMS export failed: {exc}", 500
-
-    # ── CGS (CorelDRAW Custom Graphic Style) ────────────────────────────────
-    elif fmt == "cgs":
-        try:
-            cgs_bytes = _build_cgs_xml(filepath, stem)
-            out_io = io.BytesIO(cgs_bytes)
-            return send_file(
-                out_io,
-                mimetype="application/octet-stream",
-                as_attachment=True,
-                download_name=stem + ".cgs",
-            )
-        except Exception as exc:
-            app.logger.error("CGS export failed: %s", exc)
-            return f"CGS export failed: {exc}", 500
-
-    else:
-        return "Unsupported format", 400
+    
+        # ── PDF ──────────────────────────────────────────────────────────────────
+        elif fmt == "pdf":
+            try:
+                pdf_bytes = _build_pdf_from_image(active_filepath)
+                out_io = io.BytesIO(pdf_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="application/pdf",
+                    as_attachment=True,
+                    download_name=stem + ".pdf",
+                )
+            except Exception as exc:
+                app.logger.error("PDF export failed: %s", exc)
+                return f"PDF export failed: {exc}", 500
+    
+        # ── SVG ──────────────────────────────────────────────────────────────────
+        elif fmt == "svg":
+            try:
+                svg_bytes = _build_svg_from_image(active_filepath)
+                out_io = io.BytesIO(svg_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="image/svg+xml",
+                    as_attachment=True,
+                    download_name=stem + ".svg",
+                )
+            except Exception as exc:
+                app.logger.error("SVG export failed: %s", exc)
+                return f"SVG export failed: {exc}", 500
+    
+        # ── CDR (CorelDRAW — SVG-compatible import) ───────────────────────────────
+        elif fmt == "cdr":
+            try:
+                svg_bytes = _build_svg_from_image(active_filepath)
+                out_io = io.BytesIO(svg_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="application/octet-stream",
+                    as_attachment=True,
+                    download_name=stem + ".cdr",
+                )
+            except Exception as exc:
+                app.logger.error("CDR export failed: %s", exc)
+                return f"CDR export failed: {exc}", 500
+    
+        # ── CDRx (CorelDRAW X ZIP exchange package) ──────────────────────────────
+        elif fmt == "cdrx":
+            try:
+                zip_bytes = _build_cdrx_zip(active_filepath, stem)
+                out_io = io.BytesIO(zip_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="application/octet-stream",
+                    as_attachment=True,
+                    download_name=stem + ".cdrx",
+                )
+            except Exception as exc:
+                app.logger.error("CDRx export failed: %s", exc)
+                return f"CDRx export failed: {exc}", 500
+    
+        # ── GMS (CorelDRAW VBA macro script) ────────────────────────────────────
+        elif fmt == "gms":
+            try:
+                gms_bytes = _build_gms_script(active_filepath, stem)
+                out_io = io.BytesIO(gms_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="application/octet-stream",
+                    as_attachment=True,
+                    download_name=stem + ".gms",
+                )
+            except Exception as exc:
+                app.logger.error("GMS export failed: %s", exc)
+                return f"GMS export failed: {exc}", 500
+    
+        # ── CGS (CorelDRAW Custom Graphic Style) ────────────────────────────────
+        elif fmt == "cgs":
+            try:
+                cgs_bytes = _build_cgs_xml(active_filepath, stem)
+                out_io = io.BytesIO(cgs_bytes)
+                return send_file(
+                    out_io,
+                    mimetype="application/octet-stream",
+                    as_attachment=True,
+                    download_name=stem + ".cgs",
+                )
+            except Exception as exc:
+                app.logger.error("CGS export failed: %s", exc)
+                return f"CGS export failed: {exc}", 500
+        
+        else:
+            return "Unsupported format", 400
+    finally:
+        if temp_filepath and os.path.exists(temp_filepath):
+            try:
+                os.remove(temp_filepath)
+            except OSError:
+                pass
 
 
 # ---------------------------------------------------------------------------
