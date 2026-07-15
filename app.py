@@ -1375,7 +1375,11 @@ def smart_process():
             return jsonify({"error": "NANOBANANA_API_KEY is not configured."}), 500
 
     unique_stem = str(uuid.uuid4())[:8]
-    negative_prompt = "blurry, low quality, distorted text, watermark, artifacts"
+    negative_prompt = (
+        "3d jar container mockup, bottle model, packaging mockup, perspective mockup, "
+        "photographic background, studio background, wrinkled paper, blurry, low quality, "
+        "distorted text, watermark, artifacts"
+    )
 
     # ----------------------------------------------------------------
     # Step 1: Search database for a matching image
