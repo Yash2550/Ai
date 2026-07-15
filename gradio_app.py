@@ -90,57 +90,46 @@ def translate_prompt(text: str) -> str:
 
 def enhance_prompt_layout(prompt: str) -> str:
     """
-    Enhance the prompt with smart, premium layout instructions and context-based descriptors:
-    categorizes the product type, injects relevant styling parameters, prevents distortion,
-    and formats for offset-print retail packaging.
+    Enhance the prompt to match the exact signature GOMZI branding and layout style
+    from the first image (diagonal stripes, angled 3D title, curved ribbon, specific panels).
     """
     if not prompt:
         return ""
     
     p_lower = prompt.lower()
-    enhancements = []
     
-    # 1. Product Type Recognition
-    if any(k in p_lower for k in ["protein", "whey", "supplement", "creatine", "nutrition", "amino", "bcaa", "gym", "workout"]):
-        enhancements.append("ultra-premium commercial sports nutrition supplement container label, fitness-focused luxury branding, pharmaceutical-grade packaging aesthetic, bold modern sans-serif typography, clean layout divisions")
-    elif any(k in p_lower for k in ["drink", "energy", "soda", "can", "bottle", "juice", "beverage", "beer", "wine", "cola", "water"]):
-        enhancements.append("commercial retail beverage packaging label, vibrant dynamic color palette, refreshing clean graphics, high-end soda branding, modern typography, glossy metallic finish")
-    elif any(k in p_lower for k in ["cream", "lotion", "serum", "shampoo", "cosmetic", "beauty", "soap", "skincare", "perfume", "oil"]):
-        enhancements.append("minimalist luxury cosmetic skincare label, elegant clean serif typography, organic aesthetic, soft pastel colors, premium matte finish, high-end retail presentation")
-    elif any(k in p_lower for k in ["coffee", "tea", "mocha", "latte", "cappuccino", "cafe"]):
-        enhancements.append("gourmet premium coffee packaging label, rich warm color tones, packaging design, clean modern typography, high-end cafe style")
-    elif any(k in p_lower for k in ["chocolate", "candy", "cookie", "food", "sauce", "honey", "snack", "syrup"]):
-        enhancements.append("gourmet food packaging design, appetizing commercial food illustration, clean professional layout, premium retail branding")
-    else:
-        enhancements.append("ultra-premium commercial retail product packaging label, high-end branding aesthetic, modern clean layout")
-
-    # 2. Ingredient / Flavor enhancements
+    # Extract flavor from prompt
+    flavor_desc = "flavor ingredients"
     if "chocolate" in p_lower:
-        enhancements.append("rich chocolate color palette, chocolate drizzle details, luxury finish")
-    if "coffee" in p_lower or "mocha" in p_lower:
-        enhancements.append("coffee brown gradients, roasted coffee bean details, warm aromatic tones")
-    if any(k in p_lower for k in ["mango", "orange", "citrus", "lemon", "lime", "peach"]):
-        enhancements.append("vibrant citrus gradients, fresh fruit illustrations, bright energetic color scheme")
-    if any(k in p_lower for k in ["berry", "strawberry", "blueberry", "raspberry"]):
-        enhancements.append("deep berry red and purple gradients, delicious fruit graphic details")
-    if "vanilla" in p_lower:
-        enhancements.append("warm cream color palette, gold accent borders, elegant soft tones")
+        flavor_desc = "Belgian chocolate rolls and chocolate curls"
+    elif "coffee" in p_lower or "mocha" in p_lower:
+        flavor_desc = "roasted coffee beans and creamy mocha shake"
+    elif "mango" in p_lower:
+        flavor_desc = "fresh sliced mangoes"
+    elif "strawberry" in p_lower or "berry" in p_lower:
+        flavor_desc = "fresh strawberries and red berries"
+    elif "vanilla" in p_lower:
+        flavor_desc = "vanilla orchids and vanilla pods"
+    elif "banana" in p_lower:
+        flavor_desc = "fresh banana slices"
+    elif "cookies" in p_lower or "cream" in p_lower:
+        flavor_desc = "crushed chocolate cookies and cream splash"
 
-    # 3. Structural elements
-    if any(k in p_lower for k in ["serving", "servings", "nutrition", "fact", "facts"]):
-        enhancements.append("with a clearly separated servings table and nutritional facts section on the side panel")
-    
-    # 4. Standard Quality & Print requirements
-    enhancements.append("flat print layout, symmetrical wrap-around template design, no image distortion, vector-sharp edges, crisp typography, realistic lighting and soft drop shadows, print-ready 300 DPI quality, premium retail shelf-ready presentation")
-
-    # Combine
-    enhanced = prompt.strip()
-    if not enhanced.endswith("."):
-        enhanced += ","
-    else:
-        enhanced = enhanced[:-1] + ","
-        
-    enhanced += " " + ", ".join(enhancements)
+    # Build the enhanced prompt using the exact style from the first image
+    enhanced = (
+        f"Create an ultra-premium, commercial-quality sports nutrition supplement container wrap-around label "
+        f"for a cylindrical 1 kg jar in a 3.74:1 aspect ratio, based on the prompt: '{prompt}'. "
+        f"The label features a clean metallic white background with embossed diagonal silver stripes running from the upper-left to the lower-right corner. "
+        f"In the center branding area, display the product title 'WHEY PROTEIN' using an ultra-bold condensed sans-serif font, dynamically angled upwards. "
+        f"The word 'WHEY' is in metallic blue with dark outlines, and the word 'PROTEIN' is in charcoal black with metallic drop shadows. "
+        f"A curved ribbon sweeps diagonally near the lower-right, featuring a coffee-brown border and premium blue fill. "
+        f"To the left of this ribbon is a vertical coffee-brown strip. "
+        f"At the lower center of the branding panel, place a highly realistic illustration of {flavor_desc}. "
+        f"To the right of this, display three vertically aligned nutritional highlights: 'PROTEIN 24G', 'BCAAs 5.87G', 'EAAs 11.50G' in large typography. "
+        f"The left panel contains product information with blue headings and a row of certification logos (GMP, ISO, FSSAI, vegetarian logo) at the bottom. "
+        f"The right panel features a solid blue background with a white nutrition facts table. "
+        f"The design must be a flat print layout, symmetrical wrap-around template, print-ready 300 DPI, vector-sharp text, realistic lighting, and premium retail packaging look."
+    )
     return enhanced
 
 try:
