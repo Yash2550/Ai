@@ -9,3 +9,4 @@ transformers
 huggingface_hub
 vtracer>=0.6.15
 reportlab>=4.1.0
+pydantic<=2.10.6
