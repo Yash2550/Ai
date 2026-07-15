@@ -419,12 +419,6 @@ def process(
     provider = "recraft" if "Recraft" in api_provider else "nanobanana"
     stem = str(uuid.uuid4())[:8]
 
-    # Validate keys
-    if provider == "recraft" and not RECRAFT_API_KEY:
-        return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
-    if provider == "nanobanana" and not NANOBANANA_API_KEY:
-        return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
-
     try:
         # ── Text-to-Image (Generate) ─────────────────────────────────────────
         if mode == "Generate (no image)" or image is None:
@@ -432,8 +426,12 @@ def process(
             enhanced = (prompt + ", professional commercial product label design, "
                         "symmetrical layout, crisp design details")
             if provider == "recraft":
+                if not RECRAFT_API_KEY:
+                    return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
                 url = run_recraft_generations(enhanced, "1:1")
             else:
+                if not NANOBANANA_API_KEY:
+                    return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
                 url = run_nanobanana_generations(enhanced, "1:1")
             img_bytes = requests.get(url, timeout=30).content
             result_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
@@ -489,6 +487,8 @@ def process(
 
         # ── API inpainting (Remove / Add-Replace) ───────────────────────────
         if provider == "recraft":
+            if not RECRAFT_API_KEY:
+                return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
             mask_l = generate_mask_with_clipseg(pil_img, mask_prompt)
             # Save tmp files for Recraft multipart upload
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
@@ -510,6 +510,8 @@ def process(
                     try: os.remove(p)
                     except OSError: pass
         else:
+            if not NANOBANANA_API_KEY:
+                return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
             data_uri = image_to_data_uri(pil_img)
             inpaint_prompt = (f"Edit this product label image: {prompt}. "
                               "Keep all other elements exactly the same. "
