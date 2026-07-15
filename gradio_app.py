@@ -89,6 +89,7 @@ def translate_prompt(text: str) -> str:
     return text
 
 try:
+    # pyrefly: ignore [missing-import]
     import spaces
 except ImportError:
     class spaces:
@@ -240,11 +241,25 @@ def run_recraft_inpainting(image_path, mask_path, prompt, negative_prompt=None):
         raise RuntimeError(f"Recraft API error {resp.status_code}: {resp.text}")
     return resp.json()["data"][0]["url"]
 
+def crop_to_aspect_ratio(img: Image.Image, target_ratio: float) -> Image.Image:
+    w, h = img.size
+    current_ratio = w / h
+    if abs(current_ratio - target_ratio) < 1e-4:
+        return img
+    if current_ratio > target_ratio:
+        new_w = int(h * target_ratio)
+        left = (w - new_w) // 2
+        return img.crop((left, 0, left + new_w, h))
+    else:
+        new_h = int(w / target_ratio)
+        top = (h - new_h) // 2
+        return img.crop((0, top, w, top + new_h))
+
 def run_recraft_generations(prompt, image_size="1:1"):
     if not RECRAFT_API_KEY:
         raise RuntimeError("RECRAFT_API_KEY is not set in Secrets.")
     size_map = {"1:1":"1024x1024","16:9":"1280x720","9:16":"720x1280",
-                "4:3":"1024x768","3:4":"768x1024"}
+                "4:3":"1024x768","3:4":"768x1024","2:1":"1024x512"}
     resolution = size_map.get(image_size, "1024x1024")
     url = "https://external.api.recraft.ai/v1/images/generations"
     headers = {"Authorization": f"Bearer {RECRAFT_API_KEY}", "Content-Type": "application/json"}
@@ -411,6 +426,7 @@ def process(
     api_provider,   # "Recraft.ai", "Nano Banana"
     negative_prompt,
     overlay_image,  # PIL Image or None
+    aspect_ratio="4:1",
 ):
     if not prompt or not prompt.strip():
         return None, "❌ Please enter a prompt."
@@ -419,22 +435,36 @@ def process(
     provider = "recraft" if "Recraft" in api_provider else "nanobanana"
     stem = str(uuid.uuid4())[:8]
 
+    # Validate keys
+    if provider == "recraft" and not RECRAFT_API_KEY:
+        return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
+    if provider == "nanobanana" and not NANOBANANA_API_KEY:
+        return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
+
     try:
         # ── Text-to-Image (Generate) ─────────────────────────────────────────
         if mode == "Generate (no image)" or image is None:
             status = "⏳ Generating image…"
             enhanced = (prompt + ", professional commercial product label design, "
                         "symmetrical layout, crisp design details")
+            # Map aspect ratio for the API
+            api_aspect = aspect_ratio
+            if aspect_ratio == "4:1":
+                api_aspect = "2:1"
+            
             if provider == "recraft":
-                if not RECRAFT_API_KEY:
-                    return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
-                url = run_recraft_generations(enhanced, "1:1")
+                url = run_recraft_generations(enhanced, api_aspect)
             else:
-                if not NANOBANANA_API_KEY:
-                    return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
-                url = run_nanobanana_generations(enhanced, "1:1")
+                nanobanana_aspect = "16:9" if api_aspect in ("2:1", "16:9") else api_aspect
+                url = run_nanobanana_generations(enhanced, nanobanana_aspect)
             img_bytes = requests.get(url, timeout=30).content
             result_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            
+            # Crop to target aspect ratio
+            ratio_map = {"1:1": 1.0, "16:9": 16/9, "2:1": 2.0, "4:1": 4.0}
+            target_val = ratio_map.get(aspect_ratio, 1.0)
+            result_img = crop_to_aspect_ratio(result_img, target_val)
+            
             return result_img, "✅ Image generated!"
 
         # ── Inpainting modes ─────────────────────────────────────────────────
@@ -487,8 +517,6 @@ def process(
 
         # ── API inpainting (Remove / Add-Replace) ───────────────────────────
         if provider == "recraft":
-            if not RECRAFT_API_KEY:
-                return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
             mask_l = generate_mask_with_clipseg(pil_img, mask_prompt)
             # Save tmp files for Recraft multipart upload
             with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
@@ -510,8 +538,6 @@ def process(
                     try: os.remove(p)
                     except OSError: pass
         else:
-            if not NANOBANANA_API_KEY:
-                return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
             data_uri = image_to_data_uri(pil_img)
             inpaint_prompt = (f"Edit this product label image: {prompt}. "
                               "Keep all other elements exactly the same. "
@@ -606,6 +632,7 @@ with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
             with gr.Row():
                 mode_dd = gr.Dropdown(MODES, value="Remove", label="Mode")
                 provider_dd = gr.Dropdown(PROVIDERS, value="Recraft.ai", label="API Provider")
+                aspect_dd = gr.Dropdown(["1:1", "16:9", "2:1", "4:1"], value="4:1", label="Aspect Ratio (Generate)")
 
             with gr.Accordion("⚙️ Advanced Options", open=False):
                 neg_prompt = gr.Textbox(
@@ -640,10 +667,10 @@ with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
     gr.Markdown("---\n### 💡 Example Prompts")
     gr.Examples(
         examples=[
-            [None, "A bright orange energy drink product label with bold typography", "Generate (no image)", "Recraft.ai"],
-            [None, "Professional whey protein supplement label, chocolate flavour", "Generate (no image)", "Recraft.ai"],
+            [None, "A bright orange energy drink product label with bold typography", "Generate (no image)", "Recraft.ai", "4:1"],
+            [None, "Professional whey protein supplement label, chocolate flavour", "Generate (no image)", "Recraft.ai", "4:1"],
         ],
-        inputs=[input_image, prompt_box, mode_dd, provider_dd],
+        inputs=[input_image, prompt_box, mode_dd, provider_dd, aspect_dd],
         label="Text-to-Image examples (no upload needed)",
     )
 
@@ -663,13 +690,13 @@ with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
     # ── Event wiring ─────────────────────────────────────────────────────
     _result_state = gr.State(None)
 
-    def run_and_store(img, prompt, mode, provider, neg, overlay):
-        result, status = process(img, prompt, mode, provider, neg, overlay)
+    def run_and_store(img, prompt, mode, provider, neg, overlay, aspect):
+        result, status = process(img, prompt, mode, provider, neg, overlay, aspect)
         return result, result, status
 
     run_btn.click(
         fn=run_and_store,
-        inputs=[input_image, prompt_box, mode_dd, provider_dd, neg_prompt, overlay_image],
+        inputs=[input_image, prompt_box, mode_dd, provider_dd, neg_prompt, overlay_image, aspect_dd],
         outputs=[result_image, _result_state, status_box],
     )
 
