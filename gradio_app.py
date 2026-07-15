@@ -336,6 +336,43 @@ def build_pdf(img: Image.Image) -> bytes:
 
 def build_svg(img: Image.Image) -> bytes:
     w, h = img.size
+    
+    # --- Attempt true vector tracing via vtracer ---
+    try:
+        import vtracer
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_in:
+            tmp_in_path = tmp_in.name
+        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_out:
+            tmp_out_path = tmp_out.name
+
+        try:
+            img.convert("RGB").save(tmp_in_path, "PNG")
+            vtracer.convert_image_to_svg_py(
+                tmp_in_path,
+                tmp_out_path,
+                colormode="color",
+                hierarchical="stacked",
+                mode="spline",
+                filter_speckle=4,
+                color_precision=8,
+                corner_threshold=60,
+                length_threshold=4.0,
+                max_iterations=10,
+                splice_threshold=45,
+                path_precision=8,
+            )
+            with open(tmp_out_path, "rb") as f:
+                return f.read()
+        finally:
+            for p in (tmp_in_path, tmp_out_path):
+                try: os.remove(p)
+                except OSError: pass
+    except Exception:
+        pass  # Fall through to embedded-image SVG
+
+    # --- Fallback: embed the raster image as base64 in an SVG wrapper ---
     buf = io.BytesIO()
     img.convert("RGB").save(buf, "PNG")
     b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
