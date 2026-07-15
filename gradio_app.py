@@ -730,7 +730,7 @@ with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
             with gr.Accordion("⚙️ Advanced Options", open=False):
                 neg_prompt = gr.Textbox(
                     label="Negative Prompt",
-                    value="blurry, low quality, distorted text, watermark, artifacts",
+                    value="3d jar container mockup, bottle model, packaging mockup, perspective mockup, photographic background, studio background, wrinkled paper, blurry, low quality, distorted text, watermark, artifacts",
                     lines=2,
                 )
 
