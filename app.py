@@ -763,22 +763,57 @@ def run_nanobanana_generations(
 
 def enhance_prompt_layout(prompt: str) -> str:
     """
-    Enhance the prompt with layout instructions: keep servings separate, placement details,
-    prevent design elements distortion and ensure commercial product design.
+    Enhance the prompt with smart, premium layout instructions and context-based descriptors:
+    categorizes the product type, injects relevant styling parameters, prevents distortion,
+    and formats for offset-print retail packaging.
     """
     if not prompt:
         return ""
     
-    enhanced = prompt
-    # Emphasize servings section separation if requested
-    if any(k in prompt.lower() for k in ["serving", "servings", "nutrition", "fact", "facts"]):
-        enhanced += ", with a clearly separated servings table and nutritional facts section on the side"
+    p_lower = prompt.lower()
+    enhancements = []
+    
+    # 1. Product Type Recognition
+    if any(k in p_lower for k in ["protein", "whey", "supplement", "creatine", "nutrition", "amino", "bcaa", "gym", "workout"]):
+        enhancements.append("ultra-premium commercial sports nutrition supplement container label, fitness-focused luxury branding, pharmaceutical-grade packaging aesthetic, bold modern sans-serif typography, clean layout divisions")
+    elif any(k in p_lower for k in ["drink", "energy", "soda", "can", "bottle", "juice", "beverage", "beer", "wine", "cola", "water"]):
+        enhancements.append("commercial retail beverage packaging label, vibrant dynamic color palette, refreshing clean graphics, high-end soda branding, modern typography, glossy metallic finish")
+    elif any(k in p_lower for k in ["cream", "lotion", "serum", "shampoo", "cosmetic", "beauty", "soap", "skincare", "perfume", "oil"]):
+        enhancements.append("minimalist luxury cosmetic skincare label, elegant clean serif typography, organic aesthetic, soft pastel colors, premium matte finish, high-end retail presentation")
+    elif any(k in p_lower for k in ["coffee", "tea", "mocha", "latte", "cappuccino", "cafe"]):
+        enhancements.append("gourmet premium coffee packaging label, rich warm color tones, packaging design, clean modern typography, high-end cafe style")
+    elif any(k in p_lower for k in ["chocolate", "candy", "cookie", "food", "sauce", "honey", "snack", "syrup"]):
+        enhancements.append("gourmet food packaging design, appetizing commercial food illustration, clean professional layout, premium retail branding")
+    else:
+        enhancements.append("ultra-premium commercial retail product packaging label, high-end branding aesthetic, modern clean layout")
+
+    # 2. Ingredient / Flavor enhancements
+    if "chocolate" in p_lower:
+        enhancements.append("rich chocolate color palette, chocolate drizzle details, luxury finish")
+    if "coffee" in p_lower or "mocha" in p_lower:
+        enhancements.append("coffee brown gradients, roasted coffee bean details, warm aromatic tones")
+    if any(k in p_lower for k in ["mango", "orange", "citrus", "lemon", "lime", "peach"]):
+        enhancements.append("vibrant citrus gradients, fresh fruit illustrations, bright energetic color scheme")
+    if any(k in p_lower for k in ["berry", "strawberry", "blueberry", "raspberry"]):
+        enhancements.append("deep berry red and purple gradients, delicious fruit graphic details")
+    if "vanilla" in p_lower:
+        enhancements.append("warm cream color palette, gold accent borders, elegant soft tones")
+
+    # 3. Structural elements
+    if any(k in p_lower for k in ["serving", "servings", "nutrition", "fact", "facts"]):
+        enhancements.append("with a clearly separated servings table and nutritional facts section on the side panel")
+    
+    # 4. Standard Quality & Print requirements
+    enhancements.append("flat print layout, symmetrical wrap-around template design, no image distortion, vector-sharp edges, crisp typography, realistic lighting and soft drop shadows, print-ready 300 DPI quality, premium retail shelf-ready presentation")
+
+    # Combine
+    enhanced = prompt.strip()
+    if not enhanced.endswith("."):
+        enhanced += ","
+    else:
+        enhanced = enhanced[:-1] + ","
         
-    enhanced += (
-        ", professional commercial product label design, "
-        "symmetrical wrap-around layout, clear divisions, "
-        "no image distortion, flat print layout, crisp design details"
-    )
+    enhanced += " " + ", ".join(enhancements)
     return enhanced
 
 
@@ -896,7 +931,7 @@ def process_image():
 
             # ---- Save text-to-image job to database (no source image) ----
             job = JobHistory(
-                image_id=None,
+                image_id=None,  
                 prompt=prompt,
                 result_filename=output_filename,
                 api_provider=api_provider,
