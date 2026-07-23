@@ -7,13 +7,7 @@
   <meta name="description"
     content="AI-powered product label editor — remove objects, add elements, or replace designs using SDXL generative in-painting." />
   <title>Label Editor AI — Remove · Add · Replace</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
   <style>
     /* ======================================================
@@ -61,7 +55,7 @@
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       background: var(--clr-bg);
       color: var(--clr-text);
       min-height: 100vh;
@@ -1632,6 +1626,7 @@
               style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text); font-family:inherit; font-size:13px; outline:none; cursor:pointer;">
               <option value="recraft">Recraft.ai</option>
               <option value="nanobanana">Nano Banana</option>
+              <option value="reve">Reve 2.0 (4K Layout AI)</option>
             </select>
           </div>
           <div class="input-group" style="margin-bottom:12px">
@@ -1710,6 +1705,83 @@
           </div>
         </div>
 
+        <!-- Canva Studio Launch Button -->
+        <div style="margin-top:20px; width:100%;">
+          <button id="openCanvaStudioBtn" class="btn-primary"
+            style="background: linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; width:100%; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(125,42,232,0.35); transition:all 0.2s ease;">
+            🎨 Open in Interactive Canva Studio (Drag, Edit Text, Change Logo)
+          </button>
+        </div>
+
+        <!-- Interactive Canva Studio Modal -->
+        <div id="canvaStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); z-index:99999; flex-direction:column; padding:20px; align-items:center; justify-content:center;">
+          <div style="background:#ffffff; width:95%; max-width:1200px; height:90vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+            
+            <!-- Top Studio Bar -->
+            <div style="background:#1e293b; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+              <div style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <span>🎨 Interactive Canva &amp; CorelDRAW Studio</span>
+              </div>
+              
+              <!-- Studio Actions -->
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <button id="addTextBtn" style="background:#3b82f6; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">
+                  🅰️ Add Text
+                </button>
+                
+                <label style="background:#10b981; color:#fff; padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
+                  🖼️ Add Logo/Overlay
+                  <input type="file" id="logoUploadInput" accept="image/*" style="display:none;">
+                </label>
+                
+                <button id="addRectBtn" style="background:#8b5cf6; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">
+                  🔲 Add Badge Shape
+                </button>
+
+                <input type="color" id="textColorPicker" value="#ffffff" title="Text / Shape Color" style="width:36px; height:36px; border:none; border-radius:6px; cursor:pointer; background:none;">
+
+                <select id="fontSelect" style="background:#334155; color:#fff; border:1px solid #475569; padding:8px; border-radius:8px;">
+                  <option value="Arial">Arial</option>
+                  <option value="Impact">Impact</option>
+                  <option value="Montserrat" selected>Montserrat</option>
+                  <option value="Oswald">Oswald</option>
+                  <option value="Roboto">Roboto</option>
+                </select>
+
+                <button id="deleteSelectedBtn" style="background:#ef4444; color:#fff; border:none; padding:8px 14px; border-radius:8px; font-weight:600; cursor:pointer;">
+                  🗑️ Delete
+                </button>
+              </div>
+
+              <!-- Close Studio -->
+              <button id="closeStudioBtn" style="background:#475569; color:#fff; border:none; padding:8px 16px; border-radius:8px; font-weight:600; cursor:pointer;">
+                ✖️ Close
+              </button>
+            </div>
+
+            <!-- Canvas Workspace -->
+            <div id="canvasWorkspaceContainer" style="flex:1; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:auto; position:relative; padding:20px;">
+              <canvas id="canvaStudioCanvas"></canvas>
+            </div>
+
+            <!-- Bottom Export Bar -->
+            <div style="background:#1e293b; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+              <div style="font-size:13px; color:#94a3b8;">
+                💡 Double-click text to edit. Drag &amp; scale any object. Export directly to Canva or CorelDRAW!
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button id="exportSvgStudioBtn" style="background:#0284c7; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer;">
+                  📐 Export SVG (Canva / CorelDRAW)
+                </button>
+                <button id="exportPngStudioBtn" style="background:#16a34a; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer;">
+                  🖼️ Export PNG
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
         <div class="download-group"
           style="display:flex; flex-direction:column; gap:10px; margin-top:20px; align-items:center;">
           <div
@@ -1732,20 +1804,24 @@
             </a>
           </div>
 
-          <!-- Row 2 — Vector / CorelDRAW formats -->
+          <!-- Row 2 — Vector / Canva & CorelDRAW formats -->
           <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
             <a class="btn-download" id="downloadSvgBtn" href="#" download="edited_label.svg"
-              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
               📐 SVG
             </a>
+            <button id="openCanvaDirectBtn" class="btn-download"
+              style="flex:1.5; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%); border:none; color:#fff; font-weight:700; cursor:pointer;">
+              🚀 Download SVG &amp; Open Canva
+            </button>
             <a class="btn-download" id="downloadCdrBtn" href="#" download="edited_label.cdr"
               title="CorelDRAW import-compatible SVG container"
-              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#43a047; border-color:#43a047; color:#fff;">
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#43a047; border-color:#43a047; color:#fff;">
               🎨 CDR
             </a>
             <a class="btn-download" id="downloadCdrxBtn" href="#" download="edited_label.cdrx"
               title="CorelDRAW X ZIP exchange package"
-              style="flex:1; min-width:120px; margin:0; text-align:center; padding:11px 14px; background:#00796b; border-color:#00796b; color:#fff;">
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#00796b; border-color:#00796b; color:#fff;">
               📦 CDRx
             </a>
           </div>
@@ -2457,6 +2533,204 @@
       </div>
     </div>
   </section>
+
+  <!-- ============================================================
+     CANVA & CORELDRAW INTERACTIVE STUDIO SCRIPT
+============================================================ -->
+  <script>
+    (function () {
+      let fabricCanvas = null;
+
+      const openCanvaStudioBtn = document.getElementById('openCanvaStudioBtn');
+      const canvaStudioModal = document.getElementById('canvaStudioModal');
+      const closeStudioBtn = document.getElementById('closeStudioBtn');
+      const resultImage = document.getElementById('resultImage');
+
+      const addTextBtn = document.getElementById('addTextBtn');
+      const logoUploadInput = document.getElementById('logoUploadInput');
+      const addRectBtn = document.getElementById('addRectBtn');
+      const textColorPicker = document.getElementById('textColorPicker');
+      const fontSelect = document.getElementById('fontSelect');
+      const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+
+      const exportSvgStudioBtn = document.getElementById('exportSvgStudioBtn');
+      const exportPngStudioBtn = document.getElementById('exportPngStudioBtn');
+
+      if (openCanvaStudioBtn) {
+        openCanvaStudioBtn.addEventListener('click', function () {
+          if (!resultImage.src || resultImage.src.endsWith('#')) {
+            alert('Please run a label generation or edit first!');
+            return;
+          }
+
+          canvaStudioModal.style.display = 'flex';
+
+          if (!fabricCanvas) {
+            fabricCanvas = new fabric.Canvas('canvaStudioCanvas', {
+              preserveObjectStacking: true,
+            });
+          }
+
+          // Load background image onto Fabric Canvas
+          fabric.Image.fromURL(resultImage.src, function (img) {
+            const maxWidth = Math.min(window.innerWidth * 0.8, 900);
+            const scale = maxWidth / img.width;
+            const canvasW = img.width * scale;
+            const canvasH = img.height * scale;
+
+            fabricCanvas.setWidth(canvasW);
+            fabricCanvas.setHeight(canvasH);
+
+            img.set({
+              scaleX: scale,
+              scaleY: scale,
+              selectable: false,
+              evented: false,
+            });
+
+            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+
+            // Add default editable brand text
+            const sampleText = new fabric.IText('YOUR BRAND NAME', {
+              left: canvasW / 2 - 120,
+              top: canvasH * 0.2,
+              fontFamily: 'Montserrat',
+              fontSize: 28,
+              fill: '#ffffff',
+              fontWeight: 'bold',
+            });
+            fabricCanvas.add(sampleText);
+            fabricCanvas.setActiveObject(sampleText);
+            fabricCanvas.renderAll();
+          }, { crossOrigin: 'anonymous' });
+        });
+      }
+
+      if (closeStudioBtn) {
+        closeStudioBtn.addEventListener('click', function () {
+          canvaStudioModal.style.display = 'none';
+        });
+      }
+
+      if (addTextBtn) {
+        addTextBtn.addEventListener('click', function () {
+          if (!fabricCanvas) return;
+          const text = new fabric.IText('EDITABLE TEXT', {
+            left: 50,
+            top: 50,
+            fontFamily: fontSelect ? fontSelect.value : 'Montserrat',
+            fontSize: 24,
+            fill: textColorPicker ? textColorPicker.value : '#ffffff',
+          });
+          fabricCanvas.add(text);
+          fabricCanvas.setActiveObject(text);
+        });
+      }
+
+      if (logoUploadInput) {
+        logoUploadInput.addEventListener('change', function (e) {
+          const file = e.target.files[0];
+          if (!file || !fabricCanvas) return;
+          const reader = new FileReader();
+          reader.onload = function (f) {
+            fabric.Image.fromURL(f.target.result, function (img) {
+              img.scaleToWidth(120);
+              img.set({ left: 100, top: 100 });
+              fabricCanvas.add(img);
+              fabricCanvas.setActiveObject(img);
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (addRectBtn) {
+        addRectBtn.addEventListener('click', function () {
+          if (!fabricCanvas) return;
+          const rect = new fabric.Rect({
+            left: 100,
+            top: 100,
+            fill: textColorPicker ? textColorPicker.value : '#8b5cf6',
+            width: 140,
+            height: 50,
+            rx: 8,
+            ry: 8,
+          });
+          fabricCanvas.add(rect);
+          fabricCanvas.setActiveObject(rect);
+        });
+      }
+
+      if (textColorPicker) {
+        textColorPicker.addEventListener('input', function () {
+          if (!fabricCanvas) return;
+          const obj = fabricCanvas.getActiveObject();
+          if (obj) {
+            obj.set('fill', textColorPicker.value);
+            fabricCanvas.renderAll();
+          }
+        });
+      }
+
+      if (fontSelect) {
+        fontSelect.addEventListener('change', function () {
+          if (!fabricCanvas) return;
+          const obj = fabricCanvas.getActiveObject();
+          if (obj && obj.type === 'i-text') {
+            obj.set('fontFamily', fontSelect.value);
+            fabricCanvas.renderAll();
+          }
+        });
+      }
+
+      if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', function () {
+          if (!fabricCanvas) return;
+          const activeObj = fabricCanvas.getActiveObject();
+          if (activeObj) {
+            fabricCanvas.remove(activeObj);
+            fabricCanvas.discardActiveObject();
+            fabricCanvas.renderAll();
+          }
+        });
+      }
+
+      if (exportSvgStudioBtn) {
+        exportSvgStudioBtn.addEventListener('click', function () {
+          if (!fabricCanvas) return;
+          const svgData = fabricCanvas.toSVG();
+          const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = 'canva_studio_label.svg';
+          link.click();
+        });
+      }
+
+      if (exportPngStudioBtn) {
+        exportPngStudioBtn.addEventListener('click', function () {
+          if (!fabricCanvas) return;
+          const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+          const link = document.createElement('a');
+          link.href = dataURL;
+          link.download = 'canva_studio_label.png';
+          link.click();
+        });
+      }
+      const openCanvaDirectBtn = document.getElementById('openCanvaDirectBtn');
+      if (openCanvaDirectBtn) {
+        openCanvaDirectBtn.addEventListener('click', function () {
+          const downloadSvgBtn = document.getElementById('downloadSvgBtn');
+          if (downloadSvgBtn && downloadSvgBtn.href && !downloadSvgBtn.href.endsWith('#')) {
+            downloadSvgBtn.click();
+            window.open('https://www.canva.com', '_blank');
+          } else {
+            alert('Please run a label edit or generation first!');
+          }
+        });
+      }
+    })();
+  </script>
 
 </body>
 

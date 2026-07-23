@@ -61,7 +61,7 @@ class JobHistory(db.Model):
       image_id        : FK to UploadedImage (NULL for text-to-image jobs)
       prompt          : the prompt the user typed
       result_filename : the result image filename in static/results/
-      api_provider    : "recraft" | "nanobanana"
+      api_provider    : "recraft" | "nanobanana" | "reve"
       mode            : "remove" | "add" | "replace" | "generate"
       created_at      : UTC timestamp
     """

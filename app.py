@@ -67,6 +67,11 @@ if NANOBANANA_API_KEY:
 # Base URL for Nano Banana API — override via NANOBANANA_BASE_URL in .env if the domain changes
 NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
 
+REVE_API_KEY = os.getenv("REVE_API_KEY")
+if REVE_API_KEY:
+    REVE_API_KEY = REVE_API_KEY.strip("'\"")
+REVE_BASE_URL = os.getenv("REVE_BASE_URL", "https://api.reve.com/v2").rstrip("/")
+
 
 
 # ---------------------------------------------------------------------------
@@ -700,7 +705,7 @@ def run_nanobanana_generations(
     # Map unsupported aspect ratios to nearest supported ones
     nb_size_map = {
         "3:1": "21:9",
-    }
+    }   
     nb_size = nb_size_map.get(image_size, image_size)
 
     payload = {
@@ -758,6 +763,242 @@ def run_nanobanana_generations(
             continue
 
     raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
+
+
+def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str:
+    """Helper to launch and poll an inference.sh app task."""
+    url = "https://api.inference.sh/apps/run"
+    payload = {"app": app_id, "input": dict(input_payload)}
+    
+    # Sanitize size parameter for apps expecting 1K/2K (e.g. seedream)
+    if "size" in payload["input"] and payload["input"]["size"] not in ("1K", "2K"):
+        payload["input"]["size"] = "1K"
+
+    resp = requests.post(url, headers=headers, json=payload, timeout=120)
+    if resp.status_code != 200:
+        raise RuntimeError(f"inference.sh status {resp.status_code}: {resp.text}")
+    
+    res = resp.json()
+    task_id = res.get("id")
+    output = res.get("output")
+    
+    # If async task launched, poll for result up to 60s
+    if not output and task_id:
+        app.logger.info("Polling inference.sh task %s...", task_id)
+        for _ in range(30):
+            time.sleep(2)
+            check_resp = requests.get(f"https://api.inference.sh/tasks/{task_id}", headers=headers)
+            if check_resp.status_code == 200:
+                check = check_resp.json()
+                if check.get("output"):
+                    output = check.get("output")
+                    break
+                if check.get("status_text") in ("failed", "error"):
+                    raise RuntimeError(f"inference.sh task failed: {check}")
+                    
+    if not output:
+        raise RuntimeError(f"No output returned from inference.sh task: {res}")
+        
+    if isinstance(output, dict):
+        # Support all image key variants: image, url, uri, image_url, images list
+        uri = output.get("image") or output.get("url") or output.get("uri") or output.get("image_url")
+        if uri and isinstance(uri, str):
+            return uri
+        imgs = output.get("images", [])
+        if imgs and isinstance(imgs, list):
+            uri = imgs[0].get("uri") or imgs[0].get("url") or imgs[0].get("image")
+            if uri: return uri
+    elif isinstance(output, str) and output.startswith("http"):
+        return output
+
+    raise RuntimeError(f"Could not parse image URL from inference.sh output: {output}")
+
+
+def run_reve_inpainting(
+    image_data_uri: str,
+    prompt: str,
+    negative_prompt: str = None,
+    image_size: str = "1:1",
+) -> str:
+    """
+    Call Reve 2.0 API (layout-first edit endpoint) with image data URI and prompt.
+    Supports native Reve endpoints, Pixapi (papi), and inference.sh (1nfsh) apps/run API.
+    """
+    if not REVE_API_KEY:
+        raise RuntimeError("REVE_API_KEY is not configured.")
+
+    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
+        headers = {
+            "Authorization": f"Bearer {REVE_API_KEY}",
+            "Content-Type": "application/json",
+            "X-API-Version": "2",
+        }
+        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
+        last_error = None
+
+        for app_id in apps_to_try:
+            inp = {"prompt": prompt, "image": image_data_uri, "mode": "edit", "output_format": "png"}
+            if negative_prompt:
+                inp["negative_prompt"] = negative_prompt
+            try:
+                app.logger.info("Executing inference.sh app %s...", app_id)
+                return _run_inferencesh_app(app_id, inp, headers)
+            except Exception as e:
+                last_error = str(e)
+                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
+
+        raise RuntimeError(last_error or "inference.sh execution failed.")
+
+    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+        url = "https://api.pixapi.ai/v1/images/edits"
+        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+    else:
+        url = f"{REVE_BASE_URL.rstrip('/')}/image/edit"
+        models_to_try = ["reve-2.0-layout", "reve-2-0"]
+
+    headers = {
+        "Authorization": f"Bearer {REVE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    last_error = None
+    for model_name in models_to_try:
+        if REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+            payload = {
+                "image": image_data_uri,
+                "prompt": prompt,
+                "model": model_name,
+                "n": 1,
+                "size": image_size,
+            }
+        else:
+            payload = {
+                "image": image_data_uri,
+                "prompt": prompt,
+                "model": model_name,
+                "size": image_size,
+                "response_format": "url",
+            }
+        if negative_prompt:
+            payload["negative_prompt"] = negative_prompt
+
+        app.logger.info("Sending JSON request to Reve 2.0 edit API (%s, model=%s)...", url, model_name)
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code == 200:
+            result = resp.json()
+            data = result.get("data")
+            if isinstance(data, list) and len(data) > 0:
+                return data[0].get("url")
+            elif isinstance(data, dict):
+                return data.get("url")
+            elif result.get("url"):
+                return result.get("url")
+            elif result.get("image_url"):
+                return result.get("image_url")
+        
+        last_error = f"Reve 2.0 API returned error {resp.status_code}: {resp.text}"
+        app.logger.warning("Attempt with model %s failed: %s", model_name, last_error)
+
+    raise RuntimeError(last_error or "Reve 2.0 API request failed.")
+
+
+def run_reve_generations(
+    prompt: str,
+    negative_prompt: str = None,
+    image_size: str = "1:1",
+) -> str:
+    """
+    Call Reve 2.0 Text-to-Image creation endpoint.
+    Supports native Reve endpoints, Pixapi (papi), and inference.sh (1nfsh) apps/run API.
+    """
+    if not REVE_API_KEY:
+        raise RuntimeError("REVE_API_KEY is not configured.")
+
+    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
+        headers = {
+            "Authorization": f"Bearer {REVE_API_KEY}",
+            "Content-Type": "application/json",
+            "X-API-Version": "2",
+        }
+        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
+        last_error = None
+
+        for app_id in apps_to_try:
+            inp = {"prompt": prompt, "mode": "text-to-image", "output_format": "png"}
+            if negative_prompt:
+                inp["negative_prompt"] = negative_prompt
+            try:
+                app.logger.info("Executing inference.sh generation app %s...", app_id)
+                return _run_inferencesh_app(app_id, inp, headers)
+            except Exception as e:
+                last_error = str(e)
+                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
+
+        raise RuntimeError(last_error or "inference.sh generation failed.")
+        last_error = None
+
+        for app_id in apps_to_try:
+            inp = {"prompt": prompt, "size": image_size}
+            if negative_prompt:
+                inp["negative_prompt"] = negative_prompt
+            try:
+                app.logger.info("Executing inference.sh generation app %s...", app_id)
+                return _run_inferencesh_app(app_id, inp, headers)
+            except Exception as e:
+                last_error = str(e)
+                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
+
+        raise RuntimeError(last_error or "inference.sh generation failed.")
+
+    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+        url = "https://api.pixapi.ai/v1/images/generations"
+        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+    else:
+        url = f"{REVE_BASE_URL.rstrip('/')}/image/create"
+        models_to_try = ["reve-2.0-layout", "reve-2-0"]
+
+    headers = {
+        "Authorization": f"Bearer {REVE_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    last_error = None
+    for model_name in models_to_try:
+        if REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+            payload = {
+                "prompt": prompt,
+                "model": model_name,
+                "n": 1,
+                "size": image_size,
+            }
+        else:
+            payload = {
+                "prompt": prompt,
+                "model": model_name,
+                "size": image_size,
+                "response_format": "url",
+            }
+        if negative_prompt:
+            payload["negative_prompt"] = negative_prompt
+
+        app.logger.info("Sending request to Reve 2.0 Text-to-Image API (%s, model=%s)...", url, model_name)
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code == 200:
+            result = resp.json()
+            data = result.get("data")
+            if isinstance(data, list) and len(data) > 0:
+                return data[0].get("url")
+            elif isinstance(data, dict):
+                return data.get("url")
+            elif result.get("url"):
+                return result.get("url")
+            elif result.get("image_url"):
+                return result.get("image_url")
+        
+        last_error = f"Reve 2.0 API returned error {resp.status_code}: {resp.text}"
+        app.logger.warning("Attempt with model %s failed: %s", model_name, last_error)
+
+    raise RuntimeError(last_error or "Reve 2.0 API request failed.")
 
 
 
@@ -820,32 +1061,9 @@ def enhance_prompt_layout(prompt: str) -> str:
 
 def translate_prompt(text: str) -> str:
     """
-    Automatically translate code-mixed prompts (Hinglish, Gujlish, etc.) or foreign language prompts
-    to standard English using the free Google Translate API.
+    Returns the prompt text directly without external translation.
     """
-    if not text:
-        return ""
-    
-    try:
-        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q={urllib.parse.quote(text)}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        resp = requests.get(url, headers=headers, timeout=10)
-        if resp.status_code == 200:
-            result = resp.json()
-            translated_sentences = []
-            if result and result[0]:
-                for sentence in result[0]:
-                    if sentence[0]:
-                        translated_sentences.append(sentence[0])
-                translated_text = "".join(translated_sentences).strip()
-                app.logger.info("Translated prompt: %r -> %r", text, translated_text)
-                return translated_text
-    except Exception as e:
-        app.logger.warning("Automatic translation failed: %s. Using original text.", e)
-        
-    return text
+    return text.strip() if text else ""
 
 
 # ---------------------------------------------------------------------------
@@ -896,6 +1114,16 @@ def process_image():
                     )
                 }
             ), 500
+    elif api_provider == "reve":
+        if not REVE_API_KEY or REVE_API_KEY.startswith("your_reve_"):
+            return jsonify(
+                {
+                    "error": (
+                        "REVE_API_KEY is not configured. "
+                        "Please add your REVE_API_KEY to your .env file."
+                    )
+                }
+            ), 500
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify(
@@ -915,6 +1143,9 @@ def process_image():
             if api_provider == "recraft":
                 app.logger.info("Running Recraft.ai Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_recraft_generations(enhanced_prompt, negative_prompt, image_size)
+            elif api_provider == "reve":
+                app.logger.info("Running Reve 2.0 Text-to-Image Generation (size=%s)...", image_size)
+                final_image_url = run_reve_generations(enhanced_prompt, negative_prompt, image_size)
             else:
                 app.logger.info("Running Nano Banana Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, image_size)
@@ -1127,6 +1358,11 @@ def process_image():
                     f"product label style, high resolution, professional design, "
                     f"seamlessly integrated into label"
                 )
+        elif api_provider == "reve":
+            inpaint_prompt = (
+                f"Modify this product label design according to instruction: {prompt}. "
+                f"Preserve structural 4K layout, typography quality, and overall color harmony."
+            )
         else:
             # Pixapi uses Gemini models that understand direct edit instructions
             # Send the user's original prompt as a clear editing instruction
@@ -1140,6 +1376,12 @@ def process_image():
             app.logger.info("Running Recraft.ai In-Painting (mode=%s) ...", mode)
             final_image_url = run_recraft_inpainting(
                 input_path, mask_path, inpaint_prompt, negative_prompt
+            )
+        elif api_provider == "reve":
+            app.logger.info("Running Reve 2.0 Image Edit (mode=%s) ...", mode)
+            reve_size = compute_image_size_ratio(original_w, original_h)
+            final_image_url = run_reve_inpainting(
+                image_data_uri, inpaint_prompt, negative_prompt, reve_size
             )
         else:
             app.logger.info("Running Pixapi Gemini Image Edit (mode=%s) ...", mode)
@@ -1215,12 +1457,19 @@ def process_image():
     except RuntimeError as exc:
         app.logger.error("Processing error: %s", exc)
         err_msg = str(exc)
+        if "payment_required" in err_msg.lower() or "insufficient balance" in err_msg.lower() or "402" in err_msg:
+            return jsonify({
+                "error": (
+                    "Your inference.sh / Reve account has run out of credits (Error 402: Payment Required). "
+                    "Please top up your credit balance on app.inference.sh, or change the API Provider in 'Advanced Options' to Recraft.ai."
+                )
+            }), 400
         if "Insufficient credits" in err_msg:
             return jsonify({
                 "error": (
                     "Your Nano Banana API key has insufficient credits. "
                     "Please check your Nano Banana developer dashboard to top up your balance, "
-                    "or change the API Provider in 'Advanced Options' to Recraft.ai."
+                    "or change the API Provider in 'Advanced Options' to Reve 2.0 (4K Layout AI) or Recraft.ai."
                 )
             }), 400
         return jsonify({"error": err_msg}), 500
@@ -1453,6 +1702,15 @@ def smart_process():
                 with open(mask_path, "wb") as f:
                     f.write(mask_bytes)
                 final_url = run_recraft_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
+            elif api_provider == "reve":
+                inpaint_prompt = (
+                    f"Modify this product label design according to instruction: {prompt}. "
+                    f"Preserve structural 4K layout, typography quality, and overall color harmony."
+                )
+                reve_size = compute_image_size_ratio(original_w, original_h)
+                final_url = run_reve_inpainting(
+                    image_data_uri, inpaint_prompt, negative_prompt, reve_size
+                )
             else:
                 # Pixapi Gemini — skip CLIPSeg, use direct edit instruction
                 inpaint_prompt = (
@@ -1504,7 +1762,7 @@ def smart_process():
                     "error": (
                         "Your Nano Banana API key has insufficient credits. "
                         "Please check your Nano Banana developer dashboard to top up your balance, "
-                        "or change the API Provider to Recraft.ai."
+                        "or change the API Provider to Recraft.ai or Reve 2.0 (4K Layout AI)."
                     )
                 }), 400
             # Fall through to generation below
@@ -1524,6 +1782,8 @@ def smart_process():
 
         if api_provider == "recraft":
             final_url = run_recraft_generations(enhanced_prompt, negative_prompt, gen_size)
+        elif api_provider == "reve":
+            final_url = run_reve_generations(enhanced_prompt, negative_prompt, gen_size)
         else:
             final_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, gen_size)
 
@@ -1558,12 +1818,19 @@ def smart_process():
     except Exception as exc:
         app.logger.exception("Smart generation also failed.")
         err_msg = str(exc)
+        if "payment_required" in err_msg.lower() or "insufficient balance" in err_msg.lower() or "402" in err_msg:
+            return jsonify({
+                "error": (
+                    "Your inference.sh / Reve account has run out of credits (Error 402: Payment Required). "
+                    "Please top up your credit balance on app.inference.sh, or change the API Provider in 'Advanced Options' to Recraft.ai."
+                )
+            }), 400
         if "Insufficient credits" in err_msg:
             return jsonify({
                 "error": (
                     "Your Nano Banana API key has insufficient credits. "
                     "Please check your Nano Banana developer dashboard to top up your balance, "
-                    "or change the API Provider to Recraft.ai."
+                    "or change the API Provider to Recraft.ai or Reve 2.0 (4K Layout AI)."
                 )
             }), 400
         return jsonify({"error": f"Smart process failed: {err_msg}"}), 500
