@@ -33,6 +33,8 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY", "").strip("'\"")
 NANOBANANA_API_KEY = os.getenv("NANOBANANA_API_KEY", "").strip("'\"")
 NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
+REVE_API_KEY = os.getenv("REVE_API_KEY", "").strip("'\"")
+REVE_BASE_URL = os.getenv("REVE_BASE_URL", "https://api.reve.com/v2").rstrip("/")
 
 # ---------------------------------------------------------------------------
 # Font helpers (same as app.py)
@@ -73,20 +75,7 @@ def pil_from_data_uri(data_uri: str) -> Image.Image:
 # Auto-translation (Google Translate free endpoint)
 # ---------------------------------------------------------------------------
 def translate_prompt(text: str) -> str:
-    if not text:
-        return ""
-    try:
-        url = (
-            "https://translate.googleapis.com/translate_a/single"
-            f"?client=gtx&sl=auto&tl=en&dt=t&q={urllib.parse.quote(text)}"
-        )
-        resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
-        if resp.status_code == 200:
-            result = resp.json()
-            return "".join(s[0] for s in result[0] if s[0]).strip()
-    except Exception:
-        pass
-    return text
+    return text.strip() if text else ""
 
 def enhance_prompt_layout(prompt: str) -> str:
     """
@@ -364,8 +353,120 @@ def run_nanobanana_generations(prompt, image_size="1:1"):
         url_val = data[0].get("url") if isinstance(data, list) else data.get("url")
         if not url_val:
             raise RuntimeError("Unexpected response from Nano Banana")
-        return url_val
     raise RuntimeError("Nano Banana API failed after 3 attempts")
+
+def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str:
+    url = "https://api.inference.sh/apps/run"
+    payload = {"app": app_id, "input": dict(input_payload)}
+    if "size" in payload["input"] and payload["input"]["size"] not in ("1K", "2K"):
+        payload["input"]["size"] = "1K"
+
+    resp = requests.post(url, headers=headers, json=payload, timeout=120)
+    if resp.status_code != 200:
+        raise RuntimeError(f"inference.sh status {resp.status_code}: {resp.text}")
+    res = resp.json()
+    task_id = res.get("id")
+    output = res.get("output")
+    if not output and task_id:
+        for _ in range(30):
+            time.sleep(2)
+            check_resp = requests.get(f"https://api.inference.sh/tasks/{task_id}", headers=headers)
+            if check_resp.status_code == 200:
+                check = check_resp.json()
+                if check.get("output"):
+                    output = check.get("output")
+                    break
+                if check.get("status_text") in ("failed", "error"):
+                    raise RuntimeError(f"inference.sh task failed: {check}")
+    if not output:
+        raise RuntimeError(f"No output from inference.sh task: {res}")
+    if isinstance(output, dict):
+        uri = output.get("image") or output.get("url") or output.get("uri") or output.get("image_url")
+        if uri and isinstance(uri, str):
+            return uri
+        imgs = output.get("images", [])
+        if imgs and isinstance(imgs, list):
+            uri = imgs[0].get("uri") or imgs[0].get("url") or imgs[0].get("image")
+            if uri: return uri
+    elif isinstance(output, str) and output.startswith("http"):
+        return output
+    raise RuntimeError(f"Could not parse image URL: {output}")
+
+def run_reve_inpainting(image_data_uri, prompt, image_size="1:1", negative_prompt=None):
+    if not REVE_API_KEY:
+        raise RuntimeError("REVE_API_KEY is not set in Secrets.")
+    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
+        headers = {"Authorization": f"Bearer {REVE_API_KEY}", "Content-Type": "application/json", "X-API-Version": "2"}
+        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
+        last_error = None
+        for app_id in apps_to_try:
+            inp = {"prompt": prompt, "image": image_data_uri, "mode": "edit", "output_format": "png"}
+            if negative_prompt: inp["negative_prompt"] = negative_prompt
+            try:
+                return _run_inferencesh_app(app_id, inp, headers)
+            except Exception as e:
+                last_error = str(e)
+        raise RuntimeError(last_error or "inference.sh execution failed")
+
+    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+        url = "https://api.pixapi.ai/v1/images/edits"
+        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+    else:
+        url = f"{REVE_BASE_URL.rstrip('/')}/image/edit"
+        models_to_try = ["reve-2.0-layout", "reve-2-0"]
+
+    headers = {"Authorization": f"Bearer {REVE_API_KEY}", "Content-Type": "application/json"}
+    last_error = None
+    for model_name in models_to_try:
+        payload = {"image": image_data_uri, "prompt": prompt, "model": model_name, "n": 1, "size": image_size}
+        if negative_prompt: payload["negative_prompt"] = negative_prompt
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code == 200:
+            res_json = resp.json()
+            data = res_json.get("data", {})
+            url_val = data[0].get("url") if isinstance(data, list) and data else data.get("url")
+            if not url_val: url_val = res_json.get("url") or res_json.get("image_url")
+            if url_val: return url_val
+        last_error = f"Reve 2.0 error {resp.status_code}: {resp.text}"
+    raise RuntimeError(last_error or "Reve 2.0 API failed")
+
+def run_reve_generations(prompt, image_size="1:1", negative_prompt=None):
+    if not REVE_API_KEY:
+        raise RuntimeError("REVE_API_KEY is not set in Secrets.")
+    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
+        headers = {"Authorization": f"Bearer {REVE_API_KEY}", "Content-Type": "application/json", "X-API-Version": "2"}
+        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
+        last_error = None
+        for app_id in apps_to_try:
+            inp = {"prompt": prompt, "mode": "text-to-image", "output_format": "png"}
+            if negative_prompt: inp["negative_prompt"] = negative_prompt
+            try:
+                return _run_inferencesh_app(app_id, inp, headers)
+            except Exception as e:
+                last_error = str(e)
+        raise RuntimeError(last_error or "inference.sh generation failed")
+
+    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
+        url = "https://api.pixapi.ai/v1/images/generations"
+        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+    else:
+        url = f"{REVE_BASE_URL.rstrip('/')}/image/create"
+        models_to_try = ["reve-2.0-layout", "reve-2-0"]
+
+    headers = {"Authorization": f"Bearer {REVE_API_KEY}", "Content-Type": "application/json"}
+    last_error = None
+    for model_name in models_to_try:
+        payload = {"prompt": prompt, "model": model_name, "n": 1, "size": image_size}
+        if negative_prompt: payload["negative_prompt"] = negative_prompt
+        resp = requests.post(url, headers=headers, json=payload, timeout=120)
+        if resp.status_code == 200:
+            res_json = resp.json()
+            data = res_json.get("data", {})
+            url_val = data[0].get("url") if isinstance(data, list) and data else data.get("url")
+            if not url_val: url_val = res_json.get("url") or res_json.get("image_url")
+            if url_val: return url_val
+        last_error = f"Reve 2.0 error {resp.status_code}: {resp.text}"
+    raise RuntimeError(last_error or "Reve 2.0 API failed")
 
 # ---------------------------------------------------------------------------
 # Download format builders
@@ -525,12 +626,19 @@ def process(
         return None, "❌ Please enter a prompt."
 
     prompt = translate_prompt(prompt.strip())
-    provider = "recraft" if "Recraft" in api_provider else "nanobanana"
+    if "Recraft" in api_provider:
+        provider = "recraft"
+    elif "Reve" in api_provider:
+        provider = "reve"
+    else:
+        provider = "nanobanana"
     stem = str(uuid.uuid4())[:8]
 
     # Validate keys
     if provider == "recraft" and not RECRAFT_API_KEY:
         return None, "❌ RECRAFT_API_KEY not set. Add it in Space Secrets."
+    if provider == "reve" and not REVE_API_KEY:
+        return None, "❌ REVE_API_KEY not set. Add it in Space Secrets."
     if provider == "nanobanana" and not NANOBANANA_API_KEY:
         return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
 
@@ -546,6 +654,8 @@ def process(
             
             if provider == "recraft":
                 url = run_recraft_generations(enhanced, api_aspect)
+            elif provider == "reve":
+                url = run_reve_generations(enhanced, api_aspect, negative_prompt)
             else:
                 nanobanana_aspect = "16:9" if api_aspect in ("2:1", "16:9") else api_aspect
                 url = run_nanobanana_generations(enhanced, nanobanana_aspect)
@@ -629,6 +739,11 @@ def process(
                 for p in (img_tmp, mask_tmp):
                     try: os.remove(p)
                     except OSError: pass
+        elif provider == "reve":
+            data_uri = image_to_data_uri(pil_img)
+            inpaint_prompt = (f"Modify this product label design: {prompt}. "
+                              f"Preserve structural 4K layout and typography quality.")
+            url = run_reve_inpainting(data_uri, inpaint_prompt, "1:1", negative_prompt)
         else:
             data_uri = image_to_data_uri(pil_img)
             inpaint_prompt = (f"Edit this product label image: {prompt}. "
@@ -693,7 +808,7 @@ footer { display: none !important; }
 """
 
 MODES = ["Remove", "Add/Replace", "Text Replace", "Generate (no image)"]
-PROVIDERS = ["Recraft.ai", "Nano Banana"]
+PROVIDERS = ["Recraft.ai", "Nano Banana", "Reve 2.0 (4K Layout AI)"]
 FORMATS = ["PNG", "JPG", "PDF", "SVG", "CDR", "CDRx", "GMS", "CGS"]
 
 with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
