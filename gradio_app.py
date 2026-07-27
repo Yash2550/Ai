@@ -808,7 +808,7 @@ footer { display: none !important; }
 """
 
 MODES = ["Remove", "Add/Replace", "Text Replace", "Generate (no image)"]
-PROVIDERS = ["Recraft.ai", "Nano Banana", "Reve 2.0 (4K Layout AI)"]
+PROVIDERS = ["Recraft.ai", "Nano Banana"]
 FORMATS = ["PNG", "JPG", "PDF", "SVG", "CDR", "CDRx", "GMS", "CGS"]
 
 with gr.Blocks(css=CSS, title="Label Editor AI") as demo:

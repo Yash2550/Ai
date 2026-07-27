@@ -60,17 +60,14 @@ RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY")
 if RECRAFT_API_KEY:
     RECRAFT_API_KEY = RECRAFT_API_KEY.strip("'\"")
 
-NANOBANANA_API_KEY = os.getenv("NANOBANANA_API_KEY")
+NANOBANANA_API_KEY = os.getenv("ATLASCLOUD_API_KEY") or os.getenv("NANOBANANA_API_KEY")
 if NANOBANANA_API_KEY:
     NANOBANANA_API_KEY = NANOBANANA_API_KEY.strip("'\"")
 
-# Base URL for Nano Banana API — override via NANOBANANA_BASE_URL in .env if the domain changes
-NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
-
-REVE_API_KEY = os.getenv("REVE_API_KEY")
-if REVE_API_KEY:
-    REVE_API_KEY = REVE_API_KEY.strip("'\"")
-REVE_BASE_URL = os.getenv("REVE_BASE_URL", "https://api.reve.com/v2").rstrip("/")
+# Base URL for Nano Banana / PixAPI
+NANOBANANA_BASE_URL = (os.getenv("ATLASCLOUD_BASE_URL") or os.getenv("NANOBANANA_BASE_URL") or "https://api.pixapi.ai").rstrip("/")
+if "pixapi.ai" in NANOBANANA_BASE_URL and "api.pixapi.ai" not in NANOBANANA_BASE_URL:
+    NANOBANANA_BASE_URL = NANOBANANA_BASE_URL.replace("pixapi.ai", "api.pixapi.ai")
 
 
 
@@ -549,6 +546,80 @@ def compute_image_size_ratio(width: int, height: int) -> str:
     return best
 
 
+def _run_atlascloud_prediction(payload: dict, max_wait: int = 180) -> str:
+    """
+    Submit and poll prediction task for Atlas Cloud API (api.atlascloud.ai).
+    """
+    api_key = os.getenv("ATLASCLOUD_API_KEY") or NANOBANANA_API_KEY
+    if not api_key:
+        raise RuntimeError("ATLASCLOUD_API_KEY or NANOBANANA_API_KEY is not configured.")
+
+    base_url = "https://api.atlascloud.ai"
+    if NANOBANANA_BASE_URL and "atlascloud" in NANOBANANA_BASE_URL:
+        base_url = NANOBANANA_BASE_URL.rstrip("/")
+
+    url = f"{base_url}/api/v1/model/generateImage"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+    }
+
+    app.logger.info("Sending request to Atlas Cloud API (model=%s)...", payload.get("model"))
+    resp = requests.post(url, headers=headers, json=payload, timeout=120)
+
+    if resp.status_code == 402 or "insufficient balance" in resp.text.lower():
+        raise RuntimeError("Your Atlas Cloud API key has insufficient balance. Please top up your credits at https://console.atlascloud.ai.")
+    if resp.status_code == 401 or "unauthorized" in resp.text.lower():
+        raise RuntimeError("Invalid Atlas Cloud API key. Please check your ATLASCLOUD_API_KEY at https://console.atlascloud.ai.")
+
+    if resp.status_code != 200:
+        raise RuntimeError(f"Atlas Cloud API returned error {resp.status_code}: {resp.text}")
+
+    res_json = resp.json()
+    data = res_json.get("data") or {}
+    prediction_id = data.get("id")
+
+    if not prediction_id:
+        outputs = data.get("outputs") or []
+        if outputs:
+            return outputs[0]
+        raise RuntimeError(f"No prediction ID or outputs in Atlas Cloud response: {res_json}")
+
+    # Poll prediction result
+    poll_url = f"{base_url}/api/v1/model/prediction/{prediction_id}"
+    poll_headers = {"Authorization": f"Bearer {api_key}"}
+    deadline = time.time() + max_wait
+
+    while time.time() < deadline:
+        time.sleep(2)
+        try:
+            poll_resp = requests.get(poll_url, headers=poll_headers, timeout=30)
+            if poll_resp.status_code != 200:
+                app.logger.warning("Atlas Cloud poll status %d for %s", poll_resp.status_code, prediction_id)
+                continue
+
+            poll_json = poll_resp.json()
+            poll_data = poll_json.get("data") or {}
+            status = (poll_data.get("status") or "").lower()
+
+            if status in ("completed", "succeeded"):
+                outputs = poll_data.get("outputs") or []
+                if outputs:
+                    return outputs[0]
+                raise RuntimeError(f"Atlas Cloud prediction completed but output list empty: {poll_json}")
+            elif status == "failed":
+                err_msg = poll_data.get("error") or "Generation failed"
+                raise RuntimeError(f"Atlas Cloud task failed: {err_msg}")
+            else:
+                app.logger.info("Atlas Cloud task %s status=%s, waiting...", prediction_id, status)
+        except RuntimeError:
+            raise
+        except Exception as e:
+            app.logger.warning("Atlas Cloud poll error: %s", e)
+
+    raise RuntimeError(f"Atlas Cloud task {prediction_id} timed out after {max_wait}s")
+
+
 def run_nanobanana_inpainting(
     image_data_uri: str,
     mask_data_uri: str,
@@ -557,80 +628,74 @@ def run_nanobanana_inpainting(
     image_size: str = "8:1",
 ) -> str:
     """
-    Call Nano Banana API (image edit endpoint) with the base64 image and prompt as JSON.
-    Endpoint: POST /v1/images/edit
-    Supports automatic retries for transient server errors.
+    Call Nano Banana Image Edit endpoint (Atlas Cloud API or Pixapi).
     """
     if not NANOBANANA_API_KEY:
-        raise RuntimeError("NANOBANANA_API_KEY is not configured.")
+        raise RuntimeError("NANOBANANA_API_KEY or ATLASCLOUD_API_KEY is not configured.")
 
-    url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
-    headers = {
-        "Authorization": f"Bearer {NANOBANANA_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    # Map unsupported aspect ratios to nearest supported ones
-    nb_size_map = {
-        "3:1": "21:9",
-    }
-    nb_size = nb_size_map.get(image_size, image_size)
+    if "pixapi" in NANOBANANA_BASE_URL:
+        url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
+        headers = {
+            "Authorization": f"Bearer {NANOBANANA_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        nb_size_map = {"3:1": "21:9"}
+        nb_size = nb_size_map.get(image_size, image_size)
+        models_to_try = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        last_error = None
+        for model_name in models_to_try:
+            payload = {
+                "image": image_data_uri,
+                "prompt": prompt,
+                "model": model_name,
+                "n": 1,
+                "size": nb_size,
+            }
+            for attempt in range(2):
+                try:
+                    resp = requests.post(url, headers=headers, json=payload, timeout=120)
+                    if resp.status_code in (500, 502, 503, 504):
+                        last_error = f"Status {resp.status_code}: {resp.text}"
+                        time.sleep(2)
+                        continue
+                    if resp.status_code != 200:
+                        last_error = f"Error {resp.status_code}: {resp.text}"
+                        break
+                    result = resp.json()
+                    data = result.get("data", {})
+                    if isinstance(data, list) and len(data) > 0:
+                        url_val = data[0].get("url")
+                    elif isinstance(data, dict):
+                        url_val = data.get("url")
+                        if isinstance(url_val, list):
+                            url_val = url_val[0] if url_val else None
+                    else:
+                        url_val = None
+                    if not url_val:
+                        raise RuntimeError(f"Unexpected response structure from Nano Banana: {result}")
+                    return url_val
+                except RuntimeError:
+                    raise
+                except Exception as e:
+                    last_error = str(e)
+                    time.sleep(2)
+                    continue
+        raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
+    else:
+        # Atlas Cloud API
+        nb_size_map = {"3:1": "4:1"}
+        nb_size = nb_size_map.get(image_size, image_size)
+        payload = {
+            "model": "google/nano-banana-2-lite/edit-developer",
+            "prompt": prompt,
+            "images": [image_data_uri],
+            "aspect_ratio": nb_size,
+            "enable_sync_mode": False,
+            "enable_base64_output": False,
+            "resolution": "1k",
+        }
+        return _run_atlascloud_prediction(payload)
 
-    payload = {
-        "image": image_data_uri,
-        "prompt": prompt,
-        "model": "gemini-3.1-flash-lite-image",
-        "n": 1,
-        "size": nb_size,
-    }
-
-    last_error = None
-    for attempt in range(3):
-        try:
-            app.logger.info("Sending JSON request to Nano Banana edit API (attempt %d)...", attempt + 1)
-            resp = requests.post(url, headers=headers, json=payload, timeout=120)
-
-            # Retry on transient server errors only
-            if resp.status_code in (500, 502, 503, 504):
-                app.logger.warning("Attempt %d returned status %d. Retrying...", attempt + 1, resp.status_code)
-                last_error = f"Status {resp.status_code}: {resp.text}"
-                time.sleep(2)
-                continue
-
-            if resp.status_code != 200:
-                last_error = f"Error {resp.status_code}: {resp.text}"
-                break  # Don't retry client errors (400, 401, 404, etc.)
-
-            result = resp.json()
-            # Pixapi returns {"created": ..., "data": [{"url": "..."}]}
-            # Legacy API returned {"code": 0, "message": "ok", "data": {"url": "..."}}
-            if result.get("code", 0) != 0:
-                raise RuntimeError(f"Nano Banana error: {result.get('message', result)}")
-
-            data = result.get("data", {})
-            # Pixapi format: data is a list of {"url": "..."}
-            if isinstance(data, list) and len(data) > 0:
-                url_val = data[0].get("url")
-            elif isinstance(data, dict):
-                url_val = data.get("url")
-                if isinstance(url_val, list):
-                    url_val = url_val[0] if url_val else None
-            else:
-                url_val = None
-
-            if not url_val:
-                raise RuntimeError(f"Unexpected response structure from Nano Banana: {result}")
-
-            return url_val
-
-        except RuntimeError:
-            raise
-        except Exception as e:
-            app.logger.warning("Connection error during attempt %d: %s", attempt + 1, e)
-            last_error = str(e)
-            time.sleep(2)
-            continue
-
-    raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
 
 
 def run_recraft_generations(
@@ -690,79 +755,73 @@ def run_nanobanana_generations(
     image_size: str = "1:1",
 ) -> str:
     """
-    Call Nano Banana Text-to-Image generate endpoint.
-    Endpoint: POST /v1/images/generate
-    Supports automatic retries for transient server errors.
+    Call Nano Banana Text-to-Image generate endpoint (Atlas Cloud API or Pixapi).
     """
     if not NANOBANANA_API_KEY:
-        raise RuntimeError("NANOBANANA_API_KEY is not configured.")
+        raise RuntimeError("NANOBANANA_API_KEY or ATLASCLOUD_API_KEY is not configured.")
 
-    url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
-    headers = {
-        "Authorization": f"Bearer {NANOBANANA_API_KEY}",
-        "Content-Type": "application/json",
-    }
-    # Map unsupported aspect ratios to nearest supported ones
-    nb_size_map = {
-        "3:1": "21:9",
-    }   
-    nb_size = nb_size_map.get(image_size, image_size)
+    if "pixapi" in NANOBANANA_BASE_URL:
+        url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
+        headers = {
+            "Authorization": f"Bearer {NANOBANANA_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        nb_size_map = {"3:1": "21:9"}
+        nb_size = nb_size_map.get(image_size, image_size)
+        models_to_try = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        last_error = None
+        for model_name in models_to_try:
+            payload = {
+                "prompt": prompt,
+                "model": model_name,
+                "n": 1,
+                "size": nb_size,
+            }
+            for attempt in range(2):
+                try:
+                    resp = requests.post(url, headers=headers, json=payload, timeout=120)
+                    if resp.status_code in (500, 502, 503, 504):
+                        last_error = f"Status {resp.status_code}: {resp.text}"
+                        time.sleep(2)
+                        continue
+                    if resp.status_code != 200:
+                        last_error = f"Error {resp.status_code}: {resp.text}"
+                        break
+                    result = resp.json()
+                    data = result.get("data", {})
+                    if isinstance(data, list) and len(data) > 0:
+                        url_val = data[0].get("url")
+                    elif isinstance(data, dict):
+                        url_val = data.get("url")
+                        if isinstance(url_val, list):
+                            url_val = url_val[0] if url_val else None
+                    else:
+                        url_val = None
+                    if not url_val:
+                        raise RuntimeError(f"Unexpected response structure from Nano Banana: {result}")
+                    return url_val
+                except RuntimeError:
+                    raise
+                except Exception as e:
+                    last_error = str(e)
+                    time.sleep(2)
+                    continue
+        raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
+    else:
+        # Atlas Cloud API
+        nb_size_map = {"3:1": "4:1"}
+        nb_size = nb_size_map.get(image_size, image_size)
+        payload = {
+            "model": "google/nano-banana-2-lite/text-to-image",
+            "prompt": prompt,
+            "aspect_ratio": nb_size,
+            "enable_sync_mode": False,
+            "enable_base64_output": False,
+            "resolution": "1k",
+            "thinking_level": "default",
+        }
+        return _run_atlascloud_prediction(payload)
 
-    payload = {
-        "prompt": prompt,
-        "model": "gemini-3.1-flash-lite-image",
-        "n": 1,
-        "size": nb_size,
-    }
-
-    last_error = None
-    for attempt in range(3):
-        try:
-            app.logger.info("Sending text-to-image request to Nano Banana generate API (attempt %d, size=%s)...", attempt + 1, nb_size)
-            resp = requests.post(url, headers=headers, json=payload, timeout=120)
-
-            # Retry on transient server errors only
-            if resp.status_code in (500, 502, 503, 504):
-                app.logger.warning("Attempt %d returned status %d. Retrying...", attempt + 1, resp.status_code)
-                last_error = f"Status {resp.status_code}: {resp.text}"
-                time.sleep(2)
-                continue
-
-            if resp.status_code != 200:
-                last_error = f"Error {resp.status_code}: {resp.text}"
-                break  # Don't retry client errors (400, 401, 404, etc.)
-
-            result = resp.json()
-            # Pixapi returns {"created": ..., "data": [{"url": "..."}]}
-            # Legacy API returned {"code": 0, "message": "ok", "data": {"url": "..."}}
-            if result.get("code", 0) != 0:
-                raise RuntimeError(f"Nano Banana error: {result.get('message', result)}")
-
-            data = result.get("data", {})
-            # Pixapi format: data is a list of {"url": "..."}
-            if isinstance(data, list) and len(data) > 0:
-                url_val = data[0].get("url")
-            elif isinstance(data, dict):
-                url_val = data.get("url")
-                if isinstance(url_val, list):
-                    url_val = url_val[0] if url_val else None
-            else:
-                url_val = None
-
-            if not url_val:
-                raise RuntimeError(f"Unexpected response structure from Nano Banana: {result}")
-
-            return url_val
-
-        except RuntimeError:
-            raise
-        except Exception as e:
-            app.logger.warning("Connection error during attempt %d: %s", attempt + 1, e)
-            last_error = str(e)
-            time.sleep(2)
-            continue
-
-    raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
 
 
 def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str:
@@ -814,191 +873,7 @@ def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str
     raise RuntimeError(f"Could not parse image URL from inference.sh output: {output}")
 
 
-def run_reve_inpainting(
-    image_data_uri: str,
-    prompt: str,
-    negative_prompt: str = None,
-    image_size: str = "1:1",
-) -> str:
-    """
-    Call Reve 2.0 API (layout-first edit endpoint) with image data URI and prompt.
-    Supports native Reve endpoints, Pixapi (papi), and inference.sh (1nfsh) apps/run API.
-    """
-    if not REVE_API_KEY:
-        raise RuntimeError("REVE_API_KEY is not configured.")
 
-    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
-        headers = {
-            "Authorization": f"Bearer {REVE_API_KEY}",
-            "Content-Type": "application/json",
-            "X-API-Version": "2",
-        }
-        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
-        last_error = None
-
-        for app_id in apps_to_try:
-            inp = {"prompt": prompt, "image": image_data_uri, "mode": "edit", "output_format": "png"}
-            if negative_prompt:
-                inp["negative_prompt"] = negative_prompt
-            try:
-                app.logger.info("Executing inference.sh app %s...", app_id)
-                return _run_inferencesh_app(app_id, inp, headers)
-            except Exception as e:
-                last_error = str(e)
-                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
-
-        raise RuntimeError(last_error or "inference.sh execution failed.")
-
-    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
-        url = "https://api.pixapi.ai/v1/images/edits"
-        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
-    else:
-        url = f"{REVE_BASE_URL.rstrip('/')}/image/edit"
-        models_to_try = ["reve-2.0-layout", "reve-2-0"]
-
-    headers = {
-        "Authorization": f"Bearer {REVE_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    last_error = None
-    for model_name in models_to_try:
-        if REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
-            payload = {
-                "image": image_data_uri,
-                "prompt": prompt,
-                "model": model_name,
-                "n": 1,
-                "size": image_size,
-            }
-        else:
-            payload = {
-                "image": image_data_uri,
-                "prompt": prompt,
-                "model": model_name,
-                "size": image_size,
-                "response_format": "url",
-            }
-        if negative_prompt:
-            payload["negative_prompt"] = negative_prompt
-
-        app.logger.info("Sending JSON request to Reve 2.0 edit API (%s, model=%s)...", url, model_name)
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-        if resp.status_code == 200:
-            result = resp.json()
-            data = result.get("data")
-            if isinstance(data, list) and len(data) > 0:
-                return data[0].get("url")
-            elif isinstance(data, dict):
-                return data.get("url")
-            elif result.get("url"):
-                return result.get("url")
-            elif result.get("image_url"):
-                return result.get("image_url")
-        
-        last_error = f"Reve 2.0 API returned error {resp.status_code}: {resp.text}"
-        app.logger.warning("Attempt with model %s failed: %s", model_name, last_error)
-
-    raise RuntimeError(last_error or "Reve 2.0 API request failed.")
-
-
-def run_reve_generations(
-    prompt: str,
-    negative_prompt: str = None,
-    image_size: str = "1:1",
-) -> str:
-    """
-    Call Reve 2.0 Text-to-Image creation endpoint.
-    Supports native Reve endpoints, Pixapi (papi), and inference.sh (1nfsh) apps/run API.
-    """
-    if not REVE_API_KEY:
-        raise RuntimeError("REVE_API_KEY is not configured.")
-
-    if REVE_API_KEY.startswith("1nfsh-") or "inference.sh" in REVE_BASE_URL:
-        headers = {
-            "Authorization": f"Bearer {REVE_API_KEY}",
-            "Content-Type": "application/json",
-            "X-API-Version": "2",
-        }
-        apps_to_try = ["falai/reve", "bytedance/seedream-5-pro"]
-        last_error = None
-
-        for app_id in apps_to_try:
-            inp = {"prompt": prompt, "mode": "text-to-image", "output_format": "png"}
-            if negative_prompt:
-                inp["negative_prompt"] = negative_prompt
-            try:
-                app.logger.info("Executing inference.sh generation app %s...", app_id)
-                return _run_inferencesh_app(app_id, inp, headers)
-            except Exception as e:
-                last_error = str(e)
-                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
-
-        raise RuntimeError(last_error or "inference.sh generation failed.")
-        last_error = None
-
-        for app_id in apps_to_try:
-            inp = {"prompt": prompt, "size": image_size}
-            if negative_prompt:
-                inp["negative_prompt"] = negative_prompt
-            try:
-                app.logger.info("Executing inference.sh generation app %s...", app_id)
-                return _run_inferencesh_app(app_id, inp, headers)
-            except Exception as e:
-                last_error = str(e)
-                app.logger.warning("inference.sh app %s failed: %s", app_id, e)
-
-        raise RuntimeError(last_error or "inference.sh generation failed.")
-
-    elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
-        url = "https://api.pixapi.ai/v1/images/generations"
-        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
-    else:
-        url = f"{REVE_BASE_URL.rstrip('/')}/image/create"
-        models_to_try = ["reve-2.0-layout", "reve-2-0"]
-
-    headers = {
-        "Authorization": f"Bearer {REVE_API_KEY}",
-        "Content-Type": "application/json",
-    }
-
-    last_error = None
-    for model_name in models_to_try:
-        if REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
-            payload = {
-                "prompt": prompt,
-                "model": model_name,
-                "n": 1,
-                "size": image_size,
-            }
-        else:
-            payload = {
-                "prompt": prompt,
-                "model": model_name,
-                "size": image_size,
-                "response_format": "url",
-            }
-        if negative_prompt:
-            payload["negative_prompt"] = negative_prompt
-
-        app.logger.info("Sending request to Reve 2.0 Text-to-Image API (%s, model=%s)...", url, model_name)
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-        if resp.status_code == 200:
-            result = resp.json()
-            data = result.get("data")
-            if isinstance(data, list) and len(data) > 0:
-                return data[0].get("url")
-            elif isinstance(data, dict):
-                return data.get("url")
-            elif result.get("url"):
-                return result.get("url")
-            elif result.get("image_url"):
-                return result.get("image_url")
-        
-        last_error = f"Reve 2.0 API returned error {resp.status_code}: {resp.text}"
-        app.logger.warning("Attempt with model %s failed: %s", model_name, last_error)
-
-    raise RuntimeError(last_error or "Reve 2.0 API request failed.")
 
 
 
@@ -1114,16 +989,7 @@ def process_image():
                     )
                 }
             ), 500
-    elif api_provider == "reve":
-        if not REVE_API_KEY or REVE_API_KEY.startswith("your_reve_"):
-            return jsonify(
-                {
-                    "error": (
-                        "REVE_API_KEY is not configured. "
-                        "Please add your REVE_API_KEY to your .env file."
-                    )
-                }
-            ), 500
+
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify(
@@ -1143,9 +1009,7 @@ def process_image():
             if api_provider == "recraft":
                 app.logger.info("Running Recraft.ai Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_recraft_generations(enhanced_prompt, negative_prompt, image_size)
-            elif api_provider == "reve":
-                app.logger.info("Running Reve 2.0 Text-to-Image Generation (size=%s)...", image_size)
-                final_image_url = run_reve_generations(enhanced_prompt, negative_prompt, image_size)
+
             else:
                 app.logger.info("Running Nano Banana Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, image_size)
@@ -1358,11 +1222,7 @@ def process_image():
                     f"product label style, high resolution, professional design, "
                     f"seamlessly integrated into label"
                 )
-        elif api_provider == "reve":
-            inpaint_prompt = (
-                f"Modify this product label design according to instruction: {prompt}. "
-                f"Preserve structural 4K layout, typography quality, and overall color harmony."
-            )
+
         else:
             # Pixapi uses Gemini models that understand direct edit instructions
             # Send the user's original prompt as a clear editing instruction
@@ -1377,12 +1237,7 @@ def process_image():
             final_image_url = run_recraft_inpainting(
                 input_path, mask_path, inpaint_prompt, negative_prompt
             )
-        elif api_provider == "reve":
-            app.logger.info("Running Reve 2.0 Image Edit (mode=%s) ...", mode)
-            reve_size = compute_image_size_ratio(original_w, original_h)
-            final_image_url = run_reve_inpainting(
-                image_data_uri, inpaint_prompt, negative_prompt, reve_size
-            )
+
         else:
             app.logger.info("Running Pixapi Gemini Image Edit (mode=%s) ...", mode)
             nb_size = compute_image_size_ratio(original_w, original_h)
@@ -1411,15 +1266,16 @@ def process_image():
                 )
                 img = img.crop((0, 0, result_w, original_h))
 
-            # Now restore exact original pixel dimensions
-            if img.size != (original_w, original_h):
-                app.logger.info(
-                    "Resizing result from %dx%d to original %dx%d",
-                    img.size[0], img.size[1], original_w, original_h
-                )
-                img = img.resize((original_w, original_h), Image.Resampling.LANCZOS)
+            # Maintain max sharpness & high resolution (ensure at least 2048px on max side)
+            min_target_dim = max(2048, original_w, original_h)
+            cur_max = max(img.size[0], img.size[1])
+            if cur_max < min_target_dim:
+                scale = min_target_dim / float(cur_max)
+                new_w = int(round(img.size[0] * scale))
+                new_h = int(round(img.size[1] * scale))
+                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
 
-            img.save(output_path, "PNG")
+            img.save(output_path, "PNG", dpi=(300, 300))
 
         # ---- Save job to database ----
         job = JobHistory(
@@ -1457,21 +1313,14 @@ def process_image():
     except RuntimeError as exc:
         app.logger.error("Processing error: %s", exc)
         err_msg = str(exc)
-        if "payment_required" in err_msg.lower() or "insufficient balance" in err_msg.lower() or "402" in err_msg:
-            return jsonify({
-                "error": (
-                    "Your inference.sh / Reve account has run out of credits (Error 402: Payment Required). "
-                    "Please top up your credit balance on app.inference.sh, or change the API Provider in 'Advanced Options' to Recraft.ai."
-                )
-            }), 400
-        if "Insufficient credits" in err_msg:
-            return jsonify({
-                "error": (
-                    "Your Nano Banana API key has insufficient credits. "
-                    "Please check your Nano Banana developer dashboard to top up your balance, "
-                    "or change the API Provider in 'Advanced Options' to Reve 2.0 (4K Layout AI) or Recraft.ai."
-                )
-            }), 400
+        if api_provider == "nanobanana":
+            if "payment_required" in err_msg.lower() or "insufficient" in err_msg.lower() or "402" in err_msg or "credit" in err_msg.lower():
+                return jsonify({
+                    "error": (
+                        f"Nano Banana / PixAPI error: {err_msg}. "
+                        "Please check your Nano Banana / PixAPI credit balance or API key."
+                    )
+                }), 400
         return jsonify({"error": err_msg}), 500
     except Exception as exc:
         app.logger.exception("Unexpected error during processing.")
@@ -1702,15 +1551,7 @@ def smart_process():
                 with open(mask_path, "wb") as f:
                     f.write(mask_bytes)
                 final_url = run_recraft_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
-            elif api_provider == "reve":
-                inpaint_prompt = (
-                    f"Modify this product label design according to instruction: {prompt}. "
-                    f"Preserve structural 4K layout, typography quality, and overall color harmony."
-                )
-                reve_size = compute_image_size_ratio(original_w, original_h)
-                final_url = run_reve_inpainting(
-                    image_data_uri, inpaint_prompt, negative_prompt, reve_size
-                )
+
             else:
                 # Pixapi Gemini — skip CLIPSeg, use direct edit instruction
                 inpaint_prompt = (
@@ -1762,7 +1603,7 @@ def smart_process():
                     "error": (
                         "Your Nano Banana API key has insufficient credits. "
                         "Please check your Nano Banana developer dashboard to top up your balance, "
-                        "or change the API Provider to Recraft.ai or Reve 2.0 (4K Layout AI)."
+                        "or change the API Provider to Recraft.ai."
                     )
                 }), 400
             # Fall through to generation below
@@ -1782,8 +1623,7 @@ def smart_process():
 
         if api_provider == "recraft":
             final_url = run_recraft_generations(enhanced_prompt, negative_prompt, gen_size)
-        elif api_provider == "reve":
-            final_url = run_reve_generations(enhanced_prompt, negative_prompt, gen_size)
+
         else:
             final_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, gen_size)
 
@@ -1818,21 +1658,14 @@ def smart_process():
     except Exception as exc:
         app.logger.exception("Smart generation also failed.")
         err_msg = str(exc)
-        if "payment_required" in err_msg.lower() or "insufficient balance" in err_msg.lower() or "402" in err_msg:
-            return jsonify({
-                "error": (
-                    "Your inference.sh / Reve account has run out of credits (Error 402: Payment Required). "
-                    "Please top up your credit balance on app.inference.sh, or change the API Provider in 'Advanced Options' to Recraft.ai."
-                )
-            }), 400
-        if "Insufficient credits" in err_msg:
-            return jsonify({
-                "error": (
-                    "Your Nano Banana API key has insufficient credits. "
-                    "Please check your Nano Banana developer dashboard to top up your balance, "
-                    "or change the API Provider to Recraft.ai or Reve 2.0 (4K Layout AI)."
-                )
-            }), 400
+        if api_provider == "nanobanana":
+            if "payment_required" in err_msg.lower() or "insufficient" in err_msg.lower() or "402" in err_msg or "credit" in err_msg.lower():
+                return jsonify({
+                    "error": (
+                        f"Nano Banana / PixAPI error: {err_msg}. "
+                        "Please check your Nano Banana / PixAPI credit balance or API key."
+                    )
+                }), 400
         return jsonify({"error": f"Smart process failed: {err_msg}"}), 500
 
 
@@ -1841,61 +1674,15 @@ def smart_process():
 # ---------------------------------------------------------------------------
 def _build_svg_from_image(filepath: str) -> bytes:
     """
-    Build a vector SVG that embeds the raster image as a base64 data URI.
-    If vtracer is available, produce full traced vector paths first; otherwise
-    fall back to an embedded-image SVG (fully supported by CorelDRAW import).
-    Returns raw SVG bytes.
+    Build a high-resolution lossless SVG container embedding the image.
+    This guarantees 100% crisp photo quality, sharp text, and zero distortion
+    when opened in CorelDRAW, Canva, Illustrator, or exported to PDF.
     """
-    with Image.open(filepath) as img:
-        img_rgb = img.convert("RGB")
-        w, h = img_rgb.size
-
-    # --- Attempt true vector tracing via vtracer ---
-    try:
-        import vtracer
-        import tempfile
-
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_in:
-            tmp_in_path = tmp_in.name
-        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_out:
-            tmp_out_path = tmp_out.name
-
-        try:
-            with Image.open(filepath) as img:
-                img.convert("RGB").save(tmp_in_path, "PNG")
-
-            vtracer.convert_image_to_svg_py(
-                tmp_in_path,
-                tmp_out_path,
-                colormode="color",
-                hierarchical="stacked",
-                mode="spline",
-                filter_speckle=4,
-                color_precision=8,
-                layer_difference=16,
-                corner_threshold=60,
-                length_threshold=4.0,
-                max_iterations=10,
-                splice_threshold=45,
-                path_precision=8,
-            )
-
-            with open(tmp_out_path, "rb") as f:
-                return f.read()
-        finally:
-            for p in (tmp_in_path, tmp_out_path):
-                try:
-                    os.remove(p)
-                except OSError:
-                    pass
-
-    except Exception:
-        pass  # Fall through to embedded-image SVG
-
-    # --- Fallback: embed the raster image as base64 in an SVG wrapper ---
     buf = io.BytesIO()
     with Image.open(filepath) as img:
-        img.convert("RGB").save(buf, "PNG")
+        w, h = img.size
+        img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(buf, "PNG", dpi=(300, 300))
+    
     b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
     svg_content = (
         f'<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -2111,8 +1898,8 @@ def download_image(filename, fmt):
     # We will save the upscaled image to a temporary file during the duration of the request.
     import tempfile
     
-    # 2K/QHD Target: we upscale the longest side to 2560 pixels to guarantee 2K print quality
-    TARGET_MAX_DIM = 2560
+    # 4K Ultra HD Target: we upscale the longest side to 3840 pixels to guarantee 300 DPI 4K print quality
+    TARGET_MAX_DIM = 3840
     
     temp_filepath = None
     active_filepath = filepath
@@ -2144,18 +1931,15 @@ def download_image(filename, fmt):
     try:
         # ── PNG ──────────────────────────────────────────────────────────────────
         if fmt == "png":
-            if active_filepath != filepath:
-                with open(active_filepath, "rb") as f:
-                    file_data = f.read()
-                out_io = io.BytesIO(file_data)
-                return send_file(
-                    out_io,
-                    mimetype="image/png",
-                    as_attachment=True,
-                    download_name=stem + ".png",
-                )
-            else:
-                return send_from_directory(app.config["RESULTS_FOLDER"], filename, as_attachment=True)
+            with open(active_filepath, "rb") as f:
+                file_data = f.read()
+            out_io = io.BytesIO(file_data)
+            return send_file(
+                out_io,
+                mimetype="image/png",
+                as_attachment=True,
+                download_name=stem + ".png",
+            )
     
         # ── JPEG ─────────────────────────────────────────────────────────────────
         elif fmt in ("jpg", "jpeg"):
