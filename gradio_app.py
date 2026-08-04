@@ -230,8 +230,7 @@ def professional_text_replace(base_img: Image.Image, mask_l: Image.Image,
     result = Image.composite(result, base, mask_blur)
 
     # Clean instruction words from text
-    display_text = 
-    new_text.upper().strip()
+    display_text = new_text.upper().strip()
     instruction_words = {"remove","delete","erase","replace","add","put","insert","change","with"}
     if any(w in display_text.lower().split() for w in instruction_words):
         for trigger in ["add","with","insert","replace","put"]:
