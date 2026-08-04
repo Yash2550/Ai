@@ -639,9 +639,9 @@ def run_nanobanana_inpainting(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "21:9"}
+        nb_size_map = {"3:1": "21:9"}   
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -650,6 +650,7 @@ def run_nanobanana_inpainting(
                 "model": model_name,
                 "n": 1,
                 "size": nb_size,
+                "quality": "hd"
             }
             for attempt in range(2):
                 try:
@@ -768,7 +769,7 @@ def run_nanobanana_generations(
         }
         nb_size_map = {"3:1": "21:9"}
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -776,6 +777,7 @@ def run_nanobanana_generations(
                 "model": model_name,
                 "n": 1,
                 "size": nb_size,
+                "quality": "hd"
             }
             for attempt in range(2):
                 try:
@@ -871,10 +873,6 @@ def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str
         return output
 
     raise RuntimeError(f"Could not parse image URL from inference.sh output: {output}")
-
-
-
-
 
 
 
@@ -1146,7 +1144,7 @@ def process_image():
             # Restore exact original dimensions
             with Image.open(output_path) as img:
                 if img.size != (original_w, original_h):
-                    img.resize((original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
+                    ImageOps.fit(img, (original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
 
             # ---- Save job to database ----
             job = JobHistory(
@@ -1182,7 +1180,7 @@ def process_image():
             # Restore exact original dimensions
             with Image.open(output_path) as img:
                 if img.size != (original_w, original_h):
-                    img.resize((original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
+                    ImageOps.fit(img, (original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
 
             job = JobHistory(
                 image_id=db_image_id,
@@ -1531,7 +1529,7 @@ def smart_process():
                 # Restore exact dimensions
                 with Image.open(output_path) as img:
                     if img.size != (original_w, original_h):
-                        img.resize((original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
+                        ImageOps.fit(img, (original_w, original_h), Image.Resampling.LANCZOS).save(output_path, "PNG")
                         
                 # We skip downloading from API since it's processed locally
                 final_url = None
@@ -1574,7 +1572,7 @@ def smart_process():
                 output_path = os.path.join(app.config["RESULTS_FOLDER"], output_filename)
                 with Image.open(io.BytesIO(img_bytes)) as img:
                     if img.size != (original_w, original_h):
-                        img = img.resize((original_w, original_h), Image.Resampling.LANCZOS)
+                        img = ImageOps.fit(img, (original_w, original_h), Image.Resampling.LANCZOS)
                     img.save(output_path, "PNG")
 
             # Save job to DB
@@ -1679,22 +1677,56 @@ def _build_svg_from_image(filepath: str) -> bytes:
     when opened in CorelDRAW, Canva, Illustrator, or exported to PDF.
     """
     buf = io.BytesIO()
-    with Image.open(filepath) as img:
-        w, h = img.size
-        img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(buf, "PNG", dpi=(300, 300))
-    
-    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-    svg_content = (
-        f'<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<svg xmlns="http://www.w3.org/2000/svg" '
-        f'xmlns:xlink="http://www.w3.org/1999/xlink" '
-        f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">\n'
-        f'  <title>Edited Label</title>\n'
-        f'  <image x="0" y="0" width="{w}" height="{h}" '
-        f'xlink:href="data:image/png;base64,{b64}" />\n'
-        f'</svg>\n'
-    )
-    return svg_content.encode("utf-8")
+    try:
+        import vtracer
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
+            tmp_svg_path = tmp_svg.name
+            
+        # Convert the raster image into a true vector SVG file
+        vtracer.convert_image_to_svg_py(
+            filepath,
+            tmp_svg_path,
+            colormode="color",
+            hierarchical="stacked",
+            mode="spline",
+            filter_speckle=4,
+            color_precision=6,
+            layer_difference=16,
+            corner_threshold=60,
+            length_threshold=4.0,
+            max_iterations=10,
+            splice_threshold=45,
+            path_precision=8
+        )
+        
+        with open(tmp_svg_path, 'rb') as f:
+            svg_content = f.read()
+            
+        os.remove(tmp_svg_path)
+        return svg_content
+    except Exception as e:
+        app.logger.warning("vtracer vectorization failed or not installed. Falling back to raster SVG. Error: %s", e)
+        # Fallback to raster base64 SVG
+        buf = io.BytesIO()
+        with Image.open(filepath) as img:
+            w, h = img.size
+            img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(buf, "PNG", dpi=(300, 300))
+        
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        svg_content = (
+            f'<?xml version="1.0" encoding="UTF-8"?>\n'
+            f'<svg xmlns="http://www.w3.org/2000/svg" '
+            f'xmlns:xlink="http://www.w3.org/1999/xlink" '
+            f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">\n'
+            f'  <title>Edited Label</title>\n'
+            f'  <image x="0" y="0" width="{w}" height="{h}" '
+            f'xlink:href="data:image/png;base64,{b64}" />\n'
+            f'</svg>\n'
+        )
+        return svg_content.encode("utf-8")
 
 
 def _build_pdf_from_image(filepath: str) -> bytes:
@@ -1893,40 +1925,13 @@ def download_image(filename, fmt):
         return "File not found", 404
 
     stem = filename.rsplit(".", 1)[0]
-
-    # Upscale the image to 2K resolution (longest side at least 2560 pixels)
-    # We will save the upscaled image to a temporary file during the duration of the request.
-    import tempfile
     
-    # 4K Ultra HD Target: we upscale the longest side to 3840 pixels to guarantee 300 DPI 4K print quality
-    TARGET_MAX_DIM = 3840
-    
-    temp_filepath = None
+    # We do NOT upscale the image here using basic filters (like Lanczos), 
+    # because that causes blurriness which ruins the SVG vector tracing.
+    # The native crisp image is passed to the SVG/CDR vectorizer, which creates
+    # infinitely scalable, high-quality vector paths.
     active_filepath = filepath
-    try:
-        with Image.open(filepath) as img:
-            w, h = img.size
-            if max(w, h) < TARGET_MAX_DIM:
-                scale = TARGET_MAX_DIM / float(max(w, h))
-                new_w = int(round(w * scale))
-                new_h = int(round(h * scale))
-                
-                try:
-                    resample_filter = Image.Resampling.LANCZOS
-                except AttributeError:
-                    resample_filter = Image.ANTIALIAS
-                
-                img_upscaled = img.resize((new_w, new_h), resample_filter)
-                
-                # Create a temporary file to store the upscaled version
-                with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
-                    temp_filepath = tmp_file.name
-                
-                img_upscaled.save(temp_filepath, "PNG", dpi=(300, 300))
-                active_filepath = temp_filepath
-    except Exception as e:
-        app.logger.warning("Failed to upscale image for download: %s. Using original quality.", e)
-        active_filepath = filepath
+    temp_filepath = None
 
     try:
         # ── PNG ──────────────────────────────────────────────────────────────────

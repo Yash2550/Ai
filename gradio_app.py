@@ -16,7 +16,7 @@ import urllib.parse
 import re
 import io
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -230,7 +230,8 @@ def professional_text_replace(base_img: Image.Image, mask_l: Image.Image,
     result = Image.composite(result, base, mask_blur)
 
     # Clean instruction words from text
-    display_text = new_text.upper().strip()
+    display_text = 
+    new_text.upper().strip()
     instruction_words = {"remove","delete","erase","replace","add","put","insert","change","with"}
     if any(w in display_text.lower().split() for w in instruction_words):
         for trigger in ["add","with","insert","replace","put"]:
@@ -410,7 +411,7 @@ def run_reve_inpainting(image_data_uri, prompt, image_size="1:1", negative_promp
 
     elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
         url = "https://api.pixapi.ai/v1/images/edits"
-        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gemini-3.1-pro-image", "reve-2.0-layout", "gemini-3.1-flash-lite-image"]
     else:
         url = f"{REVE_BASE_URL.rstrip('/')}/image/edit"
         models_to_try = ["reve-2.0-layout", "reve-2-0"]
@@ -448,7 +449,7 @@ def run_reve_generations(prompt, image_size="1:1", negative_prompt=None):
 
     elif REVE_API_KEY.startswith("papi.") or "pixapi" in REVE_BASE_URL:
         url = "https://api.pixapi.ai/v1/images/generations"
-        models_to_try = ["reve-2.0-layout", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gemini-3.1-pro-image", "reve-2.0-layout", "gemini-3.1-flash-lite-image"]
     else:
         url = f"{REVE_BASE_URL.rstrip('/')}/image/create"
         models_to_try = ["reve-2.0-layout", "reve-2-0"]
@@ -757,7 +758,7 @@ def process(
         if rh >= original_h * 1.7:
             result = result.crop((0, 0, rw, original_h))
         if result.size != (original_w, original_h):
-            result = result.resize((original_w, original_h), Image.Resampling.LANCZOS)
+            result = ImageOps.fit(result, (original_w, original_h), Image.Resampling.LANCZOS)
         return result, "✅ Done!"
 
     except Exception as exc:
@@ -808,7 +809,7 @@ footer { display: none !important; }
 """
 
 MODES = ["Remove", "Add/Replace", "Text Replace", "Generate (no image)"]
-PROVIDERS = ["Recraft.ai", "Nano Banana"]
+PROVIDERS = ["Recraft.ai", "Nano Banana", "Reve 2.0 (4K Layout AI)"]
 FORMATS = ["PNG", "JPG", "PDF", "SVG", "CDR", "CDRx", "GMS", "CGS"]
 
 with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
