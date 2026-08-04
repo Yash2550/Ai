@@ -1095,7 +1095,7 @@ def process_image():
 
     # ---- Encode image as data URI ----
     image_data_uri = image_to_data_uri(input_path)
-
+    
     try:
         # ---- Step 1: Generate mask via CLIPSeg (only needed for Recraft) ----
         mask_data_uri = None
@@ -1913,7 +1913,43 @@ def _build_cgs_xml(filepath: str, stem: str) -> bytes:
         '  </style>\n'
         '</cgs-styles>\n'
     )
-    return cgs_xml.encode("utf-8")
+# ---------------------------------------------------------------------------
+# OCR Digitizer Route
+# ---------------------------------------------------------------------------
+
+@app.route("/digitize-label", methods=["POST"])
+def digitize_label():
+    try:
+        data = request.get_json(force=True)
+        filename = data.get("filename")
+        if not filename:
+            return jsonify({"error": "No filename provided"}), 400
+            
+        filename = secure_filename(filename)
+        # Check in results folder first, then uploads
+        filepath = os.path.join(app.config["RESULTS_FOLDER"], filename)
+        if not os.path.exists(filepath):
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            if not os.path.exists(filepath):
+                return jsonify({"error": "File not found"}), 404
+                
+        stem = filename.rsplit(".", 1)[0]
+        clean_filename = f"{stem}_clean.png"
+        clean_filepath = os.path.join(app.config["RESULTS_FOLDER"], clean_filename)
+        
+        # Run digitizer logic
+        import digitizer
+        text_elements = digitizer.digitize_image(filepath, clean_filepath)
+        
+        clean_url = f"/static/results/{clean_filename}"
+        
+        return jsonify({
+            "clean_image_url": clean_url,
+            "text_elements": text_elements
+        })
+    except Exception as e:
+        app.logger.error("Digitizer failed: %s", e)
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/download/<filename>/<fmt>")

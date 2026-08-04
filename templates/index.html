@@ -1705,10 +1705,15 @@
         </div>
 
         <!-- Canva Studio Launch Button -->
-        <div style="margin-top:20px; width:100%;">
+        <div style="margin-top:20px; width:100%; display:flex; gap:10px;">
           <button id="openCanvaStudioBtn" class="btn-primary"
-            style="background: linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; width:100%; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(125,42,232,0.35); transition:all 0.2s ease;">
-            🎨 Open in Interactive Canva Studio (Drag, Edit Text, Change Logo)
+            style="background: linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; flex:1; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(125,42,232,0.35); transition:all 0.2s ease;">
+            🎨 Open in Interactive Canva Studio
+          </button>
+          
+          <button id="digitizeCanvaBtn" class="btn-primary"
+            style="background: linear-gradient(135deg, #ff007f 0%, #ff8c00 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; flex:1; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(255,0,127,0.35); transition:all 0.2s ease;">
+            ✨ Digitize to Fully Editable Template (OCR)
           </button>
         </div>
 
@@ -1976,6 +1981,86 @@
         advancedToggle.classList.toggle('open');
         advancedPanel.classList.toggle('visible');
       });
+
+      if (digitizeCanvaBtn) {
+        digitizeCanvaBtn.addEventListener('click', async function () {
+          if (!resultImage.src || resultImage.src.endsWith('#')) {
+            alert('Please run a label generation or edit first!');
+            return;
+          }
+
+          const originalBtnText = digitizeCanvaBtn.innerHTML;
+          digitizeCanvaBtn.innerHTML = '⏳ Digitizing Label... (This takes a few seconds)';
+          digitizeCanvaBtn.disabled = true;
+
+          try {
+            // Extract filename from the result image URL
+            const urlObj = new URL(resultImage.src, window.location.href);
+            const filename = urlObj.pathname.split('/').pop();
+
+            const response = await fetch('/digitize-label', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: filename })
+            });
+            const data = await response.json();
+
+            if (data.error) throw new Error(data.error);
+
+            canvaStudioModal.style.display = 'flex';
+
+            if (!fabricCanvas) {
+              fabricCanvas = new fabric.Canvas('canvaStudioCanvas', { preserveObjectStacking: true });
+            }
+
+            fabric.Image.fromURL(data.clean_image_url, function (img) {
+              const maxWidth = Math.min(window.innerWidth * 0.8, 900);
+              const scale = maxWidth / img.width;
+              const canvasW = img.width * scale;
+              const canvasH = img.height * scale;
+
+              fabricCanvas.setWidth(canvasW);
+              fabricCanvas.setHeight(canvasH);
+
+              img.set({ scaleX: scale, scaleY: scale, originX: 'left', originY: 'top' });
+              fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+
+              // Inject OCR text boxes
+              if (data.text_elements) {
+                data.text_elements.forEach(item => {
+                  if (item.text.trim() === '') return;
+                  
+                  const textObj = new fabric.Textbox(item.text, {
+                    left: item.left * scale,
+                    top: item.top * scale,
+                    width: item.width * scale,
+                    fontSize: Math.max(12, item.fontSize * scale),
+                    fill: '#333333', // Default to a dark color; user can change it
+                    fontFamily: 'Arial', // Default font
+                    fontWeight: 'bold',
+                    backgroundColor: 'rgba(255, 255, 255, 0.4)', // Slight background to see it clearly initially
+                    transparentCorners: false,
+                    cornerColor: 'rgba(125,42,232,0.8)',
+                    borderColor: 'rgba(125,42,232,0.8)',
+                    cornerSize: 8,
+                    padding: 2,
+                    textAlign: 'left'
+                  });
+                  fabricCanvas.add(textObj);
+                });
+              }
+              fabricCanvas.renderAll();
+            });
+
+          } catch (error) {
+            console.error(error);
+            alert("Digitization failed: " + error.message);
+          } finally {
+            digitizeCanvaBtn.innerHTML = originalBtnText;
+            digitizeCanvaBtn.disabled = false;
+          }
+        });
+      }
 
       /* ================================================================
          MODE SWITCHER
@@ -2544,6 +2629,7 @@
       let fabricCanvas = null;
 
       const openCanvaStudioBtn = document.getElementById('openCanvaStudioBtn');
+      const digitizeCanvaBtn = document.getElementById('digitizeCanvaBtn');
       const canvaStudioModal = document.getElementById('canvaStudioModal');
       const closeStudioBtn = document.getElementById('closeStudioBtn');
       const resultImage = document.getElementById('resultImage');
