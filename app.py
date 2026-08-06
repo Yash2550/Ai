@@ -1965,13 +1965,14 @@ def digitize_label():
         
         # Run digitizer logic
         import digitizer
-        text_elements = digitizer.digitize_image(filepath, clean_filepath)
+        text_elements, svg_content = digitizer.digitize_image(filepath, clean_filepath)
         
         clean_url = f"/static/results/{clean_filename}"
         
         return jsonify({
             "clean_image_url": clean_url,
-            "text_elements": text_elements
+            "text_elements": text_elements,
+            "svg_content": svg_content
         })
     except Exception as e:
         app.logger.error("Digitizer failed: %s", e)
@@ -2128,3 +2129,38 @@ if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
 # auto-reload trigger - refreshed env keys - v3
 
+
+@app.route("/api/digitize-reve", methods=["POST"])
+def digitize_label_reve():
+    """Route for sending the label to the official Reve API."""
+    if "image" not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
+        
+    file = request.files["image"]
+    if file.filename == "":
+        return jsonify({"error": "Empty filename"}), 400
+        
+    try:
+        import uuid
+        import reve_api
+        
+        # Save uploaded file
+        ext = os.path.splitext(file.filename)[1]
+        if not ext:
+            ext = ".png"
+            
+        unique_id = uuid.uuid4().hex[:8]
+        filename = f"reve_upload_{unique_id}{ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Call Official API
+        fabric_json = reve_api.digitize_image_via_reve(filepath)
+        
+        return jsonify({
+            "status": "success",
+            "fabric_json": fabric_json
+        })
+    except Exception as e:
+        app.logger.error("Reve API Digitizer failed: %s", e)
+        return jsonify({"error": str(e)}), 500

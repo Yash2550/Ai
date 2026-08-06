@@ -78,4 +78,62 @@ def digitize_image(image_path: str, output_path: str) -> list:
     # Save the clean background
     cv2.imwrite(output_path, clean_bg)
     
-    return text_elements
+    # 3. Vectorize the clean background
+    svg_content = None
+    try:
+        import vtracer
+        import tempfile
+        from PIL import Image
+        
+        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
+            tmp_svg_path = tmp_svg.name
+            
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
+            tmp_png_path = tmp_png.name
+            
+        # Resize image to prevent vtracer from crashing on large files
+        MAX_DIM = 1200
+        original_w, original_h = 1, 1
+        with Image.open(output_path) as cln_img:
+            original_w, original_h = cln_img.size
+            w, h = cln_img.size
+            if w > MAX_DIM or h > MAX_DIM:
+                ratio = min(MAX_DIM / w, MAX_DIM / h)
+                new_w, new_h = int(w * ratio), int(h * ratio)
+                cln_img = cln_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            cln_img.convert("RGBA" if cln_img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
+            
+        # Convert the raster image into a true vector SVG file
+        vtracer.convert_image_to_svg_py(
+            tmp_png_path,
+            tmp_svg_path,
+            colormode="color",
+            hierarchical="stacked",
+            mode="spline",
+            filter_speckle=4,
+            color_precision=6,
+            layer_difference=16,
+            corner_threshold=60,
+            length_threshold=4.0,
+            max_iterations=10,
+            splice_threshold=45,
+            path_precision=8
+        )
+        
+        with open(tmp_svg_path, 'r', encoding='utf-8') as f:
+            svg_content = f.read()
+            
+        # Fix viewBox and width/height to match original dimensions
+        if f'width="{new_w}"' in svg_content:
+            svg_content = svg_content.replace(f'width="{new_w}"', f'width="{original_w}"')
+            svg_content = svg_content.replace(f'height="{new_h}"', f'height="{original_h}"')
+            
+        try:
+            os.remove(tmp_svg_path)
+            os.remove(tmp_png_path)
+        except:
+            pass
+    except Exception as e:
+        print("Vectorization failed:", e)
+        
+    return text_elements, svg_content

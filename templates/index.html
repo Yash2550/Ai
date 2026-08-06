@@ -1704,27 +1704,27 @@
           </div>
         </div>
 
-        <!-- Canva Studio Launch Button -->
+        <!-- Reve Studio Launch Button -->
         <div style="margin-top:20px; width:100%; display:flex; gap:10px;">
-          <button id="openCanvaStudioBtn" class="btn-primary"
+          <button id="openReveStudioBtn" class="btn-primary"
             style="background: linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; flex:1; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(125,42,232,0.35); transition:all 0.2s ease;">
-            🎨 Open in Interactive Canva Studio
+            🎨 Open in Interactive Reve Studio
           </button>
           
-          <button id="digitizeCanvaBtn" class="btn-primary"
+          <button id="digitizeReveBtn" class="btn-primary"
             style="background: linear-gradient(135deg, #ff007f 0%, #ff8c00 100%); border:none; padding: 14px 24px; font-weight:700; font-size:15px; flex:1; border-radius:12px; cursor:pointer; color:#fff; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 6px 20px rgba(255,0,127,0.35); transition:all 0.2s ease;">
             ✨ Digitize to Fully Editable Template (OCR)
           </button>
         </div>
 
-        <!-- Interactive Canva Studio Modal -->
-        <div id="canvaStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); z-index:99999; flex-direction:column; padding:20px; align-items:center; justify-content:center;">
+        <!-- Interactive Reve Studio Modal -->
+        <div id="reveStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); z-index:99999; flex-direction:column; padding:20px; align-items:center; justify-content:center;">
           <div style="background:#ffffff; width:95%; max-width:1200px; height:90vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
             
             <!-- Top Studio Bar -->
             <div style="background:#1e293b; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
               <div style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                <span>🎨 Interactive Canva &amp; CorelDRAW Studio</span>
+                <span>🎨 Interactive Reve &amp; CorelDRAW Studio</span>
               </div>
               
               <!-- Studio Actions -->
@@ -1763,19 +1763,19 @@
               </button>
             </div>
 
-            <!-- Canvas Workspace -->
+            <!-- Reves Workspace -->
             <div id="canvasWorkspaceContainer" style="flex:1; background:#0f172a; display:flex; align-items:center; justify-content:center; overflow:auto; position:relative; padding:20px;">
-              <canvas id="canvaStudioCanvas"></canvas>
+              <canvas id="reveStudioReves"></canvas>
             </div>
 
             <!-- Bottom Export Bar -->
             <div style="background:#1e293b; color:#fff; padding:12px 20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
               <div style="font-size:13px; color:#94a3b8;">
-                💡 Double-click text to edit. Drag &amp; scale any object. Export directly to Canva or CorelDRAW!
+                💡 Double-click text to edit. Drag &amp; scale any object. Export directly to Reve or CorelDRAW!
               </div>
               <div style="display:flex; gap:10px;">
                 <button id="exportSvgStudioBtn" style="background:#0284c7; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer;">
-                  📐 Export SVG (Canva / CorelDRAW)
+                  📐 Export SVG (Reve / CorelDRAW)
                 </button>
                 <button id="exportPngStudioBtn" style="background:#16a34a; color:#fff; border:none; padding:10px 18px; border-radius:8px; font-weight:700; cursor:pointer;">
                   🖼️ Export PNG
@@ -1808,15 +1808,15 @@
             </a>
           </div>
 
-          <!-- Row 2 — Vector / Canva & CorelDRAW formats -->
+          <!-- Row 2 — Vector / Reve & CorelDRAW formats -->
           <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
             <a class="btn-download" id="downloadSvgBtn" href="#" download="edited_label.svg"
               style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
               📐 SVG
             </a>
-            <button id="openCanvaDirectBtn" class="btn-download"
+            <button id="openReveDirectBtn" class="btn-download"
               style="flex:1.5; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%); border:none; color:#fff; font-weight:700; cursor:pointer;">
-              🚀 Download SVG &amp; Open Canva
+              🚀 Download SVG &amp; Open Reve
             </button>
             <a class="btn-download" id="downloadCdrBtn" href="#" download="edited_label.cdr"
               title="CorelDRAW import-compatible SVG container"
@@ -1982,16 +1982,16 @@
         advancedPanel.classList.toggle('visible');
       });
 
-      if (digitizeCanvaBtn) {
-        digitizeCanvaBtn.addEventListener('click', async function () {
+      if (digitizeReveBtn) {
+        digitizeReveBtn.addEventListener('click', async function () {
           if (!resultImage.src || resultImage.src.endsWith('#')) {
             alert('Please run a label generation or edit first!');
             return;
           }
 
-          const originalBtnText = digitizeCanvaBtn.innerHTML;
-          digitizeCanvaBtn.innerHTML = '⏳ Digitizing Label... (This takes a few seconds)';
-          digitizeCanvaBtn.disabled = true;
+          const originalBtnText = digitizeReveBtn.innerHTML;
+          digitizeReveBtn.innerHTML = '⏳ Digitizing Label... (This takes a few seconds)';
+          digitizeReveBtn.disabled = true;
 
           try {
             // Extract filename from the result image URL
@@ -2007,23 +2007,73 @@
 
             if (data.error) throw new Error(data.error);
 
-            canvaStudioModal.style.display = 'flex';
+            reveStudioModal.style.display = 'flex';
 
-            if (!fabricCanvas) {
-              fabricCanvas = new fabric.Canvas('canvaStudioCanvas', { preserveObjectStacking: true });
+            if (!fabricReves) {
+              fabricReves = new fabric.Canvas('reveStudioReves', { preserveObjectStacking: true });
             }
 
-            fabric.Image.fromURL(data.clean_image_url, function (img) {
+            const loadBg = (imgWidth, imgHeight, setBgFn) => {
               const maxWidth = Math.min(window.innerWidth * 0.8, 900);
-              const scale = maxWidth / img.width;
-              const canvasW = img.width * scale;
-              const canvasH = img.height * scale;
+              const scale = maxWidth / imgWidth;
+              const canvasW = imgWidth * scale;
+              const canvasH = imgHeight * scale;
 
-              fabricCanvas.setWidth(canvasW);
-              fabricCanvas.setHeight(canvasH);
+              fabricReves.setWidth(canvasW);
+              fabricReves.setHeight(canvasH);
 
-              img.set({ scaleX: scale, scaleY: scale, originX: 'left', originY: 'top' });
-              fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+              setBgFn(scale);
+              return scale;
+            };
+
+            const processCanvasText = (scale) => {
+              if (data.text_elements) {
+                data.text_elements.forEach(item => {
+                  if (item.text.trim() === '') return;
+                  const textObj = new fabric.Textbox(item.text, {
+                    left: item.left * scale,
+                    top: item.top * scale,
+                    width: item.width * scale,
+                    fontSize: Math.max(12, item.fontSize * scale),
+                    fill: '#333333',
+                    fontFamily: 'Arial',
+                    fontWeight: 'bold',
+                    textAlign: 'center'
+                  });
+                  fabricReves.add(textObj);
+                });
+              }
+              fabricReves.renderAll();
+              
+              reveStudioModal.style.display = 'flex';
+              digitizeReveBtn.innerHTML = originalBtnText;
+              digitizeReveBtn.disabled = false;
+            };
+
+            if (data.svg_content) {
+              fabric.loadSVGFromString(data.svg_content, function(objects, options) {
+                const obj = fabric.util.groupSVGElements(objects, options);
+                const scale = loadBg(obj.width, obj.height, (s) => {
+                  obj.set({ scaleX: s, scaleY: s, originX: 'left', originY: 'top' });
+                  fabricReves.setBackgroundImage(obj, fabricReves.renderAll.bind(fabricReves));
+                });
+                processCanvasText(scale);
+              });
+            } else {
+              fabric.Image.fromURL(data.clean_image_url, function (img) {
+                const scale = loadBg(img.width, img.height, (s) => {
+                  img.set({ scaleX: s, scaleY: s, originX: 'left', originY: 'top' });
+                  fabricReves.setBackgroundImage(img, fabricReves.renderAll.bind(fabricReves));
+                });
+                processCanvasText(scale);
+              });
+            }
+            
+            // Skip the old text processing block since we moved it into processCanvasText
+            return; // Exit early to avoid executing the old code block below
+            
+            // OLD CODE BELOW (skipped via return)
+            fabric.Image.fromURL(data.clean_image_url, function (img) {
 
               // Inject OCR text boxes
               if (data.text_elements) {
@@ -2046,18 +2096,18 @@
                     padding: 2,
                     textAlign: 'left'
                   });
-                  fabricCanvas.add(textObj);
+                  fabricReves.add(textObj);
                 });
               }
-              fabricCanvas.renderAll();
+              fabricReves.renderAll();
             });
 
           } catch (error) {
             console.error(error);
             alert("Digitization failed: " + error.message);
           } finally {
-            digitizeCanvaBtn.innerHTML = originalBtnText;
-            digitizeCanvaBtn.disabled = false;
+            digitizeReveBtn.innerHTML = originalBtnText;
+            digitizeReveBtn.disabled = false;
           }
         });
       }
@@ -2626,11 +2676,11 @@
 ============================================================ -->
   <script>
     (function () {
-      let fabricCanvas = null;
+      let fabricReves = null;
 
-      const openCanvaStudioBtn = document.getElementById('openCanvaStudioBtn');
-      const digitizeCanvaBtn = document.getElementById('digitizeCanvaBtn');
-      const canvaStudioModal = document.getElementById('canvaStudioModal');
+      const openReveStudioBtn = document.getElementById('openReveStudioBtn');
+      const digitizeReveBtn = document.getElementById('digitizeReveBtn');
+      const reveStudioModal = document.getElementById('reveStudioModal');
       const closeStudioBtn = document.getElementById('closeStudioBtn');
       const resultImage = document.getElementById('resultImage');
 
@@ -2644,30 +2694,30 @@
       const exportSvgStudioBtn = document.getElementById('exportSvgStudioBtn');
       const exportPngStudioBtn = document.getElementById('exportPngStudioBtn');
 
-      if (openCanvaStudioBtn) {
-        openCanvaStudioBtn.addEventListener('click', function () {
+      if (openReveStudioBtn) {
+        openReveStudioBtn.addEventListener('click', function () {
           if (!resultImage.src || resultImage.src.endsWith('#')) {
             alert('Please run a label generation or edit first!');
             return;
           }
 
-          canvaStudioModal.style.display = 'flex';
+          reveStudioModal.style.display = 'flex';
 
-          if (!fabricCanvas) {
-            fabricCanvas = new fabric.Canvas('canvaStudioCanvas', {
+          if (!fabricReves) {
+            fabricReves = new fabric.Canvas('reveStudioReves', {
               preserveObjectStacking: true,
             });
           }
 
-          // Load background image onto Fabric Canvas
+          // Load background image onto Fabric Reves
           fabric.Image.fromURL(resultImage.src, function (img) {
             const maxWidth = Math.min(window.innerWidth * 0.8, 900);
             const scale = maxWidth / img.width;
             const canvasW = img.width * scale;
             const canvasH = img.height * scale;
 
-            fabricCanvas.setWidth(canvasW);
-            fabricCanvas.setHeight(canvasH);
+            fabricReves.setWidth(canvasW);
+            fabricReves.setHeight(canvasH);
 
             img.set({
               scaleX: scale,
@@ -2676,7 +2726,7 @@
               evented: false,
             });
 
-            fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
+            fabricReves.setBackgroundImage(img, fabricReves.renderAll.bind(fabricReves));
 
             // Add default editable brand text
             const sampleText = new fabric.IText('YOUR BRAND NAME', {
@@ -2687,22 +2737,22 @@
               fill: '#ffffff',
               fontWeight: 'bold',
             });
-            fabricCanvas.add(sampleText);
-            fabricCanvas.setActiveObject(sampleText);
-            fabricCanvas.renderAll();
+            fabricReves.add(sampleText);
+            fabricReves.setActiveObject(sampleText);
+            fabricReves.renderAll();
           }, { crossOrigin: 'anonymous' });
         });
       }
 
       if (closeStudioBtn) {
         closeStudioBtn.addEventListener('click', function () {
-          canvaStudioModal.style.display = 'none';
+          reveStudioModal.style.display = 'none';
         });
       }
 
       if (addTextBtn) {
         addTextBtn.addEventListener('click', function () {
-          if (!fabricCanvas) return;
+          if (!fabricReves) return;
           const text = new fabric.IText('EDITABLE TEXT', {
             left: 50,
             top: 50,
@@ -2710,22 +2760,22 @@
             fontSize: 24,
             fill: textColorPicker ? textColorPicker.value : '#ffffff',
           });
-          fabricCanvas.add(text);
-          fabricCanvas.setActiveObject(text);
+          fabricReves.add(text);
+          fabricReves.setActiveObject(text);
         });
       }
 
       if (logoUploadInput) {
         logoUploadInput.addEventListener('change', function (e) {
           const file = e.target.files[0];
-          if (!file || !fabricCanvas) return;
+          if (!file || !fabricReves) return;
           const reader = new FileReader();
           reader.onload = function (f) {
             fabric.Image.fromURL(f.target.result, function (img) {
               img.scaleToWidth(120);
               img.set({ left: 100, top: 100 });
-              fabricCanvas.add(img);
-              fabricCanvas.setActiveObject(img);
+              fabricReves.add(img);
+              fabricReves.setActiveObject(img);
             });
           };
           reader.readAsDataURL(file);
@@ -2734,7 +2784,7 @@
 
       if (addRectBtn) {
         addRectBtn.addEventListener('click', function () {
-          if (!fabricCanvas) return;
+          if (!fabricReves) return;
           const rect = new fabric.Rect({
             left: 100,
             top: 100,
@@ -2744,74 +2794,74 @@
             rx: 8,
             ry: 8,
           });
-          fabricCanvas.add(rect);
-          fabricCanvas.setActiveObject(rect);
+          fabricReves.add(rect);
+          fabricReves.setActiveObject(rect);
         });
       }
 
       if (textColorPicker) {
         textColorPicker.addEventListener('input', function () {
-          if (!fabricCanvas) return;
-          const obj = fabricCanvas.getActiveObject();
+          if (!fabricReves) return;
+          const obj = fabricReves.getActiveObject();
           if (obj) {
             obj.set('fill', textColorPicker.value);
-            fabricCanvas.renderAll();
+            fabricReves.renderAll();
           }
         });
       }
 
       if (fontSelect) {
         fontSelect.addEventListener('change', function () {
-          if (!fabricCanvas) return;
-          const obj = fabricCanvas.getActiveObject();
+          if (!fabricReves) return;
+          const obj = fabricReves.getActiveObject();
           if (obj && obj.type === 'i-text') {
             obj.set('fontFamily', fontSelect.value);
-            fabricCanvas.renderAll();
+            fabricReves.renderAll();
           }
         });
       }
 
       if (deleteSelectedBtn) {
         deleteSelectedBtn.addEventListener('click', function () {
-          if (!fabricCanvas) return;
-          const activeObj = fabricCanvas.getActiveObject();
+          if (!fabricReves) return;
+          const activeObj = fabricReves.getActiveObject();
           if (activeObj) {
-            fabricCanvas.remove(activeObj);
-            fabricCanvas.discardActiveObject();
-            fabricCanvas.renderAll();
+            fabricReves.remove(activeObj);
+            fabricReves.discardActiveObject();
+            fabricReves.renderAll();
           }
         });
       }
 
       if (exportSvgStudioBtn) {
         exportSvgStudioBtn.addEventListener('click', function () {
-          if (!fabricCanvas) return;
-          const svgData = fabricCanvas.toSVG();
+          if (!fabricReves) return;
+          const svgData = fabricReves.toSVG();
           const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          link.download = 'canva_studio_label.svg';
+          link.download = 'reve_studio_label.svg';
           link.click();
         });
       }
 
       if (exportPngStudioBtn) {
         exportPngStudioBtn.addEventListener('click', function () {
-          if (!fabricCanvas) return;
-          const dataURL = fabricCanvas.toDataURL({ format: 'png', quality: 1 });
+          if (!fabricReves) return;
+          const dataURL = fabricReves.toDataURL({ format: 'png', quality: 1 });
           const link = document.createElement('a');
           link.href = dataURL;
-          link.download = 'canva_studio_label.png';
+          link.download = 'reve_studio_label.png';
           link.click();
         });
       }
-      const openCanvaDirectBtn = document.getElementById('openCanvaDirectBtn');
-      if (openCanvaDirectBtn) {
-        openCanvaDirectBtn.addEventListener('click', function () {
+      const openReveDirectBtn = document.getElementById('openReveDirectBtn');
+      if (openReveDirectBtn) {
+        openReveDirectBtn.addEventListener('click', function () {
           const downloadSvgBtn = document.getElementById('downloadSvgBtn');
           if (downloadSvgBtn && downloadSvgBtn.href && !downloadSvgBtn.href.endsWith('#')) {
             downloadSvgBtn.click();
-            window.open('https://www.canva.com', '_blank');
+            window.open('https://www.reve.com', '_blank');
           } else {
             alert('Please run a label edit or generation first!');
           }
