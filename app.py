@@ -1681,13 +1681,29 @@ def _build_svg_from_image(filepath: str) -> bytes:
         import vtracer
         import tempfile
         import os
+        from PIL import Image
         
         with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
             tmp_svg_path = tmp_svg.name
             
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
+            tmp_png_path = tmp_png.name
+            
+        # Resize image to prevent vtracer from crashing on large files
+        MAX_DIM = 1200
+        original_w, original_h = 1, 1
+        with Image.open(filepath) as img:
+            original_w, original_h = img.size
+            w, h = img.size
+            if w > MAX_DIM or h > MAX_DIM:
+                ratio = min(MAX_DIM / w, MAX_DIM / h)
+                new_w, new_h = int(w * ratio), int(h * ratio)
+                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
+            
         # Convert the raster image into a true vector SVG file
         vtracer.convert_image_to_svg_py(
-            filepath,
+            tmp_png_path,
             tmp_svg_path,
             colormode="color",
             hierarchical="stacked",
@@ -1702,11 +1718,21 @@ def _build_svg_from_image(filepath: str) -> bytes:
             path_precision=8
         )
         
-        with open(tmp_svg_path, 'rb') as f:
+        with open(tmp_svg_path, 'r', encoding='utf-8') as f:
             svg_content = f.read()
             
-        os.remove(tmp_svg_path)
-        return svg_content
+        # Fix viewBox and width/height to match original dimensions
+        if f'width="{new_w}"' in svg_content:
+            svg_content = svg_content.replace(f'width="{new_w}"', f'width="{original_w}"')
+            svg_content = svg_content.replace(f'height="{new_h}"', f'height="{original_h}"')
+            
+        try:
+            os.remove(tmp_svg_path)
+            os.remove(tmp_png_path)
+        except:
+            pass
+            
+        return svg_content.encode("utf-8")
     except Exception as e:
         app.logger.warning("vtracer vectorization failed or not installed. Falling back to raster SVG. Error: %s", e)
         # Fallback to raster base64 SVG
