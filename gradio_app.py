@@ -454,7 +454,7 @@ def run_reve_generations(prompt, image_size="1:1", negative_prompt=None):
         models_to_try = ["reve-2.0-layout", "reve-2-0"]
 
     headers = {"Authorization": f"Bearer {REVE_API_KEY}", "Content-Type": "application/json"}
-    last_error = None
+    last_error = None   
     for model_name in models_to_try:
         payload = {"prompt": prompt, "model": model_name, "n": 1, "size": image_size}
         if negative_prompt: payload["negative_prompt"] = negative_prompt
