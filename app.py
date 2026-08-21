@@ -65,9 +65,17 @@ if NANOBANANA_API_KEY:
     NANOBANANA_API_KEY = NANOBANANA_API_KEY.strip("'\"")
 
 # Base URL for Nano Banana / PixAPI
+
 NANOBANANA_BASE_URL = (os.getenv("ATLASCLOUD_BASE_URL") or os.getenv("NANOBANANA_BASE_URL") or "https://api.pixapi.ai").rstrip("/")
 if "pixapi.ai" in NANOBANANA_BASE_URL and "api.pixapi.ai" not in NANOBANANA_BASE_URL:
     NANOBANANA_BASE_URL = NANOBANANA_BASE_URL.replace("pixapi.ai", "api.pixapi.ai")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY: OPENAI_API_KEY = OPENAI_API_KEY.strip("'\"")
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if GEMINI_API_KEY: GEMINI_API_KEY = GEMINI_API_KEY.strip("'\"")
+
 
 
 
@@ -943,6 +951,67 @@ def translate_prompt(text: str) -> str:
 # Routes
 # ---------------------------------------------------------------------------
 
+
+def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
+    if not OPENAI_API_KEY:
+        raise RuntimeError("OPENAI_API_KEY is not configured.")
+    url = "https://api.openai.com/v1/images/generations"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    size_map = {
+        "1:1": "1024x1024", "16:9": "1792x1024", "9:16": "1024x1792",
+        "4:3": "1792x1024", "3:4": "1024x1792", "3:1": "1792x1024"
+    }
+    size_str = size_map.get(image_size, "1024x1024")
+    payload = {
+        "model": "dall-e-3",
+        "prompt": prompt,
+        "n": 1,
+        "size": size_str,
+        "response_format": "b64_json"
+    }
+    import requests
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    resp.raise_for_status()
+    b64 = resp.json()["data"][0]["b64_json"]
+    return f"data:image/png;base64,{b64}"
+
+def run_gemini_generations(prompt: str, image_size: str = "1:1") -> str:
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not configured.")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key={GEMINI_API_KEY}"
+    size_map = {
+        "1:1": "1:1", "16:9": "16:9", "9:16": "9:16",
+        "4:3": "4:3", "3:4": "3:4"
+    }
+    aspect_ratio = size_map.get(image_size, "1:1")
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseMimeType": "image/jpeg"
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    import requests
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    resp.raise_for_status()
+    # The new API returns the base64 image differently based on the new spec
+    try:
+        # Assuming the new response structure
+        b64 = resp.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
+    except KeyError:
+        raise RuntimeError(f"Unexpected response format from Gemini: {resp.text}")
+    return f"data:image/jpeg;base64,{b64}"
+
+def run_openai_inpainting(*args, **kwargs):
+    raise RuntimeError("OpenAI (DALL-E 3) does not support inpainting. Please use Recraft or Nano Banana.")
+
+def run_gemini_inpainting(*args, **kwargs):
+    raise RuntimeError("Google Gemini (Imagen 3) does not support inpainting. Please use Recraft or Nano Banana.")
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -979,25 +1048,17 @@ def process_image():
     # ---- Validate API keys based on provider ----
     if api_provider == "recraft":
         if not RECRAFT_API_KEY or RECRAFT_API_KEY.startswith("your_recraft_"):
-            return jsonify(
-                {
-                    "error": (
-                        "RECRAFT_API_KEY is not configured. "
-                        "Create a .env file with your key from your Recraft.ai profile."
-                    )
-                }
-            ), 500
-
+            return jsonify({"error": "RECRAFT_API_KEY is not configured. Create a .env file with your key from your Recraft.ai profile."}), 500
+    elif api_provider == "openai":
+        if not OPENAI_API_KEY or OPENAI_API_KEY.startswith("your_openai_"):
+            return jsonify({"error": "OPENAI_API_KEY is not configured."}), 500
+    elif api_provider == "gemini":
+        if not GEMINI_API_KEY or GEMINI_API_KEY.startswith("your_gemini_"):
+            return jsonify({"error": "GEMINI_API_KEY is not configured."}), 500
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
-            return jsonify(
-                {
-                    "error": (
-                        "NANOBANANA_API_KEY is not configured. "
-                        "Create a .env file with your key from your Nano Banana dashboard."
-                    )
-                }
-            ), 500
+            return jsonify({"error": "NANOBANANA_API_KEY is not configured. Create a .env file with your key from your Nano Banana dashboard."}), 500
+            
 
     # ---- Handle Text-to-Image Generation (No Image Uploaded) ----
     if not has_image:
@@ -1007,11 +1068,15 @@ def process_image():
             if api_provider == "recraft":
                 app.logger.info("Running Recraft.ai Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_recraft_generations(enhanced_prompt, negative_prompt, image_size)
-
+            elif api_provider == "openai":
+                app.logger.info("Running OpenAI DALL-E 3 Text-to-Image Generation (size=%s)...", image_size)
+                final_image_url = run_openai_generations(enhanced_prompt, image_size)
+            elif api_provider == "gemini":
+                app.logger.info("Running Google Gemini Text-to-Image Generation (size=%s)...", image_size)
+                final_image_url = run_gemini_generations(enhanced_prompt, image_size)
             else:
                 app.logger.info("Running Nano Banana Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, image_size)
-                
             # Download result
             result_resp = requests.get(final_image_url, timeout=30)
             result_resp.raise_for_status()
@@ -1235,7 +1300,10 @@ def process_image():
             final_image_url = run_recraft_inpainting(
                 input_path, mask_path, inpaint_prompt, negative_prompt
             )
-
+        elif api_provider == "openai":
+            final_image_url = run_openai_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
+        elif api_provider == "gemini":
+            final_image_url = run_gemini_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
         else:
             app.logger.info("Running Pixapi Gemini Image Edit (mode=%s) ...", mode)
             nb_size = compute_image_size_ratio(original_w, original_h)
@@ -1466,8 +1534,13 @@ def smart_process():
     if api_provider == "recraft":
         if not RECRAFT_API_KEY or RECRAFT_API_KEY.startswith("your_recraft_"):
             return jsonify({"error": "RECRAFT_API_KEY is not configured."}), 500
+    elif api_provider == "openai":
+        if not OPENAI_API_KEY or OPENAI_API_KEY.startswith("your_openai_"):
+            return jsonify({"error": "OPENAI_API_KEY is not configured."}), 500
+    elif api_provider == "gemini":
+        if not GEMINI_API_KEY or GEMINI_API_KEY.startswith("your_gemini_"):
+            return jsonify({"error": "GEMINI_API_KEY is not configured."}), 500
     else:
-        api_provider = "nanobanana"
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify({"error": "NANOBANANA_API_KEY is not configured."}), 500
 
@@ -1549,9 +1622,12 @@ def smart_process():
                 with open(mask_path, "wb") as f:
                     f.write(mask_bytes)
                 final_url = run_recraft_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
-
+            elif api_provider == "openai":
+                final_url = run_openai_inpainting(input_path, None, prompt, negative_prompt)
+            elif api_provider == "gemini":
+                final_url = run_gemini_inpainting(input_path, None, prompt, negative_prompt)
             else:
-                # Pixapi Gemini — skip CLIPSeg, use direct edit instruction
+                # Pixapi Gemini - skip CLIPSeg, use direct edit instruction
                 inpaint_prompt = (
                     f"Edit this product label image: {prompt}. "
                     f"Keep all other elements, layout, colors, and text exactly the same. "
@@ -1621,7 +1697,10 @@ def smart_process():
 
         if api_provider == "recraft":
             final_url = run_recraft_generations(enhanced_prompt, negative_prompt, gen_size)
-
+        elif api_provider == "openai":
+            final_url = run_openai_generations(enhanced_prompt, gen_size)
+        elif api_provider == "gemini":
+            final_url = run_gemini_generations(enhanced_prompt, gen_size)
         else:
             final_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, gen_size)
 
