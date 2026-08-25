@@ -35,6 +35,8 @@ NANOBANANA_API_KEY = os.getenv("NANOBANANA_API_KEY", "").strip("'\"")
 NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
 REVE_API_KEY = os.getenv("REVE_API_KEY", "").strip("'\"")
 REVE_BASE_URL = os.getenv("REVE_BASE_URL", "https://api.reve.com/v2").rstrip("/")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip("'\"")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip("'\"")
 
 # ---------------------------------------------------------------------------
 # Font helpers (same as app.py)
@@ -469,6 +471,64 @@ def run_reve_generations(prompt, image_size="1:1", negative_prompt=None):
     raise RuntimeError(last_error or "Reve 2.0 API failed")
 
 # ---------------------------------------------------------------------------
+# OpenAI API calls
+# ---------------------------------------------------------------------------
+def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
+    if not OPENAI_API_KEY:
+        raise RuntimeError("OPENAI_API_KEY is not set in Secrets.")
+    url = "https://api.openai.com/v1/images/generations"
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    size_map = {
+        "1:1": "1024x1024", "16:9": "1792x1024", "9:16": "1024x1792",
+        "4:3": "1792x1024", "3:4": "1024x1792", "3:1": "1792x1024",
+        "4:1": "1792x1024" # mapped to closest
+    }
+    size_str = size_map.get(image_size, "1024x1024")
+    payload = {
+        "model": "dall-e-3",
+        "prompt": prompt,
+        "n": 1,
+        "size": size_str,
+        "response_format": "b64_json"
+    }
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError(f"OpenAI error {resp.status_code}: {resp.text}")
+    b64 = resp.json()["data"][0]["b64_json"]
+    return f"data:image/png;base64,{b64}"
+
+# ---------------------------------------------------------------------------
+# Google Gemini API calls
+# ---------------------------------------------------------------------------
+def run_gemini_generations(prompt: str, image_size: str = "1:1") -> str:
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not set in Secrets.")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key={GEMINI_API_KEY}"
+    size_map = {
+        "1:1": "1:1", "16:9": "16:9", "9:16": "9:16",
+        "4:3": "4:3", "3:4": "3:4", "2:1": "16:9", "4:1": "16:9"
+    }
+    aspect_ratio = size_map.get(image_size, "1:1")
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "responseMimeType": "image/jpeg"
+        }
+    }
+    headers = {"Content-Type": "application/json"}
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    if resp.status_code != 200:
+        raise RuntimeError(f"Gemini error {resp.status_code}: {resp.text}")
+    try:
+        b64 = resp.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
+    except KeyError:
+        raise RuntimeError(f"Unexpected response format from Gemini: {resp.text}")
+    return f"data:image/jpeg;base64,{b64}"
+
+# ---------------------------------------------------------------------------
 # Download format builders
 # ---------------------------------------------------------------------------
 def build_pdf(img: Image.Image) -> bytes:
@@ -630,6 +690,10 @@ def process(
         provider = "recraft"
     elif "Reve" in api_provider:
         provider = "reve"
+    elif "OpenAI" in api_provider:
+        provider = "openai"
+    elif "Gemini" in api_provider:
+        provider = "gemini"
     else:
         provider = "nanobanana"
     stem = str(uuid.uuid4())[:8]
@@ -641,6 +705,14 @@ def process(
         return None, "❌ REVE_API_KEY not set. Add it in Space Secrets."
     if provider == "nanobanana" and not NANOBANANA_API_KEY:
         return None, "❌ NANOBANANA_API_KEY not set. Add it in Space Secrets."
+    if provider == "openai" and not OPENAI_API_KEY:
+        return None, "❌ OPENAI_API_KEY not set. Add it in Space Secrets."
+    if provider == "gemini" and not GEMINI_API_KEY:
+        return None, "❌ GEMINI_API_KEY not set. Add it in Space Secrets."
+
+    # Enforce OpenAI / Gemini generation-only limit
+    if provider in ("openai", "gemini") and mode != "Generate (no image)":
+        return None, f"❌ {api_provider} only supports 'Generate (no image)'. It does not support image editing/inpainting."
 
     try:
         # ── Text-to-Image (Generate) ─────────────────────────────────────────
@@ -656,11 +728,19 @@ def process(
                 url = run_recraft_generations(enhanced, api_aspect)
             elif provider == "reve":
                 url = run_reve_generations(enhanced, api_aspect, negative_prompt)
+            elif provider == "openai":
+                url = run_openai_generations(enhanced, api_aspect)
+            elif provider == "gemini":
+                url = run_gemini_generations(enhanced, api_aspect)
             else:
                 nanobanana_aspect = "16:9" if api_aspect in ("2:1", "16:9") else api_aspect
                 url = run_nanobanana_generations(enhanced, nanobanana_aspect)
-            img_bytes = requests.get(url, timeout=30).content
-            result_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+            
+            if url.startswith("data:image"):
+                result_img = pil_from_data_uri(url).convert("RGB")
+            else:
+                img_bytes = requests.get(url, timeout=30).content
+                result_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
             
             # Crop to target aspect ratio
             ratio_map = {"1:1": 1.0, "16:9": 16/9, "2:1": 2.0, "4:1": 4.0}
@@ -808,7 +888,7 @@ footer { display: none !important; }
 """
 
 MODES = ["Remove", "Add/Replace", "Text Replace", "Generate (no image)"]
-PROVIDERS = ["Recraft.ai", "Nano Banana", "Reve 2.0 (4K Layout AI)"]
+PROVIDERS = ["Recraft.ai", "Nano Banana", "Reve 2.0 (4K Layout AI)", "OpenAI (DALL-E 3)", "Google Gemini"]
 FORMATS = ["PNG", "JPG", "PDF", "SVG", "CDR", "CDRx", "GMS", "CGS"]
 
 with gr.Blocks(css=CSS, title="Label Editor AI") as demo:
