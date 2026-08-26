@@ -2939,7 +2939,10 @@
       
       recognition.onerror = function(event) {
         console.error("Speech recognition error", event.error);
-        alert("Voice input failed: " + event.error);
+        if (event.error !== 'aborted' && event.error !== 'no-speech') {
+          alert("Voice input failed: " + event.error + ". Please ensure your microphone is working and permissions are granted.");
+        }
+        btn.classList.remove('recording');
       };
       
       recognition.onend = function() {
