@@ -1210,116 +1210,111 @@
     }
 
     /* ======================================================
-       SMART PROMPT CARD
+       SMART PROMPT PILL REDESIGN
     ====================================================== */
     .smart-card {
-      background: linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(8,145,178,0.06) 100%);
-      border: 1.5px solid rgba(124,58,237,0.22);
-      border-radius: var(--radius-xl);
-      padding: 32px;
-      box-shadow: 0 4px 32px rgba(124,58,237,0.08);
+      background: transparent;
       margin-bottom: 24px;
       position: relative;
-      overflow: hidden;
     }
-
-    .smart-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--clr-accent), var(--clr-accent-2), #f472b6);
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-
-    .smart-header {
+    
+    .smart-pill {
       display: flex;
       align-items: center;
+      background: #1e1e1e; /* Dark sleek background */
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 999px; /* Pill shape */
+      padding: 8px 12px 8px 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
       gap: 12px;
-      margin-bottom: 20px;
+      transition: all 0.3s ease;
     }
-
-    .smart-icon {
-      width: 42px;
-      height: 42px;
-      background: linear-gradient(135deg, var(--clr-accent), #f472b6);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(124,58,237,0.3);
-    }
-
-    .smart-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--clr-text);
-    }
-
-    .smart-subtitle {
-      font-size: 0.78rem;
-      color: var(--clr-text-muted);
-      margin-top: 2px;
-    }
-
-    .smart-input-row {
-      display: flex;
-      gap: 12px;
-      align-items: stretch;
+    
+    .smart-pill:focus-within {
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 6px 32px rgba(0, 0, 0, 0.4);
     }
 
     .smart-input {
       flex: 1;
-      padding: 14px 18px;
-      font-size: 0.95rem;
+      padding: 12px 0;
+      font-size: 1rem;
       font-family: inherit;
-      border: 1.5px solid var(--clr-border);
-      border-radius: var(--radius-md);
-      background: var(--clr-surface);
-      color: var(--clr-text);
-      outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-
-    .smart-input:focus {
-      border-color: var(--clr-accent);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-    }
-
-    .smart-btn {
-      padding: 14px 28px;
-      background: linear-gradient(135deg, var(--clr-accent), #f472b6);
-      color: #fff;
-      font-size: 0.9rem;
-      font-weight: 700;
       border: none;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      transition: all var(--transition);
-      white-space: nowrap;
+      background: transparent;
+      color: #f8fafc;
+      outline: none;
+    }
+
+    .smart-input::placeholder {
+      color: #64748b;
+    }
+
+    .smart-pill-actions {
       display: flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 4px 16px rgba(124,58,237,0.3);
     }
 
-    .smart-btn:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+    .pill-icon-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 50%;
+      transition: color 0.2s, background 0.2s;
+    }
+    
+    .pill-icon-btn:hover {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .pill-icon-btn.think-btn {
+      font-size: 0.9rem;
+      border-radius: 16px;
+      padding: 6px 12px;
+      gap: 6px;
+      background: rgba(255,255,255,0.05);
+    }
+    .pill-icon-btn.think-btn:hover {
+      background: rgba(255,255,255,0.15);
     }
 
-    .smart-btn:disabled {
-      opacity: 0.6;
+    .smart-btn-round {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #2563eb; /* Blue accent */
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 1.2rem;
+    }
+
+    .smart-btn-round:hover:not(:disabled) {
+      background: #3b82f6;
+      transform: scale(1.05);
+    }
+
+    .smart-btn-round:disabled {
+      opacity: 0.5;
       cursor: not-allowed;
-      transform: none;
     }
 
-    .smart-btn.loading::after {
+    .smart-btn-round.loading::after {
       content: '';
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border: 2px solid rgba(255,255,255,0.4);
       border-top-color: #fff;
       border-radius: 50%;
@@ -1453,30 +1448,40 @@
 
     <!-- ✨ SMART PROMPT CARD -->
     <div class="smart-card" id="smartCard">
-      <div class="smart-header">
-        <div class="smart-icon">✨</div>
-        <div>
-          <div class="smart-title">Smart Prompt — Just Describe What You Want</div>
-          <div class="smart-subtitle">AI searches your uploaded images automatically · edits the best match · or generates a new one</div>
+      <!-- Dark Sleek Pill Input -->
+      <div class="smart-pill">
+        <!-- Plus / Add button -->
+        <button class="pill-icon-btn" title="Add Reference Image">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        
+        <!-- Input -->
+        <input
+          type="text"
+          id="smartPromptInput"
+          class="smart-input"
+          placeholder="Ask anything..."
+          aria-label="Smart prompt input"
+          autocomplete="off"
+        />
+        
+        <!-- Actions (Think, Mic, Submit) -->
+        <div class="smart-pill-actions">
+          <button class="pill-icon-btn think-btn" title="AI Think Mode">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 0-5 5c0 1.9 1 3.5 2.5 4.3V14a1.5 1.5 0 0 0 3 0v-2.7c1.5-.8 2.5-2.4 2.5-4.3a5 5 0 0 0-5-5z"></path></svg>
+            Think
+          </button>
+          <button class="pill-icon-btn mic-btn" style="position:static; transform:none;" onclick="startVoiceInput('smartPromptInput', this)" title="Speak">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="22"></line></svg>
+          </button>
+          
+          <button id="smartBtn" class="smart-btn-round" type="button" title="Send Prompt">
+            <span id="smartBtnText" style="display:none;"></span>
+            <svg id="smartBtnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+          </button>
         </div>
       </div>
 
-      <div class="smart-input-row">
-        <div style="position:relative; flex: 1; display:flex;">
-          <input
-            type="text"
-            id="smartPromptInput"
-            class="smart-input"
-            style="width: 100%; padding-right: 44px;"
-            placeholder="e.g. Change the chocolate flavor to vanilla on the label…"
-            aria-label="Smart prompt input"
-          />
-          <button type="button" class="mic-btn" onclick="startVoiceInput('smartPromptInput', this)" title="Speak Prompt" aria-label="Speak Prompt">🎙️</button>
-        </div>
-        <button id="smartBtn" class="smart-btn" type="button">
-          <span id="smartBtnText">✨ Smart Edit</span>
-        </button>
-      </div>
 
       <!-- Status row -->
       <div class="smart-status" id="smartStatus">
