@@ -1394,14 +1394,10 @@ def process_image():
         return jsonify({"error": f"Unexpected error: {str(exc)}"}), 500
 
 
-@app.route("/static/results/<filename>")
-def serve_result(filename: str):
-    return send_from_directory(app.config["RESULTS_FOLDER"], filename)
+# The static routes below have been removed because they conflict with Flask's built-in 
+# static file handler, which already serves files from the `static` directory automatically.
+# This prevents broken images in the browser on Windows.
 
-
-@app.route("/static/uploads/<filename>")
-def serve_upload(filename: str):
-    return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
 
 @app.route("/health")
