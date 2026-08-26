@@ -1497,11 +1497,19 @@
      MAIN CONTAINER
 ============================================================ -->
   <div class="container">
-
     <!-- ✨ SMART PROMPT CARD -->
     <div class="smart-card" id="smartCard">
-      <!-- Sleek Pill Input -->
-      <div class="smart-pill">
+      <!-- Sleek Pill Input Wrapper -->
+      <div style="position: relative;">
+        
+        <!-- Thumbnail Preview Chip (Shows when image uploaded) -->
+        <div id="smartImagePreview" style="display:none; position:absolute; bottom: 100%; left: 24px; margin-bottom: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 10;">
+          <img id="smartThumb" src="" alt="Uploaded" style="height: 56px; border-radius: 6px; display: block; object-fit: cover;" />
+          <div onclick="document.getElementById('imageInput').value=''; document.getElementById('smartImagePreview').style.display='none'; document.getElementById('dropZone').classList.remove('has-file');" title="Remove image" style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:#fff; border-radius:50%; width:20px; height:20px; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</div>
+        </div>
+
+        <!-- Sleek Pill Input -->
+        <div class="smart-pill">
         
         <!-- Plus / Add button wrapper -->
         <div class="plus-btn-wrapper">
@@ -1541,8 +1549,8 @@
             <svg id="smartBtnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
           </button>
         </div>
+        </div>
       </div>
-
 
       <!-- Status row -->
       <div class="smart-status" id="smartStatus">
@@ -1625,14 +1633,15 @@
       </div>
     </div>
 
-    <!-- Upload & Prompt Card -->
-    <div class="card">
+    <!-- Upload & Prompt Card (Legacy) -->
+    <div class="card" style="display:none;">
       <div class="section-label">1 · Upload Image</div>
 
+      <!-- Hidden file input preserved for logic -->
+      <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp" style="display:none;" />
+      
       <!-- Drop Zone -->
       <div class="drop-zone" id="dropZone" role="button" aria-label="Upload image file">
-        <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp"
-          aria-label="Choose image file" />
         <div class="drop-content">
           <span class="drop-icon">🖼️</span>
           <p class="drop-title">Drop your label image here</p>
@@ -2384,6 +2393,14 @@
           fileThumbnail.src = e.target.result;
           fileName.textContent = file.name;
           fileSize.textContent = humanSize(file.size);
+          
+          // Update the sleek pill thumbnail preview
+          const smartThumb = document.getElementById('smartThumb');
+          if(smartThumb) {
+            smartThumb.src = e.target.result;
+            document.getElementById('smartImagePreview').style.display = 'block';
+          }
+          
           dropZone.classList.add('has-file');
         };
         reader.readAsDataURL(file);
