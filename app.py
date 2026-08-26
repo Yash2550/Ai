@@ -942,9 +942,57 @@ def enhance_prompt_layout(prompt: str) -> str:
 
 def translate_prompt(text: str) -> str:
     """
-    Returns the prompt text directly without external translation.
+    Translates the prompt text to English using Gemini (or OpenAI as fallback) 
+    to support multi-language input (Hindi, Gujarati, etc).
     """
-    return text.strip() if text else ""
+    if not text:
+        return ""
+    text = text.strip()
+    
+    # Try Gemini first for translation (Fast and cheap)
+    if GEMINI_API_KEY and not GEMINI_API_KEY.startswith("your_gemini_"):
+        try:
+            import requests
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={GEMINI_API_KEY}"
+            payload = {
+                "contents": [{"parts": [{"text": f"Translate the following text to English. If it is already in English, output it exactly as is. Output ONLY the translated English text, nothing else.\n\nText: {text}"}]}]
+            }
+            headers = {"Content-Type": "application/json"}
+            resp = requests.post(url, headers=headers, json=payload, timeout=10)
+            resp.raise_for_status()
+            translated = resp.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
+            app.logger.info(f"Translated prompt via Gemini: '{text}' -> '{translated}'")
+            return translated
+        except Exception as e:
+            app.logger.error(f"Gemini translation failed: {e}")
+
+    # Fallback to OpenAI if Gemini fails or is missing
+    if OPENAI_API_KEY and not OPENAI_API_KEY.startswith("your_openai_"):
+        try:
+            import requests
+            url = "https://api.openai.com/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {"role": "system", "content": "You are a translator. Translate the user's text to English. If it is already in English, return it unchanged. Output ONLY the translated English text, without quotes or explanation."},
+                    {"role": "user", "content": text}
+                ],
+                "temperature": 0.3
+            }
+            resp = requests.post(url, headers=headers, json=payload, timeout=10)
+            resp.raise_for_status()
+            translated = resp.json()["choices"][0]["message"]["content"].strip()
+            app.logger.info(f"Translated prompt via OpenAI: '{text}' -> '{translated}'")
+            return translated
+        except Exception as e:
+            app.logger.error(f"OpenAI translation failed: {e}")
+
+    # Fallback to returning original text if all APIs fail
+    return text
 
 
 # ---------------------------------------------------------------------------
