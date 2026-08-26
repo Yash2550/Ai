@@ -1,3 +1,7 @@
+Date: 2026-08-26
+Title: Implemented Voice Input and Redesigned Smart Prompt UI
+Remarks: Added voice recognition using Web Speech API (supports multi-language). Redesigned the main Smart Prompt card into a sleek white pill UI. Integrated the '+' button with a new file upload popover and image thumbnail chip, replacing the legacy bulky upload area while preserving mode switching functionality. Optimized Gunicorn for Render timeouts.
+----------------------------------------
 Date: 2026-08-22
 Title: Initial commit with fully working Gomzi Group clone, OTP, and dashboards
 Remarks: No additional remarks provided.
