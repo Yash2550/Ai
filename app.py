@@ -1389,7 +1389,7 @@ def process_image():
                     )
                 }), 400
         return jsonify({"error": err_msg}), 500
-    except Exception as exc:
+    except Exception as exc: 
         app.logger.exception("Unexpected error during processing.")
         return jsonify({"error": f"Unexpected error: {str(exc)}"}), 500
 
