@@ -1634,14 +1634,14 @@
     </div>
 
     <!-- Upload & Prompt Card (Legacy) -->
-    <div class="card" style="display:none;">
-      <div class="section-label">1 · Upload Image</div>
+    <div class="card">
+      <div class="section-label" style="display:none;">1 · Upload Image</div>
 
       <!-- Hidden file input preserved for logic -->
       <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp" style="display:none;" />
       
       <!-- Drop Zone -->
-      <div class="drop-zone" id="dropZone" role="button" aria-label="Upload image file">
+      <div class="drop-zone" id="dropZone" role="button" aria-label="Upload image file" style="display:none;">
         <div class="drop-content">
           <span class="drop-icon">🖼️</span>
           <p class="drop-title">Drop your label image here</p>
@@ -1659,7 +1659,7 @@
 
       <!-- Mode Switcher + Prompt -->
       <div class="mt-6">
-        <div class="section-label">2 · Choose Mode &amp; Describe</div>
+        <div class="section-label">Choose Mode &amp; Describe</div>
 
         <!-- Mode tabs -->
         <div class="mode-tabs" id="modeTabs" role="tablist">
