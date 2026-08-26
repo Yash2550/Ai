@@ -1389,6 +1389,36 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* Voice Input Button */
+    .mic-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--clr-text-muted);
+      transition: all 0.2s;
+      padding: 6px;
+      border-radius: 50%;
+      z-index: 10;
+    }
+    .mic-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--clr-primary);
+    }
+    .mic-btn.recording {
+      color: #ef4444;
+      animation: pulse-red 1.5s infinite;
+    }
+    @keyframes pulse-red {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
   </style>
 </head>
 
@@ -1432,13 +1462,17 @@
       </div>
 
       <div class="smart-input-row">
-        <input
-          type="text"
-          id="smartPromptInput"
-          class="smart-input"
-          placeholder="e.g. Change the chocolate flavor to vanilla on the label…"
-          aria-label="Smart prompt input"
-        />
+        <div style="position:relative; flex: 1; display:flex;">
+          <input
+            type="text"
+            id="smartPromptInput"
+            class="smart-input"
+            style="width: 100%; padding-right: 44px;"
+            placeholder="e.g. Change the chocolate flavor to vanilla on the label…"
+            aria-label="Smart prompt input"
+          />
+          <button type="button" class="mic-btn" onclick="startVoiceInput('smartPromptInput', this)" title="Speak Prompt" aria-label="Speak Prompt">🎙️</button>
+        </div>
         <button id="smartBtn" class="smart-btn" type="button">
           <span id="smartBtnText">✨ Smart Edit</span>
         </button>
@@ -1588,8 +1622,12 @@
         <!-- Main prompt -->
         <div class="input-group" style="margin-top:16px">
           <label class="input-label" for="promptInput" id="promptLabel">What to remove</label>
-          <textarea id="promptInput" name="prompt" rows="3"
-            placeholder="e.g. the RU logo and Riseup Nutrition brand name"></textarea>
+          <div style="position: relative;">
+            <textarea id="promptInput" name="prompt" rows="3"
+              style="padding-right: 44px;"
+              placeholder="e.g. the RU logo and Riseup Nutrition brand name"></textarea>
+            <button type="button" class="mic-btn" style="top: 24px; transform: none;" onclick="startVoiceInput('promptInput', this)" title="Speak Prompt" aria-label="Speak Prompt">🎙️</button>
+          </div>
           <div class="prompt-chips" id="promptChips">
             <!-- chips injected by JS per mode -->
           </div>
@@ -2870,6 +2908,46 @@
         });
       }
     })();
+
+    // Voice Input via Web Speech API
+    function startVoiceInput(inputId, btn) {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Sorry, your browser doesn't support speech recognition. Please use Google Chrome or Microsoft Edge.");
+        return;
+      }
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      // Auto-detect language or allow multi-language
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onstart = function() {
+        btn.classList.add('recording');
+      };
+      
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const inputField = document.getElementById(inputId);
+        // Append or replace depending on what user wants. Let's append with a space if not empty
+        if(inputField.value) {
+          inputField.value += ' ' + transcript;
+        } else {
+          inputField.value = transcript;
+        }
+      };
+      
+      recognition.onerror = function(event) {
+        console.error("Speech recognition error", event.error);
+        alert("Voice input failed: " + event.error);
+      };
+      
+      recognition.onend = function() {
+        btn.classList.remove('recording');
+      };
+      
+      recognition.start();
+    }
   </script>
 
 </body>
