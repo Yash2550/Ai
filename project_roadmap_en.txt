@@ -1,0 +1,35 @@
+# Goal: Voice Input, Logo Extraction, and New Features
+
+The user wants to add voice input so that people can dictate their prompts. Additionally, they want an advanced feature to detect a logo from an uploaded photo (e.g., a gym photo), extract it, and place it on the newly generated label.
+
+## Project Plan 
+
+We are going to build this project to be the absolute best and high-end, without any limitations! In the future, by upgrading the server, this can be deployed on any major platform.
+
+### 1. Voice Input (Prompt via Voice)
+**Idea:** We will integrate the Web Speech API directly into the frontend (index.html).
+- **Benefits:** This runs natively in the user's browser and automatically understands Gujarati, Hindi, and English! The user only needs to press the Mic button and speak.
+
+### 2. Advanced Logo Extraction (AI Background Removal & Detection)
+We won't just copy the brand style; we will physically extract the logo from the real photo!
+**Idea (Using Local AI / Rembg):**
+1. We will provide an "Upload Reference Photo" button.
+2. When a user uploads a gym or any other photo, our AI (rembg or Object Detection) will find the main object (logo) in that photo and remove its background to create a completely transparent PNG.
+3. This original extracted logo will be directly pasted onto the newly generated label!
+
+---
+
+### 3. Future "Heavy-Level" Suggestions 🚀
+To make the project incredibly advanced and enterprise-grade (worth thousands of dollars), here are some "heavy-level" features:
+
+**1. Brand Scanner AI (URL to Brand Kit):**
+The user doesn't even need to upload their logo or colors! They simply enter their company's website link, and our AI automatically scrapes the website, extracts their logo, finds their exact colors (Hex Codes), and automatically applies them when generating the label.
+
+**2. Auto Family Product Generator (Batch Family AI):**
+Suppose the user creates a label for "Whey Protein Chocolate". This feature will automatically create matching labels for "BCAA Green Apple", "Creatine Lemon", and "Pre-Workout" in the exact same design simultaneously, just by changing the colors and flavors! An entire product range ready in one click!
+
+**3. Print-Ready CMYK and Die-Lines (Factory Ready Export):**
+Currently, the AI provides an image in RGB color, which looks great on a screen. However, factories require a CMYK PDF and Die-lines (cutting lines) for physical press printing. We can write a backend code that converts the AI-generated RGB image into a super high-quality, print-ready PDF, allowing the user to download a factory-ready file instantly.
+
+**4. Advanced Vector Typography (AI + SVG Text Engine):**
+AI image generators often misspell words. With this feature, the AI will only generate the background artwork (e.g., chocolate splashes), while the Nutrition Table (Nutrition Facts) and Company Name will be rendered perfectly using real computer fonts (SVG/Text). This ensures zero spelling mistakes, and allows the user to click and edit the text dynamically!
