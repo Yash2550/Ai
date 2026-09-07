@@ -1400,7 +1400,7 @@ def process_image():
             api_provider=api_provider,
             mode=mode,
         )
-        db.session.add(job)
+        db.session.add(job) 
         db.session.commit()
 
         return jsonify(
