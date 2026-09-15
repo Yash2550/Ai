@@ -1805,6 +1805,8 @@ def _build_svg_from_image(filepath: str) -> bytes:
         import vtracer
         import tempfile
         import os
+        import sys
+        import subprocess
         from PIL import Image
         
         with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
@@ -1823,40 +1825,65 @@ def _build_svg_from_image(filepath: str) -> bytes:
                 ratio = min(MAX_DIM / w, MAX_DIM / h)
                 new_w, new_h = int(w * ratio), int(h * ratio)
                 img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            else:
+                new_w, new_h = w, h
             img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
             
         # Convert the raster image into a true vector SVG file
-        vtracer.convert_image_to_svg_py(
-            tmp_png_path,
-            tmp_svg_path,
-            colormode="color",
-            hierarchical="stacked",
-            mode="spline",
-            filter_speckle=4,
-            color_precision=6,
-            layer_difference=16,
-            corner_threshold=60,
-            length_threshold=4.0,
-            max_iterations=10,
-            splice_threshold=45,
-            path_precision=8
-        )
-        
-        with open(tmp_svg_path, 'r', encoding='utf-8') as f:
-            svg_content = f.read()
-            
-        # Fix viewBox and width/height to match original dimensions
-        if f'width="{new_w}"' in svg_content:
-            svg_content = svg_content.replace(f'width="{new_w}"', f'width="{original_w}"')
-            svg_content = svg_content.replace(f'height="{new_h}"', f'height="{original_h}"')
-            
+        # We run this in a subprocess because vtracer (Rust) can occasionally segfault
+        # which would otherwise crash the entire Flask server process.
+        script = f'''import vtracer
+import sys
+try:
+    vtracer.convert_image_to_svg_py(
+        r"{tmp_png_path}",
+        r"{tmp_svg_path}",
+        colormode="color",
+        hierarchical="stacked",
+        mode="spline",
+        filter_speckle=4,
+        color_precision=6,
+        layer_difference=16,
+        corner_threshold=60,
+        length_threshold=4.0,
+        max_iterations=10,
+        splice_threshold=45,
+        path_precision=8
+    )
+except Exception as e:
+    sys.exit(1)
+'''
+        with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as tmp_py:
+            tmp_py.write(script)
+            tmp_py_path = tmp_py.name
+
         try:
-            os.remove(tmp_svg_path)
-            os.remove(tmp_png_path)
-        except:
-            pass
+            result = subprocess.run([sys.executable, tmp_py_path], capture_output=True, timeout=30)
+            if result.returncode != 0:
+                raise RuntimeError(f"vtracer subprocess failed with code {result.returncode}")
             
-        return svg_content.encode("utf-8")
+            with open(tmp_svg_path, 'r', encoding='utf-8') as f:
+                svg_content = f.read()
+                
+            # Fix viewBox and width/height to match original dimensions
+            if f'width="{new_w}"' in svg_content:
+                svg_content = svg_content.replace(f'width="{new_w}"', f'width="{original_w}"')
+                svg_content = svg_content.replace(f'height="{new_h}"', f'height="{original_h}"')
+                
+            return svg_content.encode("utf-8")
+        finally:
+            try:
+                os.remove(tmp_py_path)
+            except:
+                pass
+            try:
+                os.remove(tmp_svg_path)
+            except:
+                pass
+            try:
+                os.remove(tmp_png_path)
+            except:
+                pass
     except Exception as e:
         app.logger.warning("vtracer vectorization failed or not installed. Falling back to raster SVG. Error: %s", e)
         # Fallback to raster base64 SVG
@@ -2183,7 +2210,7 @@ def download_image(filename, fmt):
                 out_io = io.BytesIO(svg_bytes)
                 return send_file(
                     out_io,
-                    mimetype="application/octet-stream",
+                    mimetype="application/x-coreldraw",
                     as_attachment=True,
                     download_name=stem + ".cdr",
                 )
@@ -2198,7 +2225,7 @@ def download_image(filename, fmt):
                 out_io = io.BytesIO(zip_bytes)
                 return send_file(
                     out_io,
-                    mimetype="application/octet-stream",
+                    mimetype="application/x-coreldraw",
                     as_attachment=True,
                     download_name=stem + ".cdrx",
                 )
