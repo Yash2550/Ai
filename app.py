@@ -1568,6 +1568,37 @@ def smart_process():
     else:
         raw_prompt   = request.form.get("prompt", "").strip()
         api_provider = request.form.get("api_provider", "nanobanana").lower()
+        
+    uploaded_files = request.files.getlist("images")
+    if uploaded_files:
+        for file in uploaded_files:
+            if file and file.filename:
+                original_name = secure_filename(file.filename)
+                unique_stem_file = str(uuid.uuid4())[:8]
+                ext = original_name.rsplit(".", 1)[-1].lower() if "." in original_name else "png"
+                save_name = f"{unique_stem_file}_{original_name}"
+                input_path = os.path.join(app.config["UPLOAD_FOLDER"], save_name)
+                file.save(input_path)
+                
+                db_image = UploadedImage(
+                    filename=save_name,
+                    original_name=original_name,
+                    file_path=input_path,
+                    description=raw_prompt,
+                )
+                db.session.add(db_image)
+                db.session.commit()
+                
+                try:
+                    with Image.open(input_path) as img:
+                        original_w, original_h = img.size
+                        img = img.convert("RGBA" if ext == "png" else "RGB")
+                        img.save(input_path)
+                    db_image.width = original_w
+                    db_image.height = original_h
+                    db.session.commit()
+                except Exception as e:
+                    app.logger.warning(f"Could not process image dimensions for {original_name}: {e}")
 
     if not raw_prompt:
         return jsonify({"error": "A prompt is required."}), 400
@@ -1838,17 +1869,17 @@ try:
     vtracer.convert_image_to_svg_py(
         r"{tmp_png_path}",
         r"{tmp_svg_path}",
-        colormode="color",
-        hierarchical="stacked",
-        mode="spline",
-        filter_speckle=4,
-        color_precision=6,
-        layer_difference=16,
-        corner_threshold=60,
-        length_threshold=4.0,
-        max_iterations=10,
-        splice_threshold=45,
-        path_precision=8
+        "color",      # colormode
+        "stacked",    # hierarchical
+        "spline",     # mode
+        4,            # filter_speckle
+        6,            # color_precision
+        16,           # layer_difference
+        60,           # corner_threshold
+        4.0,          # length_threshold
+        10,           # max_iterations
+        45,           # splice_threshold
+        8             # path_precision
     )
 except Exception as e:
     sys.exit(1)
@@ -2210,9 +2241,9 @@ def download_image(filename, fmt):
                 out_io = io.BytesIO(svg_bytes)
                 return send_file(
                     out_io,
-                    mimetype="application/x-coreldraw",
+                    mimetype="image/svg+xml",
                     as_attachment=True,
-                    download_name=stem + ".cdr",
+                    download_name=stem + "_coreldraw.svg",
                 )
             except Exception as exc:
                 app.logger.error("CDR export failed: %s", exc)

@@ -1504,8 +1504,8 @@
         
         <!-- Thumbnail Preview Chip (Shows when image uploaded) -->
         <div id="smartImagePreview" style="display:none; position:absolute; bottom: 100%; left: 24px; margin-bottom: 8px; background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); z-index: 10;">
-          <img id="smartThumb" src="" alt="Uploaded" style="height: 56px; border-radius: 6px; display: block; object-fit: cover;" />
-          <div onclick="document.getElementById('imageInput').value=''; document.getElementById('smartImagePreview').style.display='none'; document.getElementById('dropZone').classList.remove('has-file');" title="Remove image" style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:#fff; border-radius:50%; width:20px; height:20px; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</div>
+          <div id="smartThumbContainer" style="display:flex; gap:8px;"></div>
+          <div onclick="document.getElementById('imageInput').value=''; document.getElementById('smartImagePreview').style.display='none'; document.getElementById('smartThumbContainer').innerHTML=''; document.getElementById('dropZone').classList.remove('has-file');" title="Remove image" style="position:absolute; top:-8px; right:-8px; background:#ef4444; color:#fff; border-radius:50%; width:20px; height:20px; font-size:12px; font-weight:bold; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">✕</div>
         </div>
 
         <!-- Sleek Pill Input -->
@@ -1638,7 +1638,7 @@
       <div class="section-label" style="display:none;">1 · Upload Image</div>
 
       <!-- Hidden file input preserved for logic -->
-      <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp" style="display:none;" />
+      <input type="file" id="imageInput" name="image" accept="image/png,image/jpeg,image/webp" multiple style="display:none;" />
       
       <!-- Drop Zone -->
       <div class="drop-zone" id="dropZone" role="button" aria-label="Upload image file" style="display:none;">
@@ -2374,11 +2374,20 @@
       });
       dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        if (e.dataTransfer.files[0]) handleFileSelected(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files.length > 0) {
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
+          Array.from(e.dataTransfer.files).forEach(file => handleFileSelected(file));
+          if (imageInput) imageInput.files = e.dataTransfer.files;
+        }
       });
 
       imageInput.addEventListener('change', () => {
-        if (imageInput.files[0]) handleFileSelected(imageInput.files[0]);
+        if (imageInput.files.length > 0) {
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
+          Array.from(imageInput.files).forEach(file => handleFileSelected(file));
+        }
       });
 
       function handleFileSelected(file) {
@@ -2397,9 +2406,16 @@
           fileSize.textContent = humanSize(file.size);
           
           // Update the sleek pill thumbnail preview
-          const smartThumb = document.getElementById('smartThumb');
-          if(smartThumb) {
-            smartThumb.src = e.target.result;
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if(smartThumbContainer) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Uploaded';
+            img.style.height = '56px';
+            img.style.borderRadius = '6px';
+            img.style.display = 'block';
+            img.style.objectFit = 'cover';
+            smartThumbContainer.appendChild(img);
             document.getElementById('smartImagePreview').style.display = 'block';
           }
           
@@ -2645,11 +2661,25 @@
           ? document.getElementById('apiProviderSelect').value
           : 'nanobanana';
 
-        const res = await fetch('/smart-process', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, api_provider: apiProvider }),
-        });
+        let res;
+        const imgInput = document.getElementById('imageInput');
+        if (imgInput && imgInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('api_provider', apiProvider);
+          Array.from(imgInput.files).forEach(f => formData.append('images', f));
+          
+          res = await fetch('/smart-process', {
+            method: 'POST',
+            body: formData,
+          });
+        } else {
+          res = await fetch('/smart-process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, api_provider: apiProvider }),
+          });
+        }
         const data = await res.json();
 
         if (!res.ok || data.error) {
