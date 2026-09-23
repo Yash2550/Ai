@@ -76,7 +76,8 @@ if OPENAI_API_KEY: OPENAI_API_KEY = OPENAI_API_KEY.strip("'\"")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if GEMINI_API_KEY: GEMINI_API_KEY = GEMINI_API_KEY.strip("'\"")
 
-
+EDENAI_API_KEY = os.getenv("EDENAI_API_KEY")
+if EDENAI_API_KEY: EDENAI_API_KEY = EDENAI_API_KEY.strip("'\"")
 
 
 # ---------------------------------------------------------------------------
@@ -1053,6 +1054,40 @@ def run_gemini_generations(prompt: str, image_size: str = "1:1") -> str:
         raise RuntimeError(f"Unexpected response format from Gemini: {resp.text}")
     return f"data:image/jpeg;base64,{b64}"
 
+def run_edenai_generations(prompt: str, image_size: str = "1:1") -> str:
+    if not EDENAI_API_KEY:
+        raise RuntimeError("EDENAI_API_KEY is not configured.")
+    url = "https://api.edenai.run/v2/image/generation"
+    headers = {
+        "Authorization": f"Bearer {EDENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    size_map = {
+        "1:1": "1024x1024", "16:9": "1024x1024", "9:16": "1024x1024",
+        "4:3": "1024x1024", "3:4": "1024x1024"
+    }
+    size_str = size_map.get(image_size, "1024x1024")
+    payload = {
+        "providers": "openai",
+        "text": prompt,
+        "resolution": size_str
+    }
+    import requests
+    resp = requests.post(url, headers=headers, json=payload, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+    try:
+        provider_key = next((k for k in data.keys() if "openai" in k), "openai")
+        item = data[provider_key]["items"][0]
+        if "image_b64" in item and item["image_b64"]:
+            return f"data:image/png;base64,{item['image_b64']}"
+        elif "image" in item and item["image"]:
+            return f"data:image/png;base64,{item['image']}"
+        else:
+            return item["image_resource_url"]
+    except (KeyError, IndexError, StopIteration):
+        raise RuntimeError(f"Unexpected response format from Eden AI: {resp.text}")
+
 def run_openai_inpainting(*args, **kwargs):
     raise RuntimeError("OpenAI (DALL-E 3) does not support inpainting. Please use Recraft or Nano Banana.")
 
@@ -1103,6 +1138,9 @@ def process_image():
     elif api_provider == "gemini":
         if not GEMINI_API_KEY or GEMINI_API_KEY.startswith("your_gemini_"):
             return jsonify({"error": "GEMINI_API_KEY is not configured."}), 500
+    elif api_provider == "edenai":
+        if not EDENAI_API_KEY or EDENAI_API_KEY.startswith("your_edenai_"):
+            return jsonify({"error": "EDENAI_API_KEY is not configured."}), 500
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify({"error": "NANOBANANA_API_KEY is not configured. Create a .env file with your key from your Nano Banana dashboard."}), 500
@@ -1122,13 +1160,22 @@ def process_image():
             elif api_provider == "gemini":
                 app.logger.info("Running Google Gemini Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_gemini_generations(enhanced_prompt, image_size)
+            elif api_provider == "edenai":
+                app.logger.info("Running Eden AI Text-to-Image Generation (size=%s)...", image_size)
+                final_image_url = run_edenai_generations(enhanced_prompt, image_size)
             else:
                 app.logger.info("Running Nano Banana Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, image_size)
-            # Download result
-            result_resp = requests.get(final_image_url, timeout=30)
-            result_resp.raise_for_status()
-            img_bytes = result_resp.content
+            
+            # Download result or decode base64
+            if final_image_url.startswith("data:image"):
+                import base64
+                b64_data = final_image_url.split(",", 1)[1]
+                img_bytes = base64.b64decode(b64_data)
+            else:
+                result_resp = requests.get(final_image_url, timeout=30)
+                result_resp.raise_for_status()
+                img_bytes = result_resp.content
 
             output_filename = f"result_{unique_stem}.png"
             output_path = os.path.join(app.config["RESULTS_FOLDER"], output_filename)
@@ -1353,6 +1400,8 @@ def process_image():
             final_image_url = run_openai_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
         elif api_provider == "gemini":
             final_image_url = run_gemini_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
+        elif api_provider == "edenai":
+            raise RuntimeError("Eden AI (DALL-E 3) does not support inpainting. Please use Recraft or Nano Banana.")
         else:
             app.logger.info("Running Pixapi Gemini Image Edit (mode=%s) ...", mode)
             nb_size = compute_image_size_ratio(original_w, original_h)
@@ -1777,12 +1826,19 @@ def smart_process():
             final_url = run_openai_generations(enhanced_prompt, gen_size)
         elif api_provider == "gemini":
             final_url = run_gemini_generations(enhanced_prompt, gen_size)
+        elif api_provider == "edenai":
+            final_url = run_edenai_generations(enhanced_prompt, gen_size)
         else:
             final_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, gen_size)
 
-        result_resp = requests.get(final_url, timeout=30)
-        result_resp.raise_for_status()
-        img_bytes = result_resp.content
+        if final_url.startswith("data:image"):
+            import base64
+            b64_data = final_url.split(",", 1)[1]
+            img_bytes = base64.b64decode(b64_data)
+        else:
+            result_resp = requests.get(final_url, timeout=30)
+            result_resp.raise_for_status()
+            img_bytes = result_resp.content
 
         output_filename = f"result_{unique_stem}.png"
         output_path = os.path.join(app.config["RESULTS_FOLDER"], output_filename)
@@ -1827,114 +1883,115 @@ def smart_process():
 # ---------------------------------------------------------------------------
 def _build_svg_from_image(filepath: str) -> bytes:
     """
-    Build a high-resolution lossless SVG container embedding the image.
+    Build a high-resolution lossless SVG container.
     This guarantees 100% crisp photo quality, sharp text, and zero distortion
     when opened in CorelDRAW, Canva, Illustrator, or exported to PDF.
+    It embeds the exact original AI-generated image perfectly.
     """
-    buf = io.BytesIO()
-    try:
-        import vtracer
-        import tempfile
-        import os
-        import sys
-        import subprocess
-        from PIL import Image
-        
-        with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
-            tmp_svg_path = tmp_svg.name
-            
-        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
-            tmp_png_path = tmp_png.name
-            
-        # Resize image to prevent vtracer from crashing on large files
-        MAX_DIM = 1200
-        original_w, original_h = 1, 1
-        with Image.open(filepath) as img:
-            original_w, original_h = img.size
-            w, h = img.size
-            if w > MAX_DIM or h > MAX_DIM:
-                ratio = min(MAX_DIM / w, MAX_DIM / h)
-                new_w, new_h = int(w * ratio), int(h * ratio)
-                img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            else:
-                new_w, new_h = w, h
-            img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
-            
-        # Convert the raster image into a true vector SVG file
-        # We run this in a subprocess because vtracer (Rust) can occasionally segfault
-        # which would otherwise crash the entire Flask server process.
-        script = f'''import vtracer
-import sys
-try:
-    vtracer.convert_image_to_svg_py(
-        r"{tmp_png_path}",
-        r"{tmp_svg_path}",
-        "color",      # colormode
-        "stacked",    # hierarchical
-        "spline",     # mode
-        4,            # filter_speckle
-        6,            # color_precision
-        16,           # layer_difference
-        60,           # corner_threshold
-        4.0,          # length_threshold
-        10,           # max_iterations
-        45,           # splice_threshold
-        8             # path_precision
-    )
-except Exception as e:
-    sys.exit(1)
-'''
-        with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as tmp_py:
-            tmp_py.write(script)
-            tmp_py_path = tmp_py.name
+    import base64
+    from PIL import Image
+    import io
+    import os
 
-        try:
-            result = subprocess.run([sys.executable, tmp_py_path], capture_output=True, timeout=30)
-            if result.returncode != 0:
-                raise RuntimeError(f"vtracer subprocess failed with code {result.returncode}")
-            
-            with open(tmp_svg_path, 'r', encoding='utf-8') as f:
-                svg_content = f.read()
-                
-            # Fix viewBox and width/height to match original dimensions
-            if f'width="{new_w}"' in svg_content:
-                svg_content = svg_content.replace(f'width="{new_w}"', f'width="{original_w}"')
-                svg_content = svg_content.replace(f'height="{new_h}"', f'height="{original_h}"')
-                
-            return svg_content.encode("utf-8")
-        finally:
-            try:
-                os.remove(tmp_py_path)
-            except:
-                pass
-            try:
-                os.remove(tmp_svg_path)
-            except:
-                pass
-            try:
-                os.remove(tmp_png_path)
-            except:
-                pass
-    except Exception as e:
-        app.logger.warning("vtracer vectorization failed or not installed. Falling back to raster SVG. Error: %s", e)
-        # Fallback to raster base64 SVG
+    try:
         buf = io.BytesIO()
         with Image.open(filepath) as img:
             w, h = img.size
+            # Convert to RGBA to ensure perfect color fidelity and transparency
             img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(buf, "PNG", dpi=(300, 300))
         
         b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        
+        # We use a standard SVG wrapper. CorelDRAW imports this perfectly.
+        # This keeps colors and text exactly as generated (zero issues/vandho).
         svg_content = (
             f'<?xml version="1.0" encoding="UTF-8"?>\n'
             f'<svg xmlns="http://www.w3.org/2000/svg" '
             f'xmlns:xlink="http://www.w3.org/1999/xlink" '
-            f'width="{w}" height="{h}" viewBox="0 0 {w} {h}">\n'
+            f'width="{w}px" height="{h}px" viewBox="0 0 {w} {h}">\n'
             f'  <title>Edited Label</title>\n'
-            f'  <image x="0" y="0" width="{w}" height="{h}" '
-            f'xlink:href="data:image/png;base64,{b64}" />\n'
-            f'</svg>\n'
+            f'  <g id="Original_Image_Layer">\n'
+            f'    <image x="0" y="0" width="{w}" height="{h}" '
+            f'preserveAspectRatio="none" xlink:href="data:image/png;base64,{b64}" />\n'
+            f'  </g>\n'
         )
+        
+        # Optionally, we can also append the vtracer vectorized paths on a hidden layer
+        # so they still have access to the vectors if they specifically need paths!
+        try:
+            import vtracer
+            import tempfile
+            import subprocess
+            import sys
+            
+            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
+                tmp_svg_path = tmp_svg.name
+                
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
+                tmp_png_path = tmp_png.name
+                
+            MAX_DIM = 1200
+            with Image.open(filepath) as img:
+                w_orig, h_orig = img.size
+                if w_orig > MAX_DIM or h_orig > MAX_DIM:
+                    ratio = min(MAX_DIM / w_orig, MAX_DIM / h_orig)
+                    new_w, new_h = int(w_orig * ratio), int(h_orig * ratio)
+                    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
+                
+            script = f"""import sys, vtracer
+try:
+    vtracer.convert_image_to_svg_py(
+        r"{tmp_png_path}", r"{tmp_svg_path}",
+        "color", "stacked", "spline", 4, 6, 16, 60, 4.0, 10, 45, 8
+    )
+except Exception:
+    sys.exit(1)
+"""
+            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as tmp_py:
+                tmp_py.write(script)
+                tmp_py_path = tmp_py.name
+
+            result = subprocess.run([sys.executable, tmp_py_path], capture_output=True, timeout=30)
+            if result.returncode == 0:
+                with open(tmp_svg_path, 'r', encoding='utf-8') as f:
+                    v_svg = f.read()
+                
+                # Extract inner paths and scale them to original viewBox
+                if "<svg" in v_svg and "</svg>" in v_svg:
+                    start_idx = v_svg.find(">", v_svg.find("<svg")) + 1
+                    end_idx = v_svg.rfind("</svg>")
+                    inner_paths = v_svg[start_idx:end_idx]
+                    
+                    # Add them as a hidden layer so they don't mess up the visual but are available
+                    svg_content += f'  <g id="Vectorized_Paths_Layer" display="none">\n'
+                    # Scale to original dimensions if we resized
+                    if w_orig > MAX_DIM or h_orig > MAX_DIM:
+                        scale_x = w_orig / new_w
+                        scale_y = h_orig / new_h
+                        svg_content += f'    <g transform="scale({scale_x}, {scale_y})">\n'
+                        svg_content += inner_paths
+                        svg_content += f'    </g>\n'
+                    else:
+                        svg_content += inner_paths
+                    svg_content += f'  </g>\n'
+                    
+            try: os.remove(tmp_py_path)
+            except: pass
+            try: os.remove(tmp_svg_path)
+            except: pass
+            try: os.remove(tmp_png_path)
+            except: pass
+        except Exception as e:
+            app.logger.warning("Optional vectorization failed, continuing with raster embed: %s", e)
+
+        svg_content += f'</svg>\n'
         return svg_content.encode("utf-8")
+
+    except Exception as e:
+        app.logger.error("Failed to build SVG: %s", e)
+        raise
+
 
 
 def _build_pdf_from_image(filepath: str) -> bytes:
@@ -1985,38 +2042,43 @@ def _build_pdf_from_image(filepath: str) -> bytes:
 
 def _build_cdrx_zip(filepath: str, stem: str) -> bytes:
     """
-    Build a .cdrx ZIP package (CorelDRAW X/2019+ exchange format).
-    The package contains:
-      - document.svg   — the vector/embedded-image SVG
-      - preview.png    — a full-quality PNG preview
-      - metadata.xml   — minimal CorelDRAW metadata
-    CorelDRAW 2019 and later can import .cdrx packages directly.
+    Build a CorelDRAW compatible ZIP package.
+    Instead of hallucinated Corel XML that fails in CorelDRAW 2020, we simply package
+    the perfect SVG alongside a high-res PNG and PDF. The user can extract or import these
+    flawlessly into CorelDRAW without text or color distortion.
     """
     import zipfile
+    from PIL import Image
 
     svg_bytes = _build_svg_from_image(filepath)
+    pdf_bytes = _build_pdf_from_image(filepath)
 
     png_buf = io.BytesIO()
     with Image.open(filepath) as img:
-        img.convert("RGB").save(png_buf, "PNG")
+        img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(png_buf, "PNG")
     png_bytes = png_buf.getvalue()
-
-    metadata_xml = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<cdrx-metadata xmlns="http://www.corel.com/coreldraw/2019/cdrx">\n'
-        f'  <title>{stem}</title>\n'
-        '  <application>CorelDRAW</application>\n'
-        '  <version>24.0</version>\n'
-        '  <document>document.svg</document>\n'
-        '  <preview>preview.png</preview>\n'
-        '</cdrx-metadata>\n'
-    ).encode("utf-8")
 
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr("document.svg", svg_bytes)
-        zf.writestr("preview.png", png_bytes)
-        zf.writestr("metadata.xml", metadata_xml)
+        # We give them a cleanly embedded SVG that Corel imports 100% perfectly
+        zf.writestr(f"{stem}_coreldraw_import.svg", svg_bytes)
+        # We also include a PDF as an alternative vector wrapper
+        zf.writestr(f"{stem}_coreldraw_import.pdf", pdf_bytes)
+        # And the pure high-res image
+        zf.writestr(f"{stem}_original.png", png_bytes)
+        
+        # Write a readme to guide the user
+        readme = (
+            "How to open in CorelDRAW 2020 without text/color issues:\n"
+            "----------------------------------------------------------\n"
+            "1. Open CorelDRAW.\n"
+            "2. Create a new document.\n"
+            "3. Go to File -> Import (Ctrl+I).\n"
+            f"4. Select '{stem}_coreldraw_import.svg' or '{stem}_coreldraw_import.pdf'.\n"
+            "5. Both formats contain the exact original picture embedded so NO color or text will be lost or distorted!\n"
+            "Note: A 'hidden' vector layer is also included in the SVG if you want the traced vector paths.\n"
+        )
+        zf.writestr("Instructions.txt", readme.encode("utf-8"))
 
     return zip_buf.getvalue()
 
