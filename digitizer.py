@@ -14,11 +14,11 @@ def get_reader():
         READER = easyocr.Reader(['en'], gpu=True)
     return READER
 
-def digitize_image(image_path: str, output_path: str) -> list:
+def digitize_image(image_path: str, output_path: str):
     """
     Extracts all text from the image using EasyOCR, then uses cv2.inpaint
     to erase the text from the background.
-    Returns a list of detected text elements.
+    Returns a tuple of (list of detected text elements, svg content).
     """
     reader = get_reader()
     
@@ -97,6 +97,7 @@ def digitize_image(image_path: str, output_path: str) -> list:
         with Image.open(output_path) as cln_img:
             original_w, original_h = cln_img.size
             w, h = cln_img.size
+            new_w, new_h = w, h
             if w > MAX_DIM or h > MAX_DIM:
                 ratio = min(MAX_DIM / w, MAX_DIM / h)
                 new_w, new_h = int(w * ratio), int(h * ratio)
