@@ -3027,29 +3027,49 @@
 
     // Voice Input via Web Speech API
     function startVoiceInput(inputId, btn) {
+      if (btn.recognition) {
+        btn.recognition.stop();
+        btn.recognition = null;
+        btn.classList.remove('recording');
+        return;
+      }
+
       if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         alert("Sorry, your browser doesn't support speech recognition. Please use Google Chrome or Microsoft Edge.");
         return;
       }
+      
+      const inputField = document.getElementById(inputId);
+      const originalValue = inputField.value; // Save existing text
+      
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       
       // Auto-detect language or allow multi-language
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;
+      recognition.interimResults = true;
       
       recognition.onstart = function() {
         btn.classList.add('recording');
       };
       
       recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
-        const inputField = document.getElementById(inputId);
-        // Append or replace depending on what user wants. Let's append with a space if not empty
-        if(inputField.value) {
-          inputField.value += ' ' + transcript;
+        let currentFinal = '';
+        let currentInterim = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            currentFinal += event.results[i][0].transcript;
+          } else {
+            currentInterim += event.results[i][0].transcript;
+          }
+        }
+        
+        let newText = currentFinal + currentInterim;
+        
+        if (originalValue && !originalValue.endsWith(' ')) {
+          inputField.value = originalValue + ' ' + newText.trim();
         } else {
-          inputField.value = transcript;
+          inputField.value = originalValue + newText.trim();
         }
       };
       
@@ -3059,12 +3079,15 @@
           alert("Voice input failed: " + event.error + ". Please ensure your microphone is working and permissions are granted.");
         }
         btn.classList.remove('recording');
+        btn.recognition = null;
       };
       
       recognition.onend = function() {
         btn.classList.remove('recording');
+        btn.recognition = null;
       };
       
+      btn.recognition = recognition;
       recognition.start();
     }
 
