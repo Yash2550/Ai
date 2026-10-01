@@ -3027,10 +3027,13 @@
 
     // Voice Input via Web Speech API
     function startVoiceInput(inputId, btn) {
+      const inputField = document.getElementById(inputId);
+      
       if (btn.recognition) {
         btn.recognition.stop();
         btn.recognition = null;
         btn.classList.remove('recording');
+        if (inputField) inputField.placeholder = btn.oldPlaceholder || "";
         return;
       }
 
@@ -3039,8 +3042,8 @@
         return;
       }
       
-      const inputField = document.getElementById(inputId);
-      const originalValue = inputField.value; // Save existing text
+      let originalValue = inputField.value; // Save existing text
+      btn.oldPlaceholder = inputField.placeholder;
       
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
@@ -3048,9 +3051,11 @@
       // Auto-detect language or allow multi-language
       recognition.continuous = true;
       recognition.interimResults = true;
+      // recognition.lang = 'gu-IN'; // Uncomment this if you want specifically Gujarati
       
       recognition.onstart = function() {
         btn.classList.add('recording');
+        inputField.placeholder = "Listening... (Speak now)";
       };
       
       recognition.onresult = function(event) {
@@ -3071,20 +3076,35 @@
         } else {
           inputField.value = originalValue + newText.trim();
         }
+        // Force UI to recognize the change
+        inputField.dispatchEvent(new Event('input', { bubbles: true }));
       };
       
       recognition.onerror = function(event) {
         console.error("Speech recognition error", event.error);
         if (event.error !== 'aborted' && event.error !== 'no-speech') {
           alert("Voice input failed: " + event.error + ". Please ensure your microphone is working and permissions are granted.");
+          btn.recognition = null;
         }
-        btn.classList.remove('recording');
-        btn.recognition = null;
       };
       
       recognition.onend = function() {
-        btn.classList.remove('recording');
-        btn.recognition = null;
+        if (btn.recognition === recognition) {
+          // Restart because it stopped automatically (e.g. from pause)
+          originalValue = inputField.value; // update base value
+          if (originalValue && !originalValue.endsWith(' ')) {
+             originalValue += ' ';
+          }
+          try {
+            recognition.start();
+          } catch(e) {
+            console.error(e);
+          }
+        } else {
+          // Manually stopped
+          btn.classList.remove('recording');
+          inputField.placeholder = btn.oldPlaceholder || "";
+        }
       };
       
       btn.recognition = recognition;

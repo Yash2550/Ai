@@ -325,7 +325,7 @@ def run_nanobanana_inpainting(image_data_uri, prompt, image_size="1:1"):
     url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
     payload = {"image": image_data_uri, "prompt": prompt,
-               "model": "gemini-3.1-flash-lite-image", "n": 1, "size": image_size}
+               "model": "gpt-image-2.5-sunburst", "n": 1, "size": image_size}
     for attempt in range(3):
         resp = requests.post(url, headers=headers, json=payload, timeout=120)
         if resp.status_code in (500,502,503,504):
@@ -344,7 +344,7 @@ def run_nanobanana_generations(prompt, image_size="1:1"):
         raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
     url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
-    payload = {"prompt": prompt, "model": "gemini-3.1-flash-lite-image", "n": 1, "size": image_size}
+    payload = {"prompt": prompt, "model": "gpt-image-2.5-sunburst", "n": 1, "size": image_size}
     for attempt in range(3):
         resp = requests.post(url, headers=headers, json=payload, timeout=120)
         if resp.status_code in (500,502,503,504):

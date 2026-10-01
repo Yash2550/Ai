@@ -650,7 +650,7 @@ def run_nanobanana_inpainting(
         }
         nb_size_map = {"3:1": "21:9"}   
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -659,7 +659,7 @@ def run_nanobanana_inpainting(
                 "model": model_name,
                 "n": 1,
                 "size": nb_size,
-                "quality": "hd"
+                "quality": "high"
             }
             for attempt in range(2):
                 try:
@@ -778,7 +778,7 @@ def run_nanobanana_generations(
         }
         nb_size_map = {"3:1": "21:9"}
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -786,7 +786,7 @@ def run_nanobanana_generations(
                 "model": model_name,
                 "n": 1,
                 "size": nb_size,
-                "quality": "hd"
+                "quality": "high"
             }
             for attempt in range(2):
                 try:
