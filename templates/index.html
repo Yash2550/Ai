@@ -1466,6 +1466,48 @@
       70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
+
+    /* ======================================================
+       MOBILE RESPONSIVENESS
+    ====================================================== */
+    @media (max-width: 768px) {
+      .container, .history-panel {
+        padding: 0 16px 40px !important;
+      }
+      
+      .card {
+        padding: 20px !important;
+      }
+      
+      h1 {
+        font-size: 2.2rem !important;
+      }
+      
+      .mode-tabs {
+        flex-direction: column !important;
+      }
+      
+      .smart-result-imgs, #smartResultGrid, .history-grid {
+        grid-template-columns: 1fr !important;
+      }
+      
+      .btn-process {
+        padding: 16px 20px !important;
+        font-size: 0.9rem !important;
+      }
+      
+      .drop-zone {
+        padding: 32px 16px !important;
+      }
+      
+      .download-group > div {
+        flex-direction: column !important;
+      }
+      
+      .btn-download {
+        width: 100% !important;
+      }
+    }
   </style>
 </head>
 
