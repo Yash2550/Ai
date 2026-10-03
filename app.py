@@ -648,8 +648,18 @@ def run_nanobanana_inpainting(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "21:9"}   
-        nb_size = nb_size_map.get(image_size, image_size)
+        # Map aspect ratios to Pixapi valid custom dimensions
+        size_map = {
+            "1:1": "1024x1024",
+            "16:9": "1536x864",
+            "9:16": "864x1536",
+            "4:3": "1152x864",
+            "3:4": "864x1152",
+            "3:1": "1536x512",
+            "4:1": "1536x512",
+            "8:1": "1536x512"
+        }
+        nb_size = size_map.get(image_size, "auto")
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
@@ -776,8 +786,18 @@ def run_nanobanana_generations(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "21:9"}
-        nb_size = nb_size_map.get(image_size, image_size)
+        # Map aspect ratios to Pixapi valid custom dimensions
+        size_map = {
+            "1:1": "1024x1024",
+            "16:9": "1536x864",
+            "9:16": "864x1536",
+            "4:3": "1152x864",
+            "3:4": "864x1152",
+            "3:1": "1536x512",
+            "4:1": "1536x512",
+            "8:1": "1536x512"
+        }
+        nb_size = size_map.get(image_size, "1024x1024")
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
@@ -1382,7 +1402,7 @@ def process_image():
                 )
 
         else:
-            # Pixapi uses Gemini models that understand direct edit instructions
+            # Pixapi uses GPT (ChatGPT) models that understand direct edit instructions
             # Send the user's original prompt as a clear editing instruction
             inpaint_prompt = (
                 f"Edit this product label image: {prompt}. "
@@ -1403,7 +1423,7 @@ def process_image():
         elif api_provider == "edenai":
             raise RuntimeError("Eden AI (DALL-E 3) does not support inpainting. Please use Recraft or Nano Banana.")
         else:
-            app.logger.info("Running Pixapi Gemini Image Edit (mode=%s) ...", mode)
+            app.logger.info("Running Pixapi GPT Image Edit (mode=%s) ...", mode)
             nb_size = compute_image_size_ratio(original_w, original_h)
             app.logger.info("Using size=%s for %dx%d input", nb_size, original_w, original_h)
             final_image_url = run_nanobanana_inpainting(
@@ -1752,7 +1772,7 @@ def smart_process():
             elif api_provider == "gemini":
                 final_url = run_gemini_inpainting(input_path, None, prompt, negative_prompt)
             else:
-                # Pixapi Gemini - skip CLIPSeg, use direct edit instruction
+                # Pixapi GPT - skip CLIPSeg, use direct edit instruction
                 inpaint_prompt = (
                     f"Edit this product label image: {prompt}. "
                     f"Keep all other elements, layout, colors, and text exactly the same. "
