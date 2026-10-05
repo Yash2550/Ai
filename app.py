@@ -648,18 +648,8 @@ def run_nanobanana_inpainting(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        # Map aspect ratios to Pixapi valid custom dimensions
-        size_map = {
-            "1:1": "1024x1024",
-            "16:9": "1536x864",
-            "9:16": "864x1536",
-            "4:3": "1152x864",
-            "3:4": "864x1152",
-            "3:1": "1536x512",
-            "4:1": "1536x512",
-            "8:1": "1536x512"
-        }
-        nb_size = size_map.get(image_size, "auto")
+        nb_size_map = {"3:1": "4:1"}
+        nb_size = nb_size_map.get(image_size, image_size)
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
@@ -786,18 +776,8 @@ def run_nanobanana_generations(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        # Map aspect ratios to Pixapi valid custom dimensions
-        size_map = {
-            "1:1": "1024x1024",
-            "16:9": "1536x864",
-            "9:16": "864x1536",
-            "4:3": "1152x864",
-            "3:4": "864x1152",
-            "3:1": "1536x512",
-            "4:1": "1536x512",
-            "8:1": "1536x512"
-        }
-        nb_size = size_map.get(image_size, "1024x1024")
+        nb_size_map = {"3:1": "4:1"}
+        nb_size = nb_size_map.get(image_size, image_size)
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:

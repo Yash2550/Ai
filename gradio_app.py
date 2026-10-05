@@ -323,16 +323,8 @@ def run_nanobanana_inpainting(image_data_uri, prompt, image_size="1:1"):
     if not NANOBANANA_API_KEY:
         raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
     
-    # Map Gradio aspect ratios to Pixapi valid custom dimensions (multiples of 16, within 1K tier)
-    size_map = {
-        "1:1": "1024x1024",
-        "16:9": "1536x864",
-        "9:16": "864x1536",
-        "4:3": "1152x864",
-        "3:4": "864x1152",
-        "3:1": "1536x512"
-    }
-    px_size = size_map.get(image_size, "auto")
+    nb_size_map = {"3:1": "4:1"}
+    px_size = nb_size_map.get(image_size, image_size)
     
     url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
@@ -355,15 +347,8 @@ def run_nanobanana_generations(prompt, image_size="1:1"):
     if not NANOBANANA_API_KEY:
         raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
         
-    size_map = {
-        "1:1": "1024x1024",
-        "16:9": "1536x864",
-        "9:16": "864x1536",
-        "4:3": "1152x864",
-        "3:4": "864x1152",
-        "3:1": "1536x512"
-    }
-    px_size = size_map.get(image_size, "1024x1024")
+    nb_size_map = {"3:1": "4:1"}
+    px_size = nb_size_map.get(image_size, image_size)
     
     url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
