@@ -538,6 +538,8 @@ def compute_image_size_ratio(width: int, height: int) -> str:
     candidates = {
         "8:1":  8.0,
         "4:1":  4.0,
+        "31.5:11": 31.5/11.0,
+        "45.2:14.2": 45.2/14.2,
         "21:9": 21/9,
         "16:9": 16/9,
         "3:2":  3/2,
@@ -548,6 +550,8 @@ def compute_image_size_ratio(width: int, height: int) -> str:
         "3:4":  3/4,
         "2:3":  2/3,
         "9:16": 9/16,
+        "11:31.5": 11.0/31.5,
+        "14.2:45.2": 14.2/45.2,
         "1:4":  1/4,
         "1:8":  1/8,
     }
@@ -648,7 +652,7 @@ def run_nanobanana_inpainting(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "4:1"}
+        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
@@ -693,7 +697,7 @@ def run_nanobanana_inpainting(
         raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
     else:
         # Atlas Cloud API
-        nb_size_map = {"3:1": "4:1"}
+        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
         payload = {
             "model": "google/nano-banana-2-lite/edit-developer",
@@ -728,7 +732,11 @@ def run_recraft_generations(
         "3:4": "768x1024",
         "3:1": "1280x720",
         "4:1": "1280x720",
+        "11:31.5": "720x1280",
+        "31.5:11": "1280x720",
         "8:1": "1280x720",
+        "45.2:14.2": "1280x720",
+        "14.2:45.2": "720x1280",
     }
     resolution = size_map.get(image_size, "1024x1024")
 
@@ -776,7 +784,7 @@ def run_nanobanana_generations(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "4:1"}
+        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
         models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
@@ -820,7 +828,7 @@ def run_nanobanana_generations(
         raise RuntimeError(f"Nano Banana API request failed. Last error: {last_error}")
     else:
         # Atlas Cloud API
-        nb_size_map = {"3:1": "4:1"}
+        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
         payload = {
             "model": "google/nano-banana-2-lite/text-to-image",
@@ -1011,7 +1019,9 @@ def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
     }
     size_map = {
         "1:1": "1024x1024", "16:9": "1792x1024", "9:16": "1024x1792",
-        "4:3": "1792x1024", "3:4": "1024x1792", "3:1": "1792x1024"
+        "4:3": "1792x1024", "3:4": "1024x1792", "3:1": "1792x1024",
+        "11:31.5": "1024x1792", "31.5:11": "1792x1024",
+        "45.2:14.2": "1792x1024", "14.2:45.2": "1024x1792"
     }
     size_str = size_map.get(image_size, "1024x1024")
     payload = {
@@ -1033,7 +1043,9 @@ def run_gemini_generations(prompt: str, image_size: str = "1:1") -> str:
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key={GEMINI_API_KEY}"
     size_map = {
         "1:1": "1:1", "16:9": "16:9", "9:16": "9:16",
-        "4:3": "4:3", "3:4": "3:4"
+        "4:3": "4:3", "3:4": "3:4",
+        "11:31.5": "9:16", "31.5:11": "16:9",
+        "45.2:14.2": "16:9", "14.2:45.2": "9:16"
     }
     aspect_ratio = size_map.get(image_size, "1:1")
     payload = {
@@ -1064,7 +1076,9 @@ def run_edenai_generations(prompt: str, image_size: str = "1:1") -> str:
     }
     size_map = {
         "1:1": "1024x1024", "16:9": "1024x1024", "9:16": "1024x1024",
-        "4:3": "1024x1024", "3:4": "1024x1024"
+        "4:3": "1024x1024", "3:4": "1024x1024",
+        "11:31.5": "1024x1024", "31.5:11": "1024x1024",
+        "45.2:14.2": "1024x1024", "14.2:45.2": "1024x1024"
     }
     size_str = size_map.get(image_size, "1024x1024")
     payload = {
