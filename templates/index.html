@@ -2185,6 +2185,7 @@
 
               fabricReves.setWidth(canvasW);
               fabricReves.setHeight(canvasH);
+              fabricReves.originalScale = scale; // store to export at high res (300dpi)
 
               setBgFn(scale);
               return scale;
@@ -3038,7 +3039,20 @@
       if (exportSvgStudioBtn) {
         exportSvgStudioBtn.addEventListener('click', function () {
           if (!fabricReves) return;
-          const svgData = fabricReves.toSVG();
+          const scale = fabricReves.originalScale || 1;
+          const origW = fabricReves.width / scale;
+          const origH = fabricReves.height / scale;
+          
+          const svgData = fabricReves.toSVG({
+             width: origW + "px",
+             height: origH + "px",
+             viewBox: {
+               x: 0,
+               y: 0,
+               width: fabricReves.width,
+               height: fabricReves.height
+             }
+          });
           const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
@@ -3050,7 +3064,8 @@
       if (exportPngStudioBtn) {
         exportPngStudioBtn.addEventListener('click', function () {
           if (!fabricReves) return;
-          const dataURL = fabricReves.toDataURL({ format: 'png', quality: 1 });
+          const scale = fabricReves.originalScale || 1;
+          const dataURL = fabricReves.toDataURL({ format: 'png', quality: 1, multiplier: 1 / scale });
           const link = document.createElement('a');
           link.href = dataURL;
           link.download = 'reve_studio_label.png';

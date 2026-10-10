@@ -654,7 +654,7 @@ def run_nanobanana_inpainting(
         }
         nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["dall-e-3", "dall-e-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -786,7 +786,7 @@ def run_nanobanana_generations(
         }
         nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
         nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["gpt-image-2.5-sunburst", "gpt-image-2.5-flare", "gpt-image-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        models_to_try = ["dall-e-3", "dall-e-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
         last_error = None
         for model_name in models_to_try:
             payload = {
@@ -1930,75 +1930,8 @@ def _build_svg_from_image(filepath: str) -> bytes:
             f'  </g>\n'
         )
         
-        # Optionally, we can also append the vtracer vectorized paths on a hidden layer
-        # so they still have access to the vectors if they specifically need paths!
-        try:
-            import vtracer
-            import tempfile
-            import subprocess
-            import sys
-            
-            with tempfile.NamedTemporaryFile(suffix=".svg", delete=False) as tmp_svg:
-                tmp_svg_path = tmp_svg.name
-                
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_png:
-                tmp_png_path = tmp_png.name
-                
-            MAX_DIM = 1200
-            with Image.open(filepath) as img:
-                w_orig, h_orig = img.size
-                if w_orig > MAX_DIM or h_orig > MAX_DIM:
-                    ratio = min(MAX_DIM / w_orig, MAX_DIM / h_orig)
-                    new_w, new_h = int(w_orig * ratio), int(h_orig * ratio)
-                    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-                img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(tmp_png_path, "PNG")
-                
-            script = f"""import sys, vtracer
-try:
-    vtracer.convert_image_to_svg_py(
-        r"{tmp_png_path}", r"{tmp_svg_path}",
-        "color", "stacked", "spline", 4, 6, 16, 60, 4.0, 10, 45, 8
-    )
-except Exception:
-    sys.exit(1)
-"""
-            with tempfile.NamedTemporaryFile(suffix=".py", delete=False, mode="w", encoding="utf-8") as tmp_py:
-                tmp_py.write(script)
-                tmp_py_path = tmp_py.name
-
-            result = subprocess.run([sys.executable, tmp_py_path], capture_output=True, timeout=30)
-            if result.returncode == 0:
-                with open(tmp_svg_path, 'r', encoding='utf-8') as f:
-                    v_svg = f.read()
-                
-                # Extract inner paths and scale them to original viewBox
-                if "<svg" in v_svg and "</svg>" in v_svg:
-                    start_idx = v_svg.find(">", v_svg.find("<svg")) + 1
-                    end_idx = v_svg.rfind("</svg>")
-                    inner_paths = v_svg[start_idx:end_idx]
-                    
-                    # Add them as a hidden layer so they don't mess up the visual but are available
-                    svg_content += f'  <g id="Vectorized_Paths_Layer" display="none">\n'
-                    # Scale to original dimensions if we resized
-                    if w_orig > MAX_DIM or h_orig > MAX_DIM:
-                        scale_x = w_orig / new_w
-                        scale_y = h_orig / new_h
-                        svg_content += f'    <g transform="scale({scale_x}, {scale_y})">\n'
-                        svg_content += inner_paths
-                        svg_content += f'    </g>\n'
-                    else:
-                        svg_content += inner_paths
-                    svg_content += f'  </g>\n'
-                    
-            try: os.remove(tmp_py_path)
-            except: pass
-            try: os.remove(tmp_svg_path)
-            except: pass
-            try: os.remove(tmp_png_path)
-            except: pass
-        except Exception as e:
-            app.logger.warning("Optional vectorization failed, continuing with raster embed: %s", e)
-
+        # We skip adding vector paths because vector tracing ruins photo quality 
+        # ("fati jay") and user just wants the raster image embedded with editable text.
         svg_content += f'</svg>\n'
         return svg_content.encode("utf-8")
 
