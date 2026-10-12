@@ -1233,7 +1233,7 @@ def process_image():
     mask_prompt = translate_prompt(raw_mask_prompt)
 
     if not allowed_file(image_file.filename):
-        return jsonify({"error": "Unsupported file format. Use PNG, JPG, or WEBP."}), 400
+            return jsonify({"error": "Unsupported file format. Use PNG, JPG, or WEBP."}), 400
 
     # ---- Save uploaded image ----
     original_name = secure_filename(image_file.filename)
