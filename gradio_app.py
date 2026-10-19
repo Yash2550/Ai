@@ -31,7 +31,7 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 # API Keys
 # ---------------------------------------------------------------------------
 RECRAFT_API_KEY = os.getenv("RECRAFT_API_KEY", "").strip("'\"")
-NANOBANANA_API_KEY = os.getenv("NANOBANANA_API_KEY", "").strip("'\"")
+NANOBANANA_API_KEY = (os.getenv("ATLASCLOUD_API_KEY") or os.getenv("NANOBANANA_API_KEY", "")).strip("'\"")
 NANOBANANA_BASE_URL = os.getenv("NANOBANANA_BASE_URL", "https://api.nanobananaapi.dev").rstrip("/")
 REVE_API_KEY = os.getenv("REVE_API_KEY", "").strip("'\"")
 REVE_BASE_URL = os.getenv("REVE_BASE_URL", "https://api.reve.com/v2").rstrip("/")
@@ -319,51 +319,79 @@ def run_recraft_generations(prompt, image_size="1:1"):
 # ---------------------------------------------------------------------------
 # Nano Banana API calls
 # ---------------------------------------------------------------------------
+def _format_pixapi_size(image_size: str) -> str:
+    if not image_size:
+        return "auto"
+    s = str(image_size).strip()
+    if "x" in s.lower() and ":" not in s:
+        return s
+    ratio_to_px = {
+        "1:1": "1024x1024",
+        "16:9": "1344x768",
+        "9:16": "768x1344",
+        "4:3": "1152x864",
+        "3:4": "864x1152",
+        "3:2": "1200x800",
+        "2:3": "800x1200",
+        "21:9": "1536x656",
+        "3:1": "1536x512",
+        "4:1": "1536x512",
+        "8:1": "1536x512",
+    }
+    return ratio_to_px.get(s, "auto")
+
 def run_nanobanana_inpainting(image_data_uri, prompt, image_size="1:1"):
     if not NANOBANANA_API_KEY:
         raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
     
-    nb_size_map = {"3:1": "4:1"}
-    px_size = nb_size_map.get(image_size, image_size)
+    px_size = _format_pixapi_size(image_size)
+    quality = os.getenv("PIXAPI_QUALITY", "low")
+    models_to_try = ["gpt-image-2.5-flare", "gpt-image-2.5-sunburst", "gpt-image-2"]
     
     url = f"{NANOBANANA_BASE_URL}/v1/images/edits"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
-    payload = {"image": image_data_uri, "prompt": prompt,
-               "model": "gpt-image-2.5-sunburst", "n": 1, "size": px_size, "quality": "high"}
-    for attempt in range(3):
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-        if resp.status_code in (500,502,503,504):
-            time.sleep(2); continue
-        if resp.status_code != 200:
-            raise RuntimeError(f"Nano Banana error {resp.status_code}: {resp.text}")
-        data = resp.json().get("data", {})
-        url_val = data[0].get("url") if isinstance(data, list) else data.get("url")
-        if not url_val:
-            raise RuntimeError("Unexpected response from Nano Banana")
-        return url_val
-    raise RuntimeError("Nano Banana API failed after 3 attempts")
+    last_error = None
+    for model_name in models_to_try:
+        payload = {"image": image_data_uri, "prompt": prompt,
+                   "model": model_name, "n": 1, "size": px_size, "quality": quality}
+        for attempt in range(2):
+            resp = requests.post(url, headers=headers, json=payload, timeout=120)
+            if resp.status_code in (500,502,503,504):
+                time.sleep(2); continue
+            if resp.status_code != 200:
+                last_error = f"Nano Banana error {resp.status_code}: {resp.text}"
+                break
+            data = resp.json().get("data", {})
+            url_val = data[0].get("url") if isinstance(data, list) and data else data.get("url")
+            if url_val:
+                return url_val
+    raise RuntimeError(f"Nano Banana API failed. Last error: {last_error}")
 
 def run_nanobanana_generations(prompt, image_size="1:1"):
     if not NANOBANANA_API_KEY:
         raise RuntimeError("NANOBANANA_API_KEY is not set in Secrets.")
         
-    nb_size_map = {"3:1": "4:1"}
-    px_size = nb_size_map.get(image_size, image_size)
+    px_size = _format_pixapi_size(image_size)
+    quality = os.getenv("PIXAPI_QUALITY", "low")
+    models_to_try = ["gpt-image-2.5-flare", "gpt-image-2.5-sunburst", "gpt-image-2"]
     
     url = f"{NANOBANANA_BASE_URL}/v1/images/generations"
     headers = {"Authorization": f"Bearer {NANOBANANA_API_KEY}", "Content-Type": "application/json"}
-    payload = {"prompt": prompt, "model": "gpt-image-2.5-sunburst", "n": 1, "size": px_size, "quality": "high"}
-    for attempt in range(3):
-        resp = requests.post(url, headers=headers, json=payload, timeout=120)
-        if resp.status_code in (500,502,503,504):
-            time.sleep(2); continue
-        if resp.status_code != 200:
-            raise RuntimeError(f"Nano Banana error {resp.status_code}: {resp.text}")
-        data = resp.json().get("data", {})
-        url_val = data[0].get("url") if isinstance(data, list) else data.get("url")
-        if not url_val:
-            raise RuntimeError("Unexpected response from Nano Banana")
-    raise RuntimeError("Nano Banana API failed after 3 attempts")
+    last_error = None
+    for model_name in models_to_try:
+        payload = {"prompt": prompt, "model": model_name, "n": 1, "size": px_size, "quality": quality}
+        for attempt in range(2):
+            resp = requests.post(url, headers=headers, json=payload, timeout=120)
+            if resp.status_code in (500,502,503,504):
+                time.sleep(2); continue
+            if resp.status_code != 200:
+                last_error = f"Nano Banana error {resp.status_code}: {resp.text}"
+                break
+            data = resp.json().get("data", {})
+            url_val = data[0].get("url") if isinstance(data, list) and data else data.get("url")
+            if url_val:
+                return url_val
+    raise RuntimeError(f"Nano Banana API failed. Last error: {last_error}")
 
 def _run_inferencesh_app(app_id: str, input_payload: dict, headers: dict) -> str:
     url = "https://api.inference.sh/apps/run"

@@ -559,6 +559,78 @@ def compute_image_size_ratio(width: int, height: int) -> str:
     return best
 
 
+def _format_pixapi_size(image_size: str) -> str:
+    """
+    Format aspect ratio or size string to PixAPI GPT Image compatible size.
+    PixAPI accepts WIDTHxHEIGHT (e.g. 1024x1024) or 'auto'.
+    """
+    if not image_size:
+        return "auto"
+    s = str(image_size).strip()
+    if "x" in s.lower() and ":" not in s:
+        return s
+
+    ratio_to_px = {
+        "1:1": "1024x1024",
+        "16:9": "1344x768",
+        "9:16": "768x1344",
+        "4:3": "1152x864",
+        "3:4": "864x1152",
+        "3:2": "1200x800",
+        "2:3": "800x1200",
+        "21:9": "1536x656",
+        "3:1": "1536x512",
+        "4:1": "1536x512",
+        "8:1": "1536x512",
+    }
+    return ratio_to_px.get(s, "auto")
+
+
+def _ensure_public_image_url(image_input: str) -> str:
+    """
+    Ensure the image is a public http(s) URL for PixAPI GPT Image endpoints.
+    If it's already an http(s) URL, return it directly.
+    If it's a base64 data URI or file path, upload to temporary host (tmpfiles.org) and return the public URL.
+    """
+    if not image_input:
+        return image_input
+    if isinstance(image_input, str) and (image_input.startswith("http://") or image_input.startswith("https://")):
+        return image_input
+
+    try:
+        if isinstance(image_input, str) and image_input.startswith("data:"):
+            header, b64_str = image_input.split(",", 1)
+            ext = "png"
+            if "jpeg" in header or "jpg" in header:
+                ext = "jpg"
+            elif "webp" in header:
+                ext = "webp"
+            img_bytes = base64.b64decode(b64_str)
+        elif isinstance(image_input, str) and os.path.exists(image_input):
+            ext = os.path.splitext(image_input)[1].lstrip(".") or "png"
+            with open(image_input, "rb") as f:
+                img_bytes = f.read()
+        else:
+            return image_input
+
+        filename = f"image_{uuid.uuid4().hex[:8]}.{ext}"
+        mime = f"image/{ext}" if ext != "jpg" else "image/jpeg"
+        up_resp = requests.post(
+            "https://tmpfiles.org/api/v1/upload",
+            files={"file": (filename, img_bytes, mime)},
+            timeout=15,
+        )
+        if up_resp.status_code == 200:
+            up_data = up_resp.json()
+            raw_url = up_data.get("data", {}).get("url")
+            if raw_url:
+                return raw_url.replace("tmpfiles.org/", "tmpfiles.org/dl/")
+    except Exception as e:
+        app.logger.warning("Could not upload image to public URL for PixAPI: %s", e)
+
+    return image_input
+
+
 def _run_atlascloud_prediction(payload: dict, max_wait: int = 180) -> str:
     """
     Submit and poll prediction task for Atlas Cloud API (api.atlascloud.ai).
@@ -652,19 +724,25 @@ def run_nanobanana_inpainting(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
-        nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["dall-e-3", "dall-e-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        px_size = _format_pixapi_size(image_size)
+        quality = os.getenv("PIXAPI_QUALITY", "low")
+        models_to_try = ["gpt-image-2.5-flare", "gpt-image-2.5-sunburst", "gpt-image-2"]
+        
+        pub_image = _ensure_public_image_url(image_data_uri)
+        pub_mask = _ensure_public_image_url(mask_data_uri) if mask_data_uri else None
+
         last_error = None
         for model_name in models_to_try:
             payload = {
-                "image": image_data_uri,
+                "image": pub_image,
                 "prompt": prompt,
                 "model": model_name,
                 "n": 1,
-                "size": nb_size,
-                "quality": "high"
+                "size": px_size,
+                "quality": quality,
             }
+            if pub_mask:
+                payload["providerOptions"] = {"mask_url": pub_mask}
             for attempt in range(2):
                 try:
                     resp = requests.post(url, headers=headers, json=payload, timeout=120)
@@ -673,6 +751,8 @@ def run_nanobanana_inpainting(
                         time.sleep(2)
                         continue
                     if resp.status_code != 200:
+                        if "insufficient" in resp.text.lower() and "credit" in resp.text.lower():
+                            raise RuntimeError(f"Your Nano Banana (PixAPI) account has insufficient credits: {resp.text}. Please top up your balance at https://pixapi.ai or switch the API Provider in the UI to Google Gemini or OpenAI.")
                         last_error = f"Error {resp.status_code}: {resp.text}"
                         break
                     result = resp.json()
@@ -784,18 +864,20 @@ def run_nanobanana_generations(
             "Authorization": f"Bearer {NANOBANANA_API_KEY}",
             "Content-Type": "application/json",
         }
-        nb_size_map = {"3:1": "4:1", "11:31.5": "1:4", "31.5:11": "4:1", "45.2:14.2": "4:1", "14.2:45.2": "1:4"}
-        nb_size = nb_size_map.get(image_size, image_size)
-        models_to_try = ["dall-e-3", "dall-e-2", "gemini-3.1-pro-image", "gemini-3.1-flash-image", "gemini-3.1-flash-lite-image"]
+        px_size = _format_pixapi_size(image_size)
+        quality = os.getenv("PIXAPI_QUALITY", "low")
+        models_to_try = ["gpt-image-2.5-flare", "gpt-image-2.5-sunburst", "gpt-image-2"]
         last_error = None
         for model_name in models_to_try:
             payload = {
                 "prompt": prompt,
                 "model": model_name,
                 "n": 1,
-                "size": nb_size,
-                "quality": "high"
+                "size": px_size,
+                "quality": quality,
             }
+            if negative_prompt:
+                payload["negative_prompt"] = negative_prompt
             for attempt in range(2):
                 try:
                     resp = requests.post(url, headers=headers, json=payload, timeout=120)
@@ -804,6 +886,8 @@ def run_nanobanana_generations(
                         time.sleep(2)
                         continue
                     if resp.status_code != 200:
+                        if "insufficient" in resp.text.lower() and "credit" in resp.text.lower():
+                            raise RuntimeError(f"Your Nano Banana (PixAPI) account has insufficient credits: {resp.text}. Please top up your balance at https://pixapi.ai or switch the API Provider in the UI to Google Gemini or OpenAI.")
                         last_error = f"Error {resp.status_code}: {resp.text}"
                         break
                     result = resp.json()
