@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 
 # Initialize EasyOCR Reader globally so it doesn't reload on every request
-# We'll initialize it lazily when the function is first called.
 READER = None
 
 def get_reader():
@@ -14,11 +13,33 @@ def get_reader():
         READER = easyocr.Reader(['en'], gpu=True)
     return READER
 
+def extract_text_color(crop):
+    """
+    Extract the dominant foreground text color from an image crop using Otsu thresholding.
+    """
+    if crop is None or crop.size == 0 or crop.shape[0] < 3 or crop.shape[1] < 3:
+        return "#ffffff"
+    try:
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # Foreground text typically occupies fewer pixels than the local background
+        if np.sum(thresh == 255) < np.sum(thresh == 0):
+            mask = (thresh == 255)
+        else:
+            mask = (thresh == 0)
+        text_pixels = crop[mask]
+        if len(text_pixels) > 0:
+            b, g, r = np.mean(text_pixels, axis=0)
+            return '#{:02x}{:02x}{:02x}'.format(int(r), int(g), int(b))
+    except Exception:
+        pass
+    return "#ffffff"
+
 def digitize_image(image_path: str, output_path: str):
     """
-    Extracts all text from the image using EasyOCR, then uses cv2.inpaint
-    to erase the text from the background.
-    Returns a tuple of (list of detected text elements, svg content).
+    Extracts all text from the image using EasyOCR, detects text colors,
+    and cleanly inpaints (erases) text from the background.
+    Returns a tuple of (list of detected text elements, svg content, (width, height)).
     """
     reader = get_reader()
     
@@ -27,6 +48,8 @@ def digitize_image(image_path: str, output_path: str):
     if img is None:
         raise ValueError(f"Could not read image: {image_path}")
     
+    h, w = img.shape[:2]
+    
     # EasyOCR expects RGB
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
@@ -34,53 +57,53 @@ def digitize_image(image_path: str, output_path: str):
     results = reader.readtext(rgb_img)
     
     # Create an empty mask for inpainting
-    mask = np.zeros(img.shape[:2], dtype=np.uint8)
-    
+    mask = np.zeros((h, w), dtype=np.uint8)
     text_elements = []
     
     for (bbox, text, prob) in results:
-        # bbox is a list of 4 points: [top_left, top_right, bottom_right, bottom_left]
-        # Calculate bounding box for the mask
+        text = text.strip()
+        if not text:
+            continue
+            
         pts = np.array(bbox, np.int32)
-        
-        # Fill the mask with white (255) where text is
         cv2.fillPoly(mask, [pts], 255)
         
-        # Calculate attributes for frontend Canvas
         x_coords = [p[0] for p in bbox]
         y_coords = [p[1] for p in bbox]
-        x = min(x_coords)
-        y = min(y_coords)
-        w = max(x_coords) - x
-        h = max(y_coords) - y
+        box_x = max(0, int(min(x_coords)))
+        box_y = max(0, int(min(y_coords)))
+        box_w = min(w - box_x, int(max(x_coords) - box_x))
+        box_h = min(h - box_y, int(max(y_coords) - box_y))
         
-        # Estimate font size (roughly the height of the bounding box)
-        font_size = h
+        if box_w <= 0 or box_h <= 0:
+            continue
+            
+        crop = img[box_y:box_y + box_h, box_x:box_x + box_w]
+        color = extract_text_color(crop)
+        
+        # Estimate font size (roughly 85-90% of the bounding box height)
+        font_size = max(12, int(box_h * 0.88))
         
         text_elements.append({
             "text": text,
-            "left": int(x),
-            "top": int(y),
-            "width": int(w),
-            "height": int(h),
-            "fontSize": int(font_size),
-            "prob": float(prob)
+            "left": box_x,
+            "top": box_y,
+            "width": box_w,
+            "height": box_h,
+            "fontSize": font_size,
+            "color": color,
+            "prob": round(float(prob), 3)
         })
         
-    # Dilate the mask to ensure text edges are completely covered
-    kernel = np.ones((5, 5), np.uint8)
-    mask = cv2.dilate(mask, kernel, iterations=1)
+    # Dilate mask to ensure text boundaries are completely erased
+    kernel = np.ones((7, 7), np.uint8)
+    dilated_mask = cv2.dilate(mask, kernel, iterations=2)
     
-    # 2. Inpaint the background to remove the text
-    # INPAINT_TELEA is generally good for removing text
-    clean_bg = cv2.inpaint(img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+    # 2. Inpaint the background to remove text cleanly
+    clean_bg = cv2.inpaint(img, dilated_mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
     
     # Save the clean background
     cv2.imwrite(output_path, clean_bg)
     
-    # We no longer vectorize the entire background with vtracer, as it causes loss of 
-    # quality ("fati jay") and makes the photo look bad. 
-    # Instead, we just return the clean background and text elements.
     svg_content = None
-        
-    return text_elements, svg_content
+    return text_elements, svg_content, (w, h)

@@ -20,7 +20,7 @@ import requests
 import urllib.parse
 from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
 from werkzeug.utils import secure_filename
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 import io
 from dotenv import load_dotenv
 from database import init_db, db
@@ -565,7 +565,7 @@ def _format_pixapi_size(image_size: str) -> str:
     PixAPI accepts WIDTHxHEIGHT (e.g. 1024x1024) or 'auto'.
     """
     if not image_size:
-        return "auto"
+        return "1536x512"
     s = str(image_size).strip()
     if "x" in s.lower() and ":" not in s:
         return s
@@ -582,8 +582,41 @@ def _format_pixapi_size(image_size: str) -> str:
         "3:1": "1536x512",
         "4:1": "1536x512",
         "8:1": "1536x512",
+        "31.5:11": "1536x512",
+        "45.2:14.2": "1536x512",
+        "11:31.5": "512x1536",
+        "14.2:45.2": "512x1536",
+        "1:4": "512x1536",
+        "1:8": "512x1536",
     }
-    return ratio_to_px.get(s, "auto")
+    if s in ratio_to_px:
+        return ratio_to_px[s]
+
+    try:
+        if ":" in s:
+            w_str, h_str = s.split(":", 1)
+            ratio = float(w_str) / float(h_str)
+        else:
+            ratio = float(s)
+            
+        ratio = max(1/3.0, min(3.0, ratio))
+        target_area = 1024 * 768
+        w = int(round((target_area * ratio) ** 0.5))
+        h = int(round(w / ratio))
+        w = max(512, min(2048, int(round(w / 16.0) * 16)))
+        h = max(512, min(2048, int(round(h / 16.0) * 16)))
+        while w * h < 655360:
+            if ratio >= 1:
+                w += 16
+            else:
+                h += 16
+        if w / h > 3.0:
+            w = int(h * 3.0 // 16 * 16)
+        elif h / w > 3.0:
+            h = int(w * 3.0 // 16 * 16)
+        return f"{w}x{h}"
+    except Exception:
+        return "1536x512"
 
 
 def _ensure_public_image_url(image_input: str) -> str:
@@ -1220,7 +1253,7 @@ def process_image():
         return jsonify({"error": "A text prompt is required."}), 400
         
     api_provider = request.form.get("api_provider", "recraft").strip().lower()
-    image_size = request.form.get("image_size", "8:1").strip()
+    image_size = request.form.get("image_size", "3:1").strip()
     negative_prompt = request.form.get(
         "negative_prompt",
         "blurry, low quality, distorted text, watermark, artifacts",
@@ -1710,11 +1743,18 @@ def smart_process():
     # --- Parse input (support both JSON and form) ---
     if request.is_json:
         data = request.get_json(force=True)
-        raw_prompt   = (data.get("prompt") or "").strip()
-        api_provider = (data.get("api_provider") or "nanobanana").lower()
+        raw_prompt      = (data.get("prompt") or "").strip()
+        api_provider    = (data.get("api_provider") or "nanobanana").lower()
+        user_image_size = (data.get("image_size") or "").strip()
+        negative_prompt = (data.get("negative_prompt") or "blurry, low quality, distorted text, watermark, artifacts").strip()
     else:
-        raw_prompt   = request.form.get("prompt", "").strip()
-        api_provider = request.form.get("api_provider", "nanobanana").lower()
+        raw_prompt      = request.form.get("prompt", "").strip()
+        api_provider    = request.form.get("api_provider", "nanobanana").lower()
+        user_image_size = request.form.get("image_size", "").strip()
+        negative_prompt = request.form.get(
+            "negative_prompt",
+            "blurry, low quality, distorted text, watermark, artifacts",
+        ).strip()
         
     uploaded_files = request.files.getlist("images")
     if uploaded_files:
@@ -1909,12 +1949,15 @@ def smart_process():
     # Step 2b: No match (or inpainting failed) → generate new image
     # ----------------------------------------------------------------
     try:
-        # Use size of the most-recently uploaded image in DB, else 1:1
-        ref_img = UploadedImage.query.order_by(UploadedImage.created_at.desc()).first()
-        if ref_img and ref_img.width and ref_img.height:
-            gen_size = compute_image_size_ratio(ref_img.width, ref_img.height)
+        # Prioritize explicitly chosen aspect ratio if provided by user
+        if user_image_size:
+            gen_size = user_image_size
         else:
-            gen_size = "8:1"  # Widest label ratio supported by Nano Banana API
+            ref_img = UploadedImage.query.order_by(UploadedImage.created_at.desc()).first()
+            if ref_img and ref_img.width and ref_img.height:
+                gen_size = compute_image_size_ratio(ref_img.width, ref_img.height)
+            else:
+                gen_size = "3:1"
 
         enhanced_prompt = enhance_prompt_layout(prompt)
 
@@ -2025,78 +2068,111 @@ def _build_svg_from_image(filepath: str) -> bytes:
 
 
 
+def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 8000) -> str:
+    """
+    Returns path to cached Ultra-HD version of the image at 300 DPI.
+    Produces an image around 18-22 MB (PNG) with Lanczos resampling,
+    edge unsharp-masking, and contrast micro-tuning so text and fine details
+    remain crystal clear when zoomed in.
+    """
+    stem, _ = os.path.splitext(filepath)
+    cache_path = f"{stem}_ultrahd_{target_max_dim}.png"
+
+    # Return cached file if valid and newer than source
+    if os.path.exists(cache_path):
+        try:
+            if os.path.getmtime(cache_path) >= os.path.getmtime(filepath):
+                return cache_path
+        except OSError:
+            pass
+
+    # Generate the Ultra-HD version
+    with Image.open(filepath) as img:
+        im = img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB")
+        w, h = im.size
+        scale = target_max_dim / float(max(w, h))
+        if scale > 1.0:
+            new_w = int(round(w * scale))
+            new_h = int(round(h * scale))
+            im = im.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            # Edge sharpening for clean typography, barcode lines, and micro details
+            im = im.filter(ImageFilter.UnsharpMask(radius=2.0, percent=150, threshold=2))
+            enh = ImageEnhance.Contrast(im)
+            im = enh.enhance(1.03)
+        im.save(cache_path, format="PNG", dpi=(300, 300), compress_level=3)
+
+    return cache_path
+
+
+def _get_ultra_hd_image(filepath: str, target_max_dim: int = 8000) -> Image.Image:
+    """
+    Load an Ultra-HD image, using disk cache for instant retrieval.
+    """
+    cache_path = _get_ultra_hd_cache_path(filepath, target_max_dim)
+    return Image.open(cache_path)
+
+
 def _build_pdf_from_image(filepath: str) -> bytes:
     """
-    Generate a PDF that contains the edited image at its natural DPI, using
-    reportlab if available or falling back to Pillow's built-in PDF writer.
-    Returns raw PDF bytes.
+    Generate an Ultra-HD 300 DPI PDF (~15-20 MB) that preserves crystal-clear
+    details, text, and graphics when zoomed in.
     """
-    with Image.open(filepath) as img:
-        img_rgb = img.convert("RGB")
+    with _get_ultra_hd_image(filepath, target_max_dim=8000) as hd_img:
+        img_rgb = hd_img.convert("RGB")
         px_w, px_h = img_rgb.size
-        dpi = img_rgb.info.get("dpi", (300, 300))
-        if isinstance(dpi, (int, float)):
-            dpi = (dpi, dpi)
-        dpi_x, dpi_y = float(dpi[0]) or 300.0, float(dpi[1]) or 300.0
+        dpi_val = 300.0
 
-    # Try reportlab first for better quality
-    try:
-        from reportlab.lib.utils import ImageReader
-        from reportlab.pdfgen import canvas as rl_canvas
+        # Try reportlab first for vector canvas if installed
+        try:
+            from reportlab.lib.utils import ImageReader
+            from reportlab.pdfgen import canvas as rl_canvas
 
-        pt_w = px_w * 72.0 / dpi_x
-        pt_h = px_h * 72.0 / dpi_y
+            pt_w = px_w * 72.0 / dpi_val
+            pt_h = px_h * 72.0 / dpi_val
 
+            out_io = io.BytesIO()
+            c = rl_canvas.Canvas(out_io, pagesize=(pt_w, pt_h))
+
+            img_buf = io.BytesIO()
+            img_rgb.save(img_buf, format="PNG", dpi=(300, 300), compress_level=3)
+            img_buf.seek(0)
+
+            c.drawImage(ImageReader(img_buf), 0, 0, width=pt_w, height=pt_h)
+            c.showPage()
+            c.save()
+            return out_io.getvalue()
+
+        except ImportError:
+            pass  # reportlab not installed, use Pillow fallback
+
+        # Pillow high-res fallback — save as PDF directly with 300 DPI and maximum quality
         out_io = io.BytesIO()
-        c = rl_canvas.Canvas(out_io, pagesize=(pt_w, pt_h))
-
-        # Load the image into reportlab
-        img_buf = io.BytesIO()
-        with Image.open(filepath) as img:
-            img.convert("RGB").save(img_buf, "PNG")
-        img_buf.seek(0)
-
-        c.drawImage(ImageReader(img_buf), 0, 0, width=pt_w, height=pt_h)
-        c.showPage()
-        c.save()
+        img_rgb.save(out_io, "PDF", resolution=dpi_val, quality=100, subsampling=0)
         return out_io.getvalue()
-
-    except ImportError:
-        pass  # reportlab not installed, use Pillow fallback
-
-    # Pillow fallback — save as PDF directly
-    out_io = io.BytesIO()
-    with Image.open(filepath) as img:
-        img.convert("RGB").save(out_io, "PDF", resolution=dpi_x)
-    return out_io.getvalue()
 
 
 def _build_cdrx_zip(filepath: str, stem: str) -> bytes:
     """
-    Build a CorelDRAW compatible ZIP package.
-    Instead of hallucinated Corel XML that fails in CorelDRAW 2020, we simply package
-    the perfect SVG alongside a high-res PNG and PDF. The user can extract or import these
-    flawlessly into CorelDRAW without text or color distortion.
+    Build a CorelDRAW compatible ZIP package containing SVG, Ultra-HD PDF,
+    and Ultra-HD PNG.
     """
     import zipfile
-    from PIL import Image
 
     svg_bytes = _build_svg_from_image(filepath)
     pdf_bytes = _build_pdf_from_image(filepath)
 
-    png_buf = io.BytesIO()
-    with Image.open(filepath) as img:
-        img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB").save(png_buf, "PNG")
-    png_bytes = png_buf.getvalue()
+    cache_path = _get_ultra_hd_cache_path(filepath, target_max_dim=8000)
+    with open(cache_path, "rb") as f:
+        png_bytes = f.read()
 
     zip_buf = io.BytesIO()
     with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
         # We give them a cleanly embedded SVG that Corel imports 100% perfectly
         zf.writestr(f"{stem}_coreldraw_import.svg", svg_bytes)
-        # We also include a PDF as an alternative vector wrapper
+        # We also include an Ultra-HD PDF as an alternative vector wrapper
         zf.writestr(f"{stem}_coreldraw_import.pdf", pdf_bytes)
-        # And the pure high-res image
-        zf.writestr(f"{stem}_original.png", png_bytes)
+        # And the pure Ultra-HD image (~20MB)
+        zf.writestr(f"{stem}_ultra_hd.png", png_bytes)
         
         # Write a readme to guide the user
         readme = (
@@ -2240,17 +2316,61 @@ def digitize_label():
         
         # Run digitizer logic
         import digitizer
-        text_elements, svg_content = digitizer.digitize_image(filepath, clean_filepath)
+        text_elements, svg_content, dims = digitizer.digitize_image(filepath, clean_filepath)
         
         clean_url = f"/static/results/{clean_filename}"
+        orig_url = f"/static/results/{filename}" if os.path.exists(os.path.join(app.config["RESULTS_FOLDER"], filename)) else f"/static/uploads/{filename}"
         
         return jsonify({
             "clean_image_url": clean_url,
+            "original_image_url": orig_url,
             "text_elements": text_elements,
-            "svg_content": svg_content
+            "svg_content": svg_content,
+            "image_width": dims[0],
+            "image_height": dims[1]
         })
     except Exception as e:
         app.logger.error("Digitizer failed: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/save-editor-result", methods=["POST"])
+def save_editor_result():
+    """
+    Saves the edited canvas from the Canva Studio directly as the active result image,
+    updating the project and regenerating print/raster assets.
+    """
+    try:
+        data = request.get_json(force=True)
+        filename = data.get("filename")
+        image_data = data.get("image_data")
+        if not filename or not image_data:
+            return jsonify({"error": "Missing filename or image data"}), 400
+            
+        filename = secure_filename(filename)
+        if "," in image_data:
+            image_data = image_data.split(",", 1)[1]
+        decoded = base64.b64decode(image_data)
+        
+        target_path = os.path.join(app.config["RESULTS_FOLDER"], filename)
+        with open(target_path, "wb") as f:
+            f.write(decoded)
+            
+        # Invalidate Ultra-HD cache so subsequent downloads generate from the edited image
+        stem, _ = os.path.splitext(target_path)
+        cache_path = f"{stem}_ultrahd_8000.png"
+        if os.path.exists(cache_path):
+            try:
+                os.remove(cache_path)
+            except OSError:
+                pass
+                
+        return jsonify({
+            "success": True,
+            "result_image": f"/static/results/{filename}?t={int(time.time())}"
+        })
+    except Exception as e:
+        app.logger.error("Failed to save editor result: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -2274,11 +2394,9 @@ def download_image(filename, fmt):
     try:
         # ── PNG ──────────────────────────────────────────────────────────────────
         if fmt == "png":
-            with open(active_filepath, "rb") as f:
-                file_data = f.read()
-            out_io = io.BytesIO(file_data)
+            cache_path = _get_ultra_hd_cache_path(active_filepath, target_max_dim=8000)
             return send_file(
-                out_io,
+                cache_path,
                 mimetype="image/png",
                 as_attachment=True,
                 download_name=stem + ".png",
@@ -2286,16 +2404,16 @@ def download_image(filename, fmt):
     
         # ── JPEG ─────────────────────────────────────────────────────────────────
         elif fmt in ("jpg", "jpeg"):
-            out_io = io.BytesIO()
-            with Image.open(active_filepath) as img:
-                img.convert("RGB").save(out_io, "JPEG", quality=100, subsampling=0)
-            out_io.seek(0)
-            return send_file(
-                out_io,
-                mimetype="image/jpeg",
-                as_attachment=True,
-                download_name=stem + ".jpg",
-            )
+            with _get_ultra_hd_image(active_filepath, target_max_dim=8000) as hd_img:
+                out_io = io.BytesIO()
+                hd_img.convert("RGB").save(out_io, "JPEG", quality=100, subsampling=0, dpi=(300, 300))
+                out_io.seek(0)
+                return send_file(
+                    out_io,
+                    mimetype="image/jpeg",
+                    as_attachment=True,
+                    download_name=stem + ".jpg",
+                )
     
         # ── PDF ──────────────────────────────────────────────────────────────────
         elif fmt == "pdf":
