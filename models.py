@@ -38,6 +38,32 @@ class UploadedImage(db.Model):
     # One image can have many job results
     jobs = db.relationship("JobHistory", backref="image", lazy=True, cascade="all, delete-orphan")
 
+    def __init__(
+        self,
+        filename=None,
+        original_name=None,
+        file_path=None,
+        description="",
+        width=0,
+        height=0,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        if filename is not None:
+            self.filename = filename
+        if original_name is not None:
+            self.original_name = original_name
+        if file_path is not None:
+            self.file_path = file_path
+        if description is not None:
+            self.description = description
+        if width is not None:
+            self.width = width
+        if height is not None:
+            self.height = height
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
     def to_dict(self):
         return {
             "id":            self.id,
@@ -74,6 +100,29 @@ class JobHistory(db.Model):
     api_provider    = db.Column(db.String(64), default="recraft")
     mode            = db.Column(db.String(32), default="remove")
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __init__(
+        self,
+        image_id=None,
+        prompt="",
+        result_filename="",
+        api_provider="recraft",
+        mode="remove",
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        if image_id is not None:
+            self.image_id = image_id
+        if prompt is not None:
+            self.prompt = prompt
+        if result_filename is not None:
+            self.result_filename = result_filename
+        if api_provider is not None:
+            self.api_provider = api_provider
+        if mode is not None:
+            self.mode = mode
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def to_dict(self):
         return {
