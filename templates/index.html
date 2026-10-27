@@ -1535,7 +1535,7 @@
       </div>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-      <button id="navOpenCanvaBtn" type="button" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:30px; padding:10px 22px; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 6px 20px rgba(125,42,232,0.4); transition:transform 0.15s, box-shadow 0.15s;">
+      <button id="navOpenCanvaBtn" type="button" onclick="if(window.launchCanvaStudio){window.launchCanvaStudio();}else{const m=document.getElementById('canvaStudioModal');if(m)m.style.display='flex';}" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:30px; padding:10px 22px; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 6px 20px rgba(125,42,232,0.4); transition:transform 0.15s, box-shadow 0.15s;">
         <span style="font-size:16px;">✨</span>
         <span>Open Canva Editor</span>
       </button>
@@ -1587,7 +1587,7 @@
         </label>
 
         <!-- Blank Canva Editor Launch Button -->
-        <button id="landingOpenCanvaBtn" type="button" style="flex:1; min-width:220px; background:#ffffff; color:#7d2ae8; border:2px solid #7d2ae8; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.04); transition:all 0.15s;">
+        <button id="landingOpenCanvaBtn" type="button" onclick="if(window.launchCanvaStudio){window.launchCanvaStudio();}else{const m=document.getElementById('canvaStudioModal');if(m)m.style.display='flex';}" style="flex:1; min-width:220px; background:#ffffff; color:#7d2ae8; border:2px solid #7d2ae8; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.04); transition:all 0.15s;">
           <span style="font-size:19px;">✨</span>
           <span>Open Blank Canva Studio</span>
         </button>
@@ -1596,10 +1596,10 @@
       <!-- Quick Preset Chips -->
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:11px; color:#6b7280; padding-top:2px;">
         <span style="font-weight:700;">Start with Preset:</span>
-        <button class="canva-quick-preset-chip" data-preset="3:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🏷️ 3:1 Wrap Label (1536×512)</button>
-        <button class="canva-quick-preset-chip" data-preset="1:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📦 1:1 Box (1024×1024)</button>
-        <button class="canva-quick-preset-chip" data-preset="16:9" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📢 16:9 Banner (1920×1080)</button>
-        <button class="canva-quick-preset-chip" data-preset="4:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🧴 4:1 Panoramic (2048×512)</button>
+        <button class="canva-quick-preset-chip" data-preset="3:1" onclick="if(window.launchCanvaWithPreset){window.launchCanvaWithPreset('3:1');}else if(window.launchCanvaStudio){window.launchCanvaStudio();}" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🏷️ 3:1 Wrap Label (1536×512)</button>
+        <button class="canva-quick-preset-chip" data-preset="1:1" onclick="if(window.launchCanvaWithPreset){window.launchCanvaWithPreset('1:1');}else if(window.launchCanvaStudio){window.launchCanvaStudio();}" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📦 1:1 Box (1024×1024)</button>
+        <button class="canva-quick-preset-chip" data-preset="16:9" onclick="if(window.launchCanvaWithPreset){window.launchCanvaWithPreset('16:9');}else if(window.launchCanvaStudio){window.launchCanvaStudio();}" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📢 16:9 Banner (1920×1080)</button>
+        <button class="canva-quick-preset-chip" data-preset="4:1" onclick="if(window.launchCanvaWithPreset){window.launchCanvaWithPreset('4:1');}else if(window.launchCanvaStudio){window.launchCanvaStudio();}" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🧴 4:1 Panoramic (2048×512)</button>
       </div>
     </div>
   </header>
@@ -1956,7 +1956,816 @@
           </button>
         </div>
 
-        <!-- Canva-Style Fullscreen Studio Modal -->
+        
+
+        <div class="download-group"
+          style="display:flex; flex-direction:column; gap:10px; margin-top:20px; align-items:center;">
+          <div
+            style="font-weight:600; color:var(--clr-text-dim); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">
+            Download Options</div>
+
+          <!-- Row 1 — Raster formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadPngBtn" href="#" download="edited_label.png"
+              style="flex:1; min-width:140px; margin:0; text-align:center; padding:11px 14px;">
+              🖼️ PNG (Ultra-HD ~20MB)
+            </a>
+            <a class="btn-download" id="downloadJpgBtn" href="#" download="edited_label.jpg"
+              style="flex:1; min-width:130px; margin:0; text-align:center; padding:11px 14px; background:#e28743; border-color:#e28743; color:#fff;">
+              📸 JPG (Ultra-HD)
+            </a>
+            <a class="btn-download" id="downloadPdfBtn" href="#" download="edited_label.pdf"
+              style="flex:1; min-width:140px; margin:0; text-align:center; padding:11px 14px; background:#c0392b; border-color:#c0392b; color:#fff;">
+              📄 PDF (Print 300 DPI)
+            </a>
+          </div>
+
+          <!-- Row 2 — Vector / Reve & CorelDRAW formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadSvgBtn" href="#" download="edited_label.svg"
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
+              📐 SVG
+            </a>
+            <button id="openReveDirectBtn" class="btn-download"
+              style="flex:1.5; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%); border:none; color:#fff; font-weight:700; cursor:pointer;">
+              🚀 Download SVG &amp; Open Reve
+            </button>
+            <a class="btn-download" id="downloadCdrBtn" href="#" download="edited_label.cdr"
+              title="CorelDRAW import-compatible SVG container"
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#43a047; border-color:#43a047; color:#fff;">
+              🎨 CDR
+            </a>
+            <a class="btn-download" id="downloadCdrxBtn" href="#" download="edited_label.cdrx"
+              title="CorelDRAW X ZIP exchange package"
+              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#00796b; border-color:#00796b; color:#fff;">
+              📦 CDRx
+            </a>
+          </div>
+
+          <!-- Row 3 — CorelDRAW macro/style formats -->
+          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
+            <a class="btn-download" id="downloadGmsBtn" href="#" download="edited_label.gms"
+              title="CorelDRAW VBA macro script — run inside CorelDRAW to import image"
+              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#6a1b9a; border-color:#6a1b9a; color:#fff;">
+              ⚙️ GMS (CorelDRAW Macro)
+            </a>
+            <a class="btn-download" id="downloadCgsBtn" href="#" download="edited_label.cgs"
+              title="CorelDRAW Custom Graphic Style — import via Object Styles panel"
+              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#1565c0; border-color:#1565c0; color:#fff;">
+              🎭 CGS (CorelDRAW Style)
+            </a>
+          </div>
+
+          <!-- Format info note -->
+          <div style="font-size:11px; color:var(--clr-text-dim); text-align:center; max-width:520px; line-height:1.6; padding:0 8px;">
+            <strong>CDR / CDRx / GMS / CGS</strong> are CorelDRAW-compatible formats.
+            CDR &amp; CDRx can be opened directly in CorelDRAW 2019+.
+            GMS runs as a macro to import the image. CGS loads as an Object Style.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Chips -->
+    <div class="info-bar">
+      <div class="info-chip">
+        <span class="info-chip-icon">🧠</span>
+        <div>
+          <div class="info-chip-title">SDXL In-Painting</div>
+          <div class="info-chip-desc">Stable Diffusion XL reconstructs backgrounds with photorealistic texture and
+            colour matching.</div>
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">🎯</span>
+        <div>
+          <div class="info-chip-title">CLIPSeg Masking</div>
+          <div class="info-chip-desc">Text-guided segmentation precisely isolates objects so only the target area is
+            changed.</div>
+        </div>
+      </div>
+      <div class="info-chip">
+        <span class="info-chip-icon">☁️</span>
+        <div>
+          <div class="info-chip-title">Cloud Processing</div>
+          <div class="info-chip-desc">Your machine stays lightweight — all GPU compute is handled by cloud
+            infrastructure.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- Error Toast -->
+  <div id="error-toast" role="alert" aria-live="assertive">
+    <span class="toast-close" id="toastClose" aria-label="Dismiss">✕</span>
+    <strong>Error:</strong> <span id="error-message">Something went wrong.</span>
+  </div>
+
+  <!-- Rate-limit Banner -->
+  <div id="rate-limit-banner" role="alert" style="display:none">
+    <div class="rate-limit-inner">
+      <span class="rate-limit-icon">⚡</span>
+      <div class="rate-limit-body">
+        <div class="rate-limit-title">Replicate Free-Tier Rate Limit Reached</div>
+        <div class="rate-limit-desc">
+          Your free account has a burst limit of <strong>1 request</strong> per window.
+          Add a payment method to unlock full rate limits — you only pay per image (~$0.03–$0.07).
+        </div>
+        <div class="rate-limit-actions">
+          <a href="https://replicate.com/account/billing" target="_blank" rel="noopener" class="btn-billing">
+            💳 &nbsp;Add Payment Method on Replicate
+          </a>
+          <button class="btn-retry" id="retryBtn">↩ Retry Request</button>
+        </div>
+      </div>
+      <button class="rate-banner-close" id="rateBannerClose" aria-label="Dismiss">✕</button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+     FOOTER
+============================================================ -->
+  <footer>
+    <p>
+      Label Inpainter · Built with <a href="https://flask.palletsprojects.com/" target="_blank" rel="noopener">Flask</a>
+      &amp; <a href="https://replicate.com/" target="_blank" rel="noopener">Replicate API</a> ·
+      Models: <a href="https://replicate.com/stability-ai/stable-diffusion-inpainting" target="_blank"
+        rel="noopener">SDXL Inpainting</a>
+      &amp; <a href="https://replicate.com/cjwbw/clipseg" target="_blank" rel="noopener">CLIPSeg</a>
+    </p>
+  </footer>
+
+  <!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+  <script>
+    (function () {
+      'use strict';
+
+      /* ---- DOM refs ---- */
+      const dropZone = document.getElementById('dropZone');
+      const imageInput = document.getElementById('imageInput');
+      const fileThumbnail = document.getElementById('fileThumbnail');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const promptInput = document.getElementById('promptInput');
+      const negPromptInput = document.getElementById('negativePromptInput');
+      const processBtn = document.getElementById('processBtn');
+      const progressTracker = document.getElementById('progress-tracker');
+      const resultsSection = document.getElementById('results-section');
+      const originalImage = document.getElementById('originalImage');
+      const resultImage = document.getElementById('resultImage');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const errorToast = document.getElementById('error-toast');
+      const errorMessage = document.getElementById('error-message');
+      const advancedToggle = document.getElementById('advancedToggle');
+      const advancedPanel = document.getElementById('advancedPanel');
+
+      /* ---- Helpers ---- */
+      function humanSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+      }
+
+      function showError(msg) {
+        errorMessage.textContent = msg;
+        errorToast.classList.add('visible');
+        setTimeout(() => errorToast.classList.remove('visible'), 8000);
+      }
+
+      document.getElementById('toastClose').addEventListener('click', () => {
+        errorToast.classList.remove('visible');
+      });
+
+      /* ---- Rate-limit banner ---- */
+      document.getElementById('rateBannerClose').addEventListener('click', () => {
+        document.getElementById('rate-limit-banner').style.display = 'none';
+      });
+      document.getElementById('retryBtn').addEventListener('click', () => {
+        document.getElementById('rate-limit-banner').style.display = 'none';
+        processBtn.click();
+      });
+
+      /* ---- Advanced toggle ---- */
+      advancedToggle.addEventListener('click', () => {
+        advancedToggle.classList.toggle('open');
+        advancedPanel.classList.toggle('visible');
+      });
+
+
+      /* ================================================================
+         MODE SWITCHER
+      ================================================================ */
+      const MODE_CONFIG = {
+        remove: {
+          label: 'What to remove',
+          placeholder: 'e.g. the RU logo and Riseup Nutrition brand name',
+          btnIcon: '🗑️',
+          btnText: 'Remove Element',
+          resultLabel: '🗑️ Removed',
+          chips: [
+            { label: 'Brand logo', prompt: 'the brand logo' },
+            { label: 'All text', prompt: 'all text on the label' },
+            { label: 'Nutrition facts', prompt: 'the nutrition facts table' },
+            { label: 'Barcode', prompt: 'the barcode' },
+            { label: 'Top banner', prompt: 'the top banner' },
+          ],
+        },
+        add: {
+          label: 'What to add',
+          placeholder: 'e.g. a gold star badge with "New Formula" text',
+          btnIcon: '✏️',
+          btnText: 'Add Element',
+          resultLabel: '✏️ Added',
+          chips: [
+            { label: 'Star badge', prompt: 'a gold star quality badge' },
+            { label: '"New" sticker', prompt: 'a bright red "New" sticker' },
+            { label: 'Cert seal', prompt: 'a round certification seal' },
+            { label: 'QR code', prompt: 'a black and white QR code' },
+            { label: 'Flavour ribbon', prompt: 'a ribbon banner with flavour name' },
+          ],
+        },
+        replace: {
+          label: 'Replace what → with what',
+          placeholder: 'e.g. replace the logo with a golden lion crest',
+          btnIcon: '🔄',
+          btnText: 'Replace Element',
+          resultLabel: '🔄 Replaced',
+          chips: [
+            { label: 'Logo → crest', prompt: 'replace the logo with a golden lion crest' },
+            { label: 'Banner → gradient', prompt: 'replace the top banner with a gradient stripe' },
+            { label: 'BG → marble', prompt: 'replace the background with white marble texture' },
+            { label: 'Color → dark', prompt: 'replace the colour scheme with dark navy and gold' },
+            { label: 'Text → serif', prompt: 'replace the product name text with elegant serif font' },
+          ],
+        },
+        text_replace: {
+          label: 'Describe: remove X and add Y (brand name)',
+          placeholder: 'e.g. Remove Gomzi Nutrition and add Maxlife',
+          btnIcon: '✨',
+          btnText: 'Generate Perfect Text ✨',
+          resultLabel: '✨ Perfect Text Applied',
+          chips: [
+            { label: 'Gomzi → Maxlife', prompt: 'Remove Gomzi Nutrition and add Maxlife' },
+            { label: 'Brand → MyBrand', prompt: 'Replace the brand name with MyBrand' },
+            { label: 'Remove brand name', prompt: 'Remove the brand name text' },
+            { label: 'Add PREMIUM', prompt: 'Add PREMIUM' },
+            { label: 'Add PRO SERIES', prompt: 'Add PRO SERIES' },
+          ],
+        },
+      };
+
+      let currentMode = 'remove';
+
+      function applyMode(mode) {
+        currentMode = mode;
+        const cfg = MODE_CONFIG[mode];
+
+        /* tabs */
+        document.querySelectorAll('.mode-tab').forEach(t => {
+          const isActive = t.dataset.mode === mode;
+          t.classList.toggle('active', isActive);
+          t.setAttribute('aria-selected', isActive);
+        });
+
+        /* hints */
+        ['remove', 'add', 'replace', 'text_replace'].forEach(m => {
+          const el = document.getElementById('mode-hint-' + m);
+          if (el) el.style.display = m === mode ? '' : 'none';
+        });
+
+        /* label + placeholder */
+        const lbl = document.getElementById('promptLabel');
+        if (lbl) lbl.textContent = cfg.label;
+        promptInput.placeholder = cfg.placeholder;
+        promptInput.value = '';
+
+        /* mask-prompt field (Add mode only) */
+        const maskGroup = document.getElementById('maskPromptGroup');
+        if (maskGroup) maskGroup.style.display = mode === 'add' ? '' : 'none';
+
+        /* overlay-image field (Add & Replace modes only) */
+        const overlayGroup = document.getElementById('overlayImageGroup');
+        if (overlayGroup) overlayGroup.style.display = (mode === 'add' || mode === 'replace') ? '' : 'none';
+
+        /* chips */
+        const chipsEl = document.getElementById('promptChips');
+        if (chipsEl) {
+          chipsEl.innerHTML = cfg.chips.map(c =>
+            '<span class="chip" data-prompt="' + c.prompt + '">' + c.label + '</span>'
+          ).join('');
+        }
+
+        /* button */
+        const btnIcon = document.querySelector('.btn-icon');
+        const btnText = document.querySelector('.btn-text-idle');
+        if (btnIcon) btnIcon.textContent = cfg.btnIcon;
+        if (btnText) btnText.textContent = cfg.btnText;
+      }
+
+      /* init */
+      applyMode('remove');
+
+      /* tab clicks */
+      const modeTabs = document.getElementById('modeTabs');
+      if (modeTabs) {
+        modeTabs.addEventListener('click', function (e) {
+          const tab = e.target.closest('.mode-tab');
+          if (tab && tab.dataset.mode) applyMode(tab.dataset.mode);
+        });
+      }
+
+      /* chip clicks (delegated so it works after innerHTML re-render) */
+      document.getElementById('promptChips').addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip');
+        if (chip) {
+          promptInput.value = chip.dataset.prompt;
+          promptInput.focus();
+        }
+      });
+
+      /* ================================================================
+         DRAG & DROP / FILE SELECT
+      ================================================================ */
+      ['dragenter', 'dragover'].forEach(evt => {
+        dropZone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        });
+      });
+      ['dragleave', 'drop'].forEach(evt => {
+        dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'));
+      });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
+          Array.from(e.dataTransfer.files).forEach(file => handleFileSelected(file));
+          if (imageInput) imageInput.files = e.dataTransfer.files;
+        }
+      });
+
+      imageInput.addEventListener('change', () => {
+        if (imageInput.files.length > 0) {
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
+          Array.from(imageInput.files).forEach(file => handleFileSelected(file));
+        }
+      });
+
+      function handleFileSelected(file) {
+        if (!file.type.startsWith('image/')) {
+          showError('Please select a valid image file (PNG, JPG, or WEBP).');
+          return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+          showError('Image exceeds the 20 MB size limit.');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          fileThumbnail.src = e.target.result;
+          fileName.textContent = file.name;
+          fileSize.textContent = humanSize(file.size);
+          
+          // Update the sleek pill thumbnail preview
+          const smartThumbContainer = document.getElementById('smartThumbContainer');
+          if(smartThumbContainer) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.alt = 'Uploaded';
+            img.style.height = '56px';
+            img.style.borderRadius = '6px';
+            img.style.display = 'block';
+            img.style.objectFit = 'cover';
+            smartThumbContainer.appendChild(img);
+            document.getElementById('smartImagePreview').style.display = 'block';
+          }
+          
+          dropZone.classList.add('has-file');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      /* ================================================================
+         PROGRESS STEPS
+      ================================================================ */
+      const STEPS = ['upload', 'mask', 'inpaint', 'save'];
+      let stepTimers = {};
+      let stepTimeout1, stepTimeout2;
+
+      function resetProgress() {
+        STEPS.forEach(s => {
+          document.getElementById('step-' + s).className = 'progress-step';
+          document.getElementById('indicator-' + s).className = 'step-indicator pending';
+          document.getElementById('indicator-' + s).textContent = STEPS.indexOf(s) + 1;
+          document.getElementById('time-' + s).textContent = '';
+        });
+        progressTracker.classList.remove('visible');
+        progressTracker.style.display = 'none';
+      }
+
+      function activateStep(name) {
+        document.getElementById('step-' + name).classList.add('active');
+        const ind = document.getElementById('indicator-' + name);
+        ind.className = 'step-indicator active';
+        ind.textContent = '⟳';
+        stepTimers[name] = Date.now();
+      }
+
+      function completeStep(name) {
+        const step = document.getElementById('step-' + name);
+        const ind = document.getElementById('indicator-' + name);
+        const t = document.getElementById('time-' + name);
+        step.classList.remove('active');
+        step.classList.add('done');
+        ind.className = 'step-indicator done';
+        ind.textContent = '✓';
+        t.textContent = ((Date.now() - (stepTimers[name] || Date.now())) / 1000).toFixed(1) + 's';
+      }
+
+      function startVisualProgress() {
+        const provider = document.getElementById('apiProvider');
+        const isPixapi = provider && provider.value !== 'recraft';
+        const hasImage = imageInput.files && imageInput.files[0];
+
+        // Update step labels based on provider
+        if (isPixapi && hasImage) {
+          document.querySelector('#step-mask .step-label').textContent = 'Analyzing image content';
+          document.querySelector('#step-inpaint .step-label').textContent = 'Running Gemini AI Image Edit';
+        } else if (hasImage) {
+          document.querySelector('#step-mask .step-label').textContent = 'Generating segmentation mask (CLIPSeg)';
+          document.querySelector('#step-inpaint .step-label').textContent = 'Running SDXL In-Painting reconstruction';
+        }
+
+        progressTracker.style.display = 'block';
+        progressTracker.classList.add('visible');
+        activateStep('upload');
+
+        if (isPixapi && hasImage) {
+          // For Pixapi: skip mask step quickly since CLIPSeg is not used
+          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 800);
+          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 1500);
+        } else {
+          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 1500);
+          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 6000);
+        }
+      }
+
+      function finishVisualProgress() {
+        clearTimeout(stepTimeout1);
+        clearTimeout(stepTimeout2);
+        completeStep('upload');
+        completeStep('mask');
+        completeStep('inpaint');
+        activateStep('save');
+        setTimeout(() => completeStep('save'), 600);
+      }
+
+      /* ================================================================
+         PROCESS BUTTON
+      ================================================================ */
+      processBtn.addEventListener('click', async () => {
+        const file = imageInput.files[0];
+        const prompt = promptInput.value.trim();
+
+        if (!file && !prompt) {
+          showError('Please upload an image or provide a prompt.');
+          return;
+        } 
+        if (!prompt) {
+          showError('Please describe what you want to ' + currentMode + '.');
+          return;
+        }
+
+        resetProgress();
+        resultsSection.classList.remove('visible');
+        resultsSection.style.display = 'none';
+        processBtn.disabled = true;
+        processBtn.classList.add('loading');
+        startVisualProgress();
+
+        const formData = new FormData();
+        if (file) {
+          formData.append('image', file);
+        }
+        formData.append('prompt', prompt);
+        formData.append('mode', currentMode);
+
+        const maskInput = document.getElementById('maskPromptInput');
+        if (maskInput && maskInput.value.trim()) {
+          formData.append('mask_prompt', maskInput.value.trim());
+        }
+        const negPrompt = negPromptInput.value.trim();
+        if (negPrompt) formData.append('negative_prompt', negPrompt);
+
+        const overlayInput = document.getElementById('overlayInput');
+        if (overlayInput && overlayInput.files[0]) {
+          formData.append('overlay', overlayInput.files[0]);
+        }
+
+        const apiProviderSelect = document.getElementById('apiProviderSelect');
+        if (apiProviderSelect) {
+          formData.append('api_provider', apiProviderSelect.value);
+        }
+
+        const imageSizeSelect = document.getElementById('imageSizeSelect');
+        if (imageSizeSelect) {
+          formData.append('image_size', imageSizeSelect.value);
+        }
+
+        try {
+          const response = await fetch('/process', { method: 'POST', body: formData });
+          const data = await response.json();
+
+          if (response.status === 429 || data.error === 'rate_limit') {
+            document.getElementById('rate-limit-banner').style.display = 'block';
+            resetProgress();
+            return;
+          }
+          if (!response.ok || data.error) {
+            showError(data.error || 'Server error: ' + response.status);
+            resetProgress();
+            return;
+          }
+
+          finishVisualProgress();
+          await new Promise(r => setTimeout(r, 800));
+
+          if (data.original_image) {
+            originalImage.src = data.original_image + '?t=' + Date.now();
+          }
+          resultImage.src = data.result_image + '?t=' + Date.now();
+          const resultFilename = data.result_image.split('/').pop();
+
+          document.getElementById('downloadPngBtn').href = '/download/' + resultFilename + '/png';
+          document.getElementById('downloadPngBtn').download = currentMode + '_result.png';
+
+          document.getElementById('downloadJpgBtn').href = '/download/' + resultFilename + '/jpg';
+          document.getElementById('downloadJpgBtn').download = currentMode + '_result.jpg';
+
+          document.getElementById('downloadPdfBtn').href = '/download/' + resultFilename + '/pdf';
+          document.getElementById('downloadPdfBtn').download = currentMode + '_result.pdf';
+
+          document.getElementById('downloadSvgBtn').href = '/download/' + resultFilename + '/svg';
+          document.getElementById('downloadSvgBtn').download = currentMode + '_result.svg';
+
+          document.getElementById('downloadCdrBtn').href = '/download/' + resultFilename + '/cdr';
+          document.getElementById('downloadCdrBtn').download = currentMode + '_result.cdr';
+
+          document.getElementById('downloadCdrxBtn').href = '/download/' + resultFilename + '/cdrx';
+          document.getElementById('downloadCdrxBtn').download = currentMode + '_result.cdrx';
+
+          document.getElementById('downloadGmsBtn').href = '/download/' + resultFilename + '/gms';
+          document.getElementById('downloadGmsBtn').download = currentMode + '_result.gms';
+
+          document.getElementById('downloadCgsBtn').href = '/download/' + resultFilename + '/cgs';
+          document.getElementById('downloadCgsBtn').download = currentMode + '_result.cgs';
+          document.querySelector('.label-result').textContent = MODE_CONFIG[currentMode].resultLabel;
+
+          resultsSection.style.display = 'block';
+          setTimeout(() => {
+            resultsSection.classList.add('visible');
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 50);
+
+          // Refresh history panel after a short delay so the DB has committed
+          setTimeout(loadHistory, 1200);
+
+        } catch (err) {
+          showError('Network error — is the Flask server running?');
+          resetProgress();
+          console.error(err);
+        } finally {
+          processBtn.disabled = false;
+          processBtn.classList.remove('loading');
+        }
+      });
+
+    // =========================================================
+    // SMART PROMPT — /smart-process endpoint
+    // =========================================================
+    const smartBtn         = document.getElementById('smartBtn');
+    const smartInput       = document.getElementById('smartPromptInput');
+    const smartStatus      = document.getElementById('smartStatus');
+    const smartStatusIcon  = document.getElementById('smartStatusIcon');
+    const smartStatusText  = document.getElementById('smartStatusText');
+    const smartMatchBadge  = document.getElementById('smartMatchBadge');
+    const smartResult      = document.getElementById('smartResult');
+    const smartOriginalWrap= document.getElementById('smartOriginalWrap');
+    const smartOriginalImg = document.getElementById('smartOriginalImg');
+    const smartResultImg   = document.getElementById('smartResultImg');
+    const smartDownloadGroup = document.getElementById('smartDownloadGroup');
+
+    function setSmartStatus(icon, text, badgeText, badgeClass) {
+      smartStatusIcon.textContent = icon;
+      smartStatusText.textContent = text;
+      smartMatchBadge.textContent = badgeText || '';
+      smartMatchBadge.className   = 'smart-match-badge ' + (badgeClass || '');
+      smartStatus.classList.add('visible');
+    }
+
+    smartBtn.addEventListener('click', async () => {
+      const prompt = smartInput.value.trim();
+      if (!prompt) { smartInput.focus(); return; }
+
+      // Reset
+      smartResult.classList.remove('visible');
+      smartOriginalWrap.style.display = 'none';
+      document.getElementById('smartResultWrap').style.gridColumn = '1 / -1';
+      smartDownloadGroup.style.display = 'none';
+      smartBtn.disabled = true;
+      smartBtn.classList.add('loading');
+      document.getElementById('smartBtnText').textContent = 'Processing…';
+      setSmartStatus('🔍', 'Searching your image library…', '', '');
+
+      try {
+        const apiProvider = document.getElementById('apiProviderSelect')
+          ? document.getElementById('apiProviderSelect').value
+          : 'nanobanana';
+        const imageSize = document.getElementById('imageSizeSelect')
+          ? document.getElementById('imageSizeSelect').value
+          : '3:1';
+        const negPrompt = document.getElementById('negativePromptInput')
+          ? document.getElementById('negativePromptInput').value.trim()
+          : '';
+
+        let res;
+        const imgInput = document.getElementById('imageInput');
+        if (imgInput && imgInput.files.length > 0) {
+          const formData = new FormData();
+          formData.append('prompt', prompt);
+          formData.append('api_provider', apiProvider);
+          formData.append('image_size', imageSize);
+          if (negPrompt) formData.append('negative_prompt', negPrompt);
+          Array.from(imgInput.files).forEach(f => formData.append('images', f));
+          
+          res = await fetch('/smart-process', {
+            method: 'POST',
+            body: formData,
+          });
+        } else {
+          res = await fetch('/smart-process', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt,
+              api_provider: apiProvider,
+              image_size: imageSize,
+              negative_prompt: negPrompt
+            }),
+          });
+        }
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          setSmartStatus('❌', data.error || 'Server error', 'Error', 'badge-error');
+          return;
+        }
+
+        // Show result
+        smartResultImg.src = data.result_image + '?t=' + Date.now();
+        
+        // Extract filename from URL
+        const parts = data.result_image.split('/');
+        const resultFilename = parts[parts.length - 1];
+
+        document.getElementById('smartDownloadPngBtn').href = '/download/' + resultFilename + '/png';
+        document.getElementById('smartDownloadPngBtn').download = 'smart_result.png';
+
+        document.getElementById('smartDownloadJpgBtn').href = '/download/' + resultFilename + '/jpg';
+        document.getElementById('smartDownloadJpgBtn').download = 'smart_result.jpg';
+
+        document.getElementById('smartDownloadPdfBtn').href = '/download/' + resultFilename + '/pdf';
+        document.getElementById('smartDownloadPdfBtn').download = 'smart_result.pdf';
+
+        document.getElementById('smartDownloadSvgBtn').href = '/download/' + resultFilename + '/svg';
+        document.getElementById('smartDownloadSvgBtn').download = 'smart_result.svg';
+
+        document.getElementById('smartDownloadCdrBtn').href = '/download/' + resultFilename + '/cdr';
+        document.getElementById('smartDownloadCdrBtn').download = 'smart_result.cdr';
+
+        document.getElementById('smartDownloadCdrxBtn').href = '/download/' + resultFilename + '/cdrx';
+        document.getElementById('smartDownloadCdrxBtn').download = 'smart_result.cdrx';
+
+        document.getElementById('smartDownloadGmsBtn').href = '/download/' + resultFilename + '/gms';
+        document.getElementById('smartDownloadGmsBtn').download = 'smart_result.gms';
+
+        document.getElementById('smartDownloadCgsBtn').href = '/download/' + resultFilename + '/cgs';
+        document.getElementById('smartDownloadCgsBtn').download = 'smart_result.cgs';
+
+        smartDownloadGroup.style.display = 'flex';
+
+        if (data.matched && data.original_image) {
+          smartOriginalImg.src = data.original_image + '?t=' + Date.now();
+          smartOriginalWrap.style.display = 'block';
+          document.getElementById('smartResultWrap').style.gridColumn = '';
+          setSmartStatus(
+            '✅', `Matched "${data.matched_name}" (score: ${data.match_score}) — edited with AI`,
+            'Image Found', 'badge-matched'
+          );
+        } else {
+          smartOriginalWrap.style.display = 'none';
+          document.getElementById('smartResultWrap').style.gridColumn = '1 / -1';
+          setSmartStatus('✨', 'No match found — generated a brand new image', 'New Image', 'badge-new');
+        }
+
+        smartResult.classList.add('visible');
+        setTimeout(() => loadHistory(), 1200);
+
+      } catch (err) {
+        setSmartStatus('❌', 'Network error — is Flask running?', 'Error', 'badge-error');
+        console.error(err);
+      } finally {
+        smartBtn.disabled = false;
+        smartBtn.classList.remove('loading');
+        document.getElementById('smartBtnText').textContent = '✨ Smart Edit';
+      }
+    });
+
+    // Allow Enter key to trigger smart search
+    smartInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') smartBtn.click();
+    });
+
+    // Load history on page start
+    loadHistory();
+
+    // =========================================================
+    // HISTORY PANEL — load from /history endpoint
+    // =========================================================
+    async function loadHistory() {
+      try {
+        const res = await fetch('/history');
+        if (!res.ok) return;
+        const jobs = await res.json();
+        const grid = document.getElementById('historyGrid');
+        const count = document.getElementById('historyCount');
+
+        count.textContent = jobs.length + (jobs.length === 1 ? ' job' : ' jobs');
+
+        if (jobs.length === 0) {
+          grid.innerHTML = `
+            <div class="history-empty">
+              <div class="empty-icon">🖼️</div>
+              <p>No edits yet. Upload a label and run your first AI edit!</p>
+            </div>`;
+          return;
+        }
+
+        grid.innerHTML = jobs.map(job => {
+          const modeClass = 'hb-' + job.mode;
+          const hasOriginal = !!job.original_url;
+          const imgsHtml = hasOriginal
+            ? `<img src="${job.original_url}" alt="Original: ${job.original_name}" loading="lazy" />
+               <img src="${job.result_url}" alt="Result" loading="lazy" />`
+            : `<img class="single-img" src="${job.result_url}" alt="Generated result" loading="lazy" />`;
+
+          return `
+          <article class="history-card">
+            <div class="history-imgs">${imgsHtml}</div>
+            <div class="history-meta">
+              <div class="history-prompt" title="${job.prompt}">${job.prompt}</div>
+              <div class="history-info">
+                <span class="history-badge ${modeClass}">${job.mode}</span>
+                <span class="history-badge" style="background:rgba(8,145,178,0.1);color:#0891b2">${job.api_provider}</span>
+                <span class="history-time">${job.created_at}</span>
+              </div>
+            </div>
+          </article>`;
+        }).join('');
+
+      } catch (e) {
+        console.warn('History load failed:', e);
+      }
+    }
+
+    })();
+  </script>
+
+  <!-- ============================================================
+     HISTORY PANEL
+============================================================ -->
+  <section class="history-panel" id="historyPanel" aria-label="Job history">
+    <div class="history-header">
+      <h2 class="history-title">
+        <span class="icon">🗂️</span>
+        Upload &amp; Edit History
+      </h2>
+      <span class="history-count" id="historyCount">0 jobs</span>
+    </div>
+    <div class="history-grid" id="historyGrid">
+      <div class="history-empty">
+        <div class="empty-icon">🖼️</div>
+        <p>No edits yet. Upload a label and run your first AI edit!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Canva-Style Fullscreen Studio Modal -->
         <div id="canvaStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0e131f; z-index:999999; flex-direction:column; overflow:hidden; font-family:'Inter',system-ui,sans-serif;">
           
           <!-- Top Canva Navigation Bar -->
@@ -2979,813 +3788,6 @@
           </div>
 
         </div>
-
-        <div class="download-group"
-          style="display:flex; flex-direction:column; gap:10px; margin-top:20px; align-items:center;">
-          <div
-            style="font-weight:600; color:var(--clr-text-dim); font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">
-            Download Options</div>
-
-          <!-- Row 1 — Raster formats -->
-          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
-            <a class="btn-download" id="downloadPngBtn" href="#" download="edited_label.png"
-              style="flex:1; min-width:140px; margin:0; text-align:center; padding:11px 14px;">
-              🖼️ PNG (Ultra-HD ~20MB)
-            </a>
-            <a class="btn-download" id="downloadJpgBtn" href="#" download="edited_label.jpg"
-              style="flex:1; min-width:130px; margin:0; text-align:center; padding:11px 14px; background:#e28743; border-color:#e28743; color:#fff;">
-              📸 JPG (Ultra-HD)
-            </a>
-            <a class="btn-download" id="downloadPdfBtn" href="#" download="edited_label.pdf"
-              style="flex:1; min-width:140px; margin:0; text-align:center; padding:11px 14px; background:#c0392b; border-color:#c0392b; color:#fff;">
-              📄 PDF (Print 300 DPI)
-            </a>
-          </div>
-
-          <!-- Row 2 — Vector / Reve & CorelDRAW formats -->
-          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
-            <a class="btn-download" id="downloadSvgBtn" href="#" download="edited_label.svg"
-              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#2980b9; border-color:#2980b9; color:#fff;">
-              📐 SVG
-            </a>
-            <button id="openReveDirectBtn" class="btn-download"
-              style="flex:1.5; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:linear-gradient(135deg, #00c4cc 0%, #7d2ae8 100%); border:none; color:#fff; font-weight:700; cursor:pointer;">
-              🚀 Download SVG &amp; Open Reve
-            </button>
-            <a class="btn-download" id="downloadCdrBtn" href="#" download="edited_label.cdr"
-              title="CorelDRAW import-compatible SVG container"
-              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#43a047; border-color:#43a047; color:#fff;">
-              🎨 CDR
-            </a>
-            <a class="btn-download" id="downloadCdrxBtn" href="#" download="edited_label.cdrx"
-              title="CorelDRAW X ZIP exchange package"
-              style="flex:1; min-width:110px; margin:0; text-align:center; padding:11px 14px; background:#00796b; border-color:#00796b; color:#fff;">
-              📦 CDRx
-            </a>
-          </div>
-
-          <!-- Row 3 — CorelDRAW macro/style formats -->
-          <div style="display:flex; gap:10px; width:100%; flex-wrap:wrap; justify-content:center;">
-            <a class="btn-download" id="downloadGmsBtn" href="#" download="edited_label.gms"
-              title="CorelDRAW VBA macro script — run inside CorelDRAW to import image"
-              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#6a1b9a; border-color:#6a1b9a; color:#fff;">
-              ⚙️ GMS (CorelDRAW Macro)
-            </a>
-            <a class="btn-download" id="downloadCgsBtn" href="#" download="edited_label.cgs"
-              title="CorelDRAW Custom Graphic Style — import via Object Styles panel"
-              style="flex:1; min-width:180px; margin:0; text-align:center; padding:11px 14px; background:#1565c0; border-color:#1565c0; color:#fff;">
-              🎭 CGS (CorelDRAW Style)
-            </a>
-          </div>
-
-          <!-- Format info note -->
-          <div style="font-size:11px; color:var(--clr-text-dim); text-align:center; max-width:520px; line-height:1.6; padding:0 8px;">
-            <strong>CDR / CDRx / GMS / CGS</strong> are CorelDRAW-compatible formats.
-            CDR &amp; CDRx can be opened directly in CorelDRAW 2019+.
-            GMS runs as a macro to import the image. CGS loads as an Object Style.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Info Chips -->
-    <div class="info-bar">
-      <div class="info-chip">
-        <span class="info-chip-icon">🧠</span>
-        <div>
-          <div class="info-chip-title">SDXL In-Painting</div>
-          <div class="info-chip-desc">Stable Diffusion XL reconstructs backgrounds with photorealistic texture and
-            colour matching.</div>
-        </div>
-      </div>
-      <div class="info-chip">
-        <span class="info-chip-icon">🎯</span>
-        <div>
-          <div class="info-chip-title">CLIPSeg Masking</div>
-          <div class="info-chip-desc">Text-guided segmentation precisely isolates objects so only the target area is
-            changed.</div>
-        </div>
-      </div>
-      <div class="info-chip">
-        <span class="info-chip-icon">☁️</span>
-        <div>
-          <div class="info-chip-title">Cloud Processing</div>
-          <div class="info-chip-desc">Your machine stays lightweight — all GPU compute is handled by cloud
-            infrastructure.</div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /container -->
-
-  <!-- Error Toast -->
-  <div id="error-toast" role="alert" aria-live="assertive">
-    <span class="toast-close" id="toastClose" aria-label="Dismiss">✕</span>
-    <strong>Error:</strong> <span id="error-message">Something went wrong.</span>
-  </div>
-
-  <!-- Rate-limit Banner -->
-  <div id="rate-limit-banner" role="alert" style="display:none">
-    <div class="rate-limit-inner">
-      <span class="rate-limit-icon">⚡</span>
-      <div class="rate-limit-body">
-        <div class="rate-limit-title">Replicate Free-Tier Rate Limit Reached</div>
-        <div class="rate-limit-desc">
-          Your free account has a burst limit of <strong>1 request</strong> per window.
-          Add a payment method to unlock full rate limits — you only pay per image (~$0.03–$0.07).
-        </div>
-        <div class="rate-limit-actions">
-          <a href="https://replicate.com/account/billing" target="_blank" rel="noopener" class="btn-billing">
-            💳 &nbsp;Add Payment Method on Replicate
-          </a>
-          <button class="btn-retry" id="retryBtn">↩ Retry Request</button>
-        </div>
-      </div>
-      <button class="rate-banner-close" id="rateBannerClose" aria-label="Dismiss">✕</button>
-    </div>
-  </div>
-
-  <!-- ============================================================
-     FOOTER
-============================================================ -->
-  <footer>
-    <p>
-      Label Inpainter · Built with <a href="https://flask.palletsprojects.com/" target="_blank" rel="noopener">Flask</a>
-      &amp; <a href="https://replicate.com/" target="_blank" rel="noopener">Replicate API</a> ·
-      Models: <a href="https://replicate.com/stability-ai/stable-diffusion-inpainting" target="_blank"
-        rel="noopener">SDXL Inpainting</a>
-      &amp; <a href="https://replicate.com/cjwbw/clipseg" target="_blank" rel="noopener">CLIPSeg</a>
-    </p>
-  </footer>
-
-  <!-- ============================================================
-     JAVASCRIPT
-============================================================ -->
-  <script>
-    (function () {
-      'use strict';
-
-      /* ---- DOM refs ---- */
-      const dropZone = document.getElementById('dropZone');
-      const imageInput = document.getElementById('imageInput');
-      const fileThumbnail = document.getElementById('fileThumbnail');
-      const fileName = document.getElementById('fileName');
-      const fileSize = document.getElementById('fileSize');
-      const promptInput = document.getElementById('promptInput');
-      const negPromptInput = document.getElementById('negativePromptInput');
-      const processBtn = document.getElementById('processBtn');
-      const progressTracker = document.getElementById('progress-tracker');
-      const resultsSection = document.getElementById('results-section');
-      const originalImage = document.getElementById('originalImage');
-      const resultImage = document.getElementById('resultImage');
-      const downloadBtn = document.getElementById('downloadBtn');
-      const errorToast = document.getElementById('error-toast');
-      const errorMessage = document.getElementById('error-message');
-      const advancedToggle = document.getElementById('advancedToggle');
-      const advancedPanel = document.getElementById('advancedPanel');
-
-      /* ---- Helpers ---- */
-      function humanSize(bytes) {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
-      }
-
-      function showError(msg) {
-        errorMessage.textContent = msg;
-        errorToast.classList.add('visible');
-        setTimeout(() => errorToast.classList.remove('visible'), 8000);
-      }
-
-      document.getElementById('toastClose').addEventListener('click', () => {
-        errorToast.classList.remove('visible');
-      });
-
-      /* ---- Rate-limit banner ---- */
-      document.getElementById('rateBannerClose').addEventListener('click', () => {
-        document.getElementById('rate-limit-banner').style.display = 'none';
-      });
-      document.getElementById('retryBtn').addEventListener('click', () => {
-        document.getElementById('rate-limit-banner').style.display = 'none';
-        processBtn.click();
-      });
-
-      /* ---- Advanced toggle ---- */
-      advancedToggle.addEventListener('click', () => {
-        advancedToggle.classList.toggle('open');
-        advancedPanel.classList.toggle('visible');
-      });
-
-
-      /* ================================================================
-         MODE SWITCHER
-      ================================================================ */
-      const MODE_CONFIG = {
-        remove: {
-          label: 'What to remove',
-          placeholder: 'e.g. the RU logo and Riseup Nutrition brand name',
-          btnIcon: '🗑️',
-          btnText: 'Remove Element',
-          resultLabel: '🗑️ Removed',
-          chips: [
-            { label: 'Brand logo', prompt: 'the brand logo' },
-            { label: 'All text', prompt: 'all text on the label' },
-            { label: 'Nutrition facts', prompt: 'the nutrition facts table' },
-            { label: 'Barcode', prompt: 'the barcode' },
-            { label: 'Top banner', prompt: 'the top banner' },
-          ],
-        },
-        add: {
-          label: 'What to add',
-          placeholder: 'e.g. a gold star badge with "New Formula" text',
-          btnIcon: '✏️',
-          btnText: 'Add Element',
-          resultLabel: '✏️ Added',
-          chips: [
-            { label: 'Star badge', prompt: 'a gold star quality badge' },
-            { label: '"New" sticker', prompt: 'a bright red "New" sticker' },
-            { label: 'Cert seal', prompt: 'a round certification seal' },
-            { label: 'QR code', prompt: 'a black and white QR code' },
-            { label: 'Flavour ribbon', prompt: 'a ribbon banner with flavour name' },
-          ],
-        },
-        replace: {
-          label: 'Replace what → with what',
-          placeholder: 'e.g. replace the logo with a golden lion crest',
-          btnIcon: '🔄',
-          btnText: 'Replace Element',
-          resultLabel: '🔄 Replaced',
-          chips: [
-            { label: 'Logo → crest', prompt: 'replace the logo with a golden lion crest' },
-            { label: 'Banner → gradient', prompt: 'replace the top banner with a gradient stripe' },
-            { label: 'BG → marble', prompt: 'replace the background with white marble texture' },
-            { label: 'Color → dark', prompt: 'replace the colour scheme with dark navy and gold' },
-            { label: 'Text → serif', prompt: 'replace the product name text with elegant serif font' },
-          ],
-        },
-        text_replace: {
-          label: 'Describe: remove X and add Y (brand name)',
-          placeholder: 'e.g. Remove Gomzi Nutrition and add Maxlife',
-          btnIcon: '✨',
-          btnText: 'Generate Perfect Text ✨',
-          resultLabel: '✨ Perfect Text Applied',
-          chips: [
-            { label: 'Gomzi → Maxlife', prompt: 'Remove Gomzi Nutrition and add Maxlife' },
-            { label: 'Brand → MyBrand', prompt: 'Replace the brand name with MyBrand' },
-            { label: 'Remove brand name', prompt: 'Remove the brand name text' },
-            { label: 'Add PREMIUM', prompt: 'Add PREMIUM' },
-            { label: 'Add PRO SERIES', prompt: 'Add PRO SERIES' },
-          ],
-        },
-      };
-
-      let currentMode = 'remove';
-
-      function applyMode(mode) {
-        currentMode = mode;
-        const cfg = MODE_CONFIG[mode];
-
-        /* tabs */
-        document.querySelectorAll('.mode-tab').forEach(t => {
-          const isActive = t.dataset.mode === mode;
-          t.classList.toggle('active', isActive);
-          t.setAttribute('aria-selected', isActive);
-        });
-
-        /* hints */
-        ['remove', 'add', 'replace', 'text_replace'].forEach(m => {
-          const el = document.getElementById('mode-hint-' + m);
-          if (el) el.style.display = m === mode ? '' : 'none';
-        });
-
-        /* label + placeholder */
-        const lbl = document.getElementById('promptLabel');
-        if (lbl) lbl.textContent = cfg.label;
-        promptInput.placeholder = cfg.placeholder;
-        promptInput.value = '';
-
-        /* mask-prompt field (Add mode only) */
-        const maskGroup = document.getElementById('maskPromptGroup');
-        if (maskGroup) maskGroup.style.display = mode === 'add' ? '' : 'none';
-
-        /* overlay-image field (Add & Replace modes only) */
-        const overlayGroup = document.getElementById('overlayImageGroup');
-        if (overlayGroup) overlayGroup.style.display = (mode === 'add' || mode === 'replace') ? '' : 'none';
-
-        /* chips */
-        const chipsEl = document.getElementById('promptChips');
-        if (chipsEl) {
-          chipsEl.innerHTML = cfg.chips.map(c =>
-            '<span class="chip" data-prompt="' + c.prompt + '">' + c.label + '</span>'
-          ).join('');
-        }
-
-        /* button */
-        const btnIcon = document.querySelector('.btn-icon');
-        const btnText = document.querySelector('.btn-text-idle');
-        if (btnIcon) btnIcon.textContent = cfg.btnIcon;
-        if (btnText) btnText.textContent = cfg.btnText;
-      }
-
-      /* init */
-      applyMode('remove');
-
-      /* tab clicks */
-      const modeTabs = document.getElementById('modeTabs');
-      if (modeTabs) {
-        modeTabs.addEventListener('click', function (e) {
-          const tab = e.target.closest('.mode-tab');
-          if (tab && tab.dataset.mode) applyMode(tab.dataset.mode);
-        });
-      }
-
-      /* chip clicks (delegated so it works after innerHTML re-render) */
-      document.getElementById('promptChips').addEventListener('click', (e) => {
-        const chip = e.target.closest('.chip');
-        if (chip) {
-          promptInput.value = chip.dataset.prompt;
-          promptInput.focus();
-        }
-      });
-
-      /* ================================================================
-         DRAG & DROP / FILE SELECT
-      ================================================================ */
-      ['dragenter', 'dragover'].forEach(evt => {
-        dropZone.addEventListener(evt, (e) => {
-          e.preventDefault();
-          dropZone.classList.add('drag-over');
-        });
-      });
-      ['dragleave', 'drop'].forEach(evt => {
-        dropZone.addEventListener(evt, () => dropZone.classList.remove('drag-over'));
-      });
-      dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        if (e.dataTransfer.files.length > 0) {
-          const smartThumbContainer = document.getElementById('smartThumbContainer');
-          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
-          Array.from(e.dataTransfer.files).forEach(file => handleFileSelected(file));
-          if (imageInput) imageInput.files = e.dataTransfer.files;
-        }
-      });
-
-      imageInput.addEventListener('change', () => {
-        if (imageInput.files.length > 0) {
-          const smartThumbContainer = document.getElementById('smartThumbContainer');
-          if (smartThumbContainer) smartThumbContainer.innerHTML = '';
-          Array.from(imageInput.files).forEach(file => handleFileSelected(file));
-        }
-      });
-
-      function handleFileSelected(file) {
-        if (!file.type.startsWith('image/')) {
-          showError('Please select a valid image file (PNG, JPG, or WEBP).');
-          return;
-        }
-        if (file.size > 20 * 1024 * 1024) {
-          showError('Image exceeds the 20 MB size limit.');
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          fileThumbnail.src = e.target.result;
-          fileName.textContent = file.name;
-          fileSize.textContent = humanSize(file.size);
-          
-          // Update the sleek pill thumbnail preview
-          const smartThumbContainer = document.getElementById('smartThumbContainer');
-          if(smartThumbContainer) {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-            img.alt = 'Uploaded';
-            img.style.height = '56px';
-            img.style.borderRadius = '6px';
-            img.style.display = 'block';
-            img.style.objectFit = 'cover';
-            smartThumbContainer.appendChild(img);
-            document.getElementById('smartImagePreview').style.display = 'block';
-          }
-          
-          dropZone.classList.add('has-file');
-        };
-        reader.readAsDataURL(file);
-      }
-
-      /* ================================================================
-         PROGRESS STEPS
-      ================================================================ */
-      const STEPS = ['upload', 'mask', 'inpaint', 'save'];
-      let stepTimers = {};
-      let stepTimeout1, stepTimeout2;
-
-      function resetProgress() {
-        STEPS.forEach(s => {
-          document.getElementById('step-' + s).className = 'progress-step';
-          document.getElementById('indicator-' + s).className = 'step-indicator pending';
-          document.getElementById('indicator-' + s).textContent = STEPS.indexOf(s) + 1;
-          document.getElementById('time-' + s).textContent = '';
-        });
-        progressTracker.classList.remove('visible');
-        progressTracker.style.display = 'none';
-      }
-
-      function activateStep(name) {
-        document.getElementById('step-' + name).classList.add('active');
-        const ind = document.getElementById('indicator-' + name);
-        ind.className = 'step-indicator active';
-        ind.textContent = '⟳';
-        stepTimers[name] = Date.now();
-      }
-
-      function completeStep(name) {
-        const step = document.getElementById('step-' + name);
-        const ind = document.getElementById('indicator-' + name);
-        const t = document.getElementById('time-' + name);
-        step.classList.remove('active');
-        step.classList.add('done');
-        ind.className = 'step-indicator done';
-        ind.textContent = '✓';
-        t.textContent = ((Date.now() - (stepTimers[name] || Date.now())) / 1000).toFixed(1) + 's';
-      }
-
-      function startVisualProgress() {
-        const provider = document.getElementById('apiProvider');
-        const isPixapi = provider && provider.value !== 'recraft';
-        const hasImage = imageInput.files && imageInput.files[0];
-
-        // Update step labels based on provider
-        if (isPixapi && hasImage) {
-          document.querySelector('#step-mask .step-label').textContent = 'Analyzing image content';
-          document.querySelector('#step-inpaint .step-label').textContent = 'Running Gemini AI Image Edit';
-        } else if (hasImage) {
-          document.querySelector('#step-mask .step-label').textContent = 'Generating segmentation mask (CLIPSeg)';
-          document.querySelector('#step-inpaint .step-label').textContent = 'Running SDXL In-Painting reconstruction';
-        }
-
-        progressTracker.style.display = 'block';
-        progressTracker.classList.add('visible');
-        activateStep('upload');
-
-        if (isPixapi && hasImage) {
-          // For Pixapi: skip mask step quickly since CLIPSeg is not used
-          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 800);
-          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 1500);
-        } else {
-          stepTimeout1 = setTimeout(() => { completeStep('upload'); activateStep('mask'); }, 1500);
-          stepTimeout2 = setTimeout(() => { completeStep('mask'); activateStep('inpaint'); }, 6000);
-        }
-      }
-
-      function finishVisualProgress() {
-        clearTimeout(stepTimeout1);
-        clearTimeout(stepTimeout2);
-        completeStep('upload');
-        completeStep('mask');
-        completeStep('inpaint');
-        activateStep('save');
-        setTimeout(() => completeStep('save'), 600);
-      }
-
-      /* ================================================================
-         PROCESS BUTTON
-      ================================================================ */
-      processBtn.addEventListener('click', async () => {
-        const file = imageInput.files[0];
-        const prompt = promptInput.value.trim();
-
-        if (!file && !prompt) {
-          showError('Please upload an image or provide a prompt.');
-          return;
-        } 
-        if (!prompt) {
-          showError('Please describe what you want to ' + currentMode + '.');
-          return;
-        }
-
-        resetProgress();
-        resultsSection.classList.remove('visible');
-        resultsSection.style.display = 'none';
-        processBtn.disabled = true;
-        processBtn.classList.add('loading');
-        startVisualProgress();
-
-        const formData = new FormData();
-        if (file) {
-          formData.append('image', file);
-        }
-        formData.append('prompt', prompt);
-        formData.append('mode', currentMode);
-
-        const maskInput = document.getElementById('maskPromptInput');
-        if (maskInput && maskInput.value.trim()) {
-          formData.append('mask_prompt', maskInput.value.trim());
-        }
-        const negPrompt = negPromptInput.value.trim();
-        if (negPrompt) formData.append('negative_prompt', negPrompt);
-
-        const overlayInput = document.getElementById('overlayInput');
-        if (overlayInput && overlayInput.files[0]) {
-          formData.append('overlay', overlayInput.files[0]);
-        }
-
-        const apiProviderSelect = document.getElementById('apiProviderSelect');
-        if (apiProviderSelect) {
-          formData.append('api_provider', apiProviderSelect.value);
-        }
-
-        const imageSizeSelect = document.getElementById('imageSizeSelect');
-        if (imageSizeSelect) {
-          formData.append('image_size', imageSizeSelect.value);
-        }
-
-        try {
-          const response = await fetch('/process', { method: 'POST', body: formData });
-          const data = await response.json();
-
-          if (response.status === 429 || data.error === 'rate_limit') {
-            document.getElementById('rate-limit-banner').style.display = 'block';
-            resetProgress();
-            return;
-          }
-          if (!response.ok || data.error) {
-            showError(data.error || 'Server error: ' + response.status);
-            resetProgress();
-            return;
-          }
-
-          finishVisualProgress();
-          await new Promise(r => setTimeout(r, 800));
-
-          if (data.original_image) {
-            originalImage.src = data.original_image + '?t=' + Date.now();
-          }
-          resultImage.src = data.result_image + '?t=' + Date.now();
-          const resultFilename = data.result_image.split('/').pop();
-
-          document.getElementById('downloadPngBtn').href = '/download/' + resultFilename + '/png';
-          document.getElementById('downloadPngBtn').download = currentMode + '_result.png';
-
-          document.getElementById('downloadJpgBtn').href = '/download/' + resultFilename + '/jpg';
-          document.getElementById('downloadJpgBtn').download = currentMode + '_result.jpg';
-
-          document.getElementById('downloadPdfBtn').href = '/download/' + resultFilename + '/pdf';
-          document.getElementById('downloadPdfBtn').download = currentMode + '_result.pdf';
-
-          document.getElementById('downloadSvgBtn').href = '/download/' + resultFilename + '/svg';
-          document.getElementById('downloadSvgBtn').download = currentMode + '_result.svg';
-
-          document.getElementById('downloadCdrBtn').href = '/download/' + resultFilename + '/cdr';
-          document.getElementById('downloadCdrBtn').download = currentMode + '_result.cdr';
-
-          document.getElementById('downloadCdrxBtn').href = '/download/' + resultFilename + '/cdrx';
-          document.getElementById('downloadCdrxBtn').download = currentMode + '_result.cdrx';
-
-          document.getElementById('downloadGmsBtn').href = '/download/' + resultFilename + '/gms';
-          document.getElementById('downloadGmsBtn').download = currentMode + '_result.gms';
-
-          document.getElementById('downloadCgsBtn').href = '/download/' + resultFilename + '/cgs';
-          document.getElementById('downloadCgsBtn').download = currentMode + '_result.cgs';
-          document.querySelector('.label-result').textContent = MODE_CONFIG[currentMode].resultLabel;
-
-          resultsSection.style.display = 'block';
-          setTimeout(() => {
-            resultsSection.classList.add('visible');
-            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }, 50);
-
-          // Refresh history panel after a short delay so the DB has committed
-          setTimeout(loadHistory, 1200);
-
-        } catch (err) {
-          showError('Network error — is the Flask server running?');
-          resetProgress();
-          console.error(err);
-        } finally {
-          processBtn.disabled = false;
-          processBtn.classList.remove('loading');
-        }
-      });
-
-    // =========================================================
-    // SMART PROMPT — /smart-process endpoint
-    // =========================================================
-    const smartBtn         = document.getElementById('smartBtn');
-    const smartInput       = document.getElementById('smartPromptInput');
-    const smartStatus      = document.getElementById('smartStatus');
-    const smartStatusIcon  = document.getElementById('smartStatusIcon');
-    const smartStatusText  = document.getElementById('smartStatusText');
-    const smartMatchBadge  = document.getElementById('smartMatchBadge');
-    const smartResult      = document.getElementById('smartResult');
-    const smartOriginalWrap= document.getElementById('smartOriginalWrap');
-    const smartOriginalImg = document.getElementById('smartOriginalImg');
-    const smartResultImg   = document.getElementById('smartResultImg');
-    const smartDownloadGroup = document.getElementById('smartDownloadGroup');
-
-    function setSmartStatus(icon, text, badgeText, badgeClass) {
-      smartStatusIcon.textContent = icon;
-      smartStatusText.textContent = text;
-      smartMatchBadge.textContent = badgeText || '';
-      smartMatchBadge.className   = 'smart-match-badge ' + (badgeClass || '');
-      smartStatus.classList.add('visible');
-    }
-
-    smartBtn.addEventListener('click', async () => {
-      const prompt = smartInput.value.trim();
-      if (!prompt) { smartInput.focus(); return; }
-
-      // Reset
-      smartResult.classList.remove('visible');
-      smartOriginalWrap.style.display = 'none';
-      document.getElementById('smartResultWrap').style.gridColumn = '1 / -1';
-      smartDownloadGroup.style.display = 'none';
-      smartBtn.disabled = true;
-      smartBtn.classList.add('loading');
-      document.getElementById('smartBtnText').textContent = 'Processing…';
-      setSmartStatus('🔍', 'Searching your image library…', '', '');
-
-      try {
-        const apiProvider = document.getElementById('apiProviderSelect')
-          ? document.getElementById('apiProviderSelect').value
-          : 'nanobanana';
-        const imageSize = document.getElementById('imageSizeSelect')
-          ? document.getElementById('imageSizeSelect').value
-          : '3:1';
-        const negPrompt = document.getElementById('negativePromptInput')
-          ? document.getElementById('negativePromptInput').value.trim()
-          : '';
-
-        let res;
-        const imgInput = document.getElementById('imageInput');
-        if (imgInput && imgInput.files.length > 0) {
-          const formData = new FormData();
-          formData.append('prompt', prompt);
-          formData.append('api_provider', apiProvider);
-          formData.append('image_size', imageSize);
-          if (negPrompt) formData.append('negative_prompt', negPrompt);
-          Array.from(imgInput.files).forEach(f => formData.append('images', f));
-          
-          res = await fetch('/smart-process', {
-            method: 'POST',
-            body: formData,
-          });
-        } else {
-          res = await fetch('/smart-process', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prompt,
-              api_provider: apiProvider,
-              image_size: imageSize,
-              negative_prompt: negPrompt
-            }),
-          });
-        }
-        const data = await res.json();
-
-        if (!res.ok || data.error) {
-          setSmartStatus('❌', data.error || 'Server error', 'Error', 'badge-error');
-          return;
-        }
-
-        // Show result
-        smartResultImg.src = data.result_image + '?t=' + Date.now();
-        
-        // Extract filename from URL
-        const parts = data.result_image.split('/');
-        const resultFilename = parts[parts.length - 1];
-
-        document.getElementById('smartDownloadPngBtn').href = '/download/' + resultFilename + '/png';
-        document.getElementById('smartDownloadPngBtn').download = 'smart_result.png';
-
-        document.getElementById('smartDownloadJpgBtn').href = '/download/' + resultFilename + '/jpg';
-        document.getElementById('smartDownloadJpgBtn').download = 'smart_result.jpg';
-
-        document.getElementById('smartDownloadPdfBtn').href = '/download/' + resultFilename + '/pdf';
-        document.getElementById('smartDownloadPdfBtn').download = 'smart_result.pdf';
-
-        document.getElementById('smartDownloadSvgBtn').href = '/download/' + resultFilename + '/svg';
-        document.getElementById('smartDownloadSvgBtn').download = 'smart_result.svg';
-
-        document.getElementById('smartDownloadCdrBtn').href = '/download/' + resultFilename + '/cdr';
-        document.getElementById('smartDownloadCdrBtn').download = 'smart_result.cdr';
-
-        document.getElementById('smartDownloadCdrxBtn').href = '/download/' + resultFilename + '/cdrx';
-        document.getElementById('smartDownloadCdrxBtn').download = 'smart_result.cdrx';
-
-        document.getElementById('smartDownloadGmsBtn').href = '/download/' + resultFilename + '/gms';
-        document.getElementById('smartDownloadGmsBtn').download = 'smart_result.gms';
-
-        document.getElementById('smartDownloadCgsBtn').href = '/download/' + resultFilename + '/cgs';
-        document.getElementById('smartDownloadCgsBtn').download = 'smart_result.cgs';
-
-        smartDownloadGroup.style.display = 'flex';
-
-        if (data.matched && data.original_image) {
-          smartOriginalImg.src = data.original_image + '?t=' + Date.now();
-          smartOriginalWrap.style.display = 'block';
-          document.getElementById('smartResultWrap').style.gridColumn = '';
-          setSmartStatus(
-            '✅', `Matched "${data.matched_name}" (score: ${data.match_score}) — edited with AI`,
-            'Image Found', 'badge-matched'
-          );
-        } else {
-          smartOriginalWrap.style.display = 'none';
-          document.getElementById('smartResultWrap').style.gridColumn = '1 / -1';
-          setSmartStatus('✨', 'No match found — generated a brand new image', 'New Image', 'badge-new');
-        }
-
-        smartResult.classList.add('visible');
-        setTimeout(() => loadHistory(), 1200);
-
-      } catch (err) {
-        setSmartStatus('❌', 'Network error — is Flask running?', 'Error', 'badge-error');
-        console.error(err);
-      } finally {
-        smartBtn.disabled = false;
-        smartBtn.classList.remove('loading');
-        document.getElementById('smartBtnText').textContent = '✨ Smart Edit';
-      }
-    });
-
-    // Allow Enter key to trigger smart search
-    smartInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter') smartBtn.click();
-    });
-
-    // Load history on page start
-    loadHistory();
-
-    // =========================================================
-    // HISTORY PANEL — load from /history endpoint
-    // =========================================================
-    async function loadHistory() {
-      try {
-        const res = await fetch('/history');
-        if (!res.ok) return;
-        const jobs = await res.json();
-        const grid = document.getElementById('historyGrid');
-        const count = document.getElementById('historyCount');
-
-        count.textContent = jobs.length + (jobs.length === 1 ? ' job' : ' jobs');
-
-        if (jobs.length === 0) {
-          grid.innerHTML = `
-            <div class="history-empty">
-              <div class="empty-icon">🖼️</div>
-              <p>No edits yet. Upload a label and run your first AI edit!</p>
-            </div>`;
-          return;
-        }
-
-        grid.innerHTML = jobs.map(job => {
-          const modeClass = 'hb-' + job.mode;
-          const hasOriginal = !!job.original_url;
-          const imgsHtml = hasOriginal
-            ? `<img src="${job.original_url}" alt="Original: ${job.original_name}" loading="lazy" />
-               <img src="${job.result_url}" alt="Result" loading="lazy" />`
-            : `<img class="single-img" src="${job.result_url}" alt="Generated result" loading="lazy" />`;
-
-          return `
-          <article class="history-card">
-            <div class="history-imgs">${imgsHtml}</div>
-            <div class="history-meta">
-              <div class="history-prompt" title="${job.prompt}">${job.prompt}</div>
-              <div class="history-info">
-                <span class="history-badge ${modeClass}">${job.mode}</span>
-                <span class="history-badge" style="background:rgba(8,145,178,0.1);color:#0891b2">${job.api_provider}</span>
-                <span class="history-time">${job.created_at}</span>
-              </div>
-            </div>
-          </article>`;
-        }).join('');
-
-      } catch (e) {
-        console.warn('History load failed:', e);
-      }
-    }
-
-    })();
-  </script>
-
-  <!-- ============================================================
-     HISTORY PANEL
-============================================================ -->
-  <section class="history-panel" id="historyPanel" aria-label="Job history">
-    <div class="history-header">
-      <h2 class="history-title">
-        <span class="icon">🗂️</span>
-        Upload &amp; Edit History
-      </h2>
-      <span class="history-count" id="historyCount">0 jobs</span>
-    </div>
-    <div class="history-grid" id="historyGrid">
-      <div class="history-empty">
-        <div class="empty-icon">🖼️</div>
-        <p>No edits yet. Upload a label and run your first AI edit!</p>
-      </div>
-    </div>
-  </section>
 
   <!-- ============================================================
      CANVA & CORELDRAW INTERACTIVE STUDIO SCRIPT
@@ -5479,26 +5481,27 @@
         };
       }
 
+      window.launchCanvaWithPreset = function(preset) {
+        let w = 1536, h = 512, name = "3:1 Wrap Label";
+        if (preset === '1:1') { w = 1024; h = 1024; name = "1:1 Box"; }
+        else if (preset === '16:9') { w = 1920; h = 1080; name = "16:9 Banner"; }
+        else if (preset === '4:1') { w = 2048; h = 512; name = "4:1 Panoramic"; }
+
+        modal.style.display = 'flex';
+        currentDocFilename = `canva_${preset.replace(':', 'x')}_` + Date.now() + ".png";
+        activeTargetImgId = 'resultImage';
+        const titleInput = document.getElementById('canvaDocTitleInput');
+        if (titleInput) titleInput.value = `${name} - ${w}x${h}`;
+        cleanBgUrl = '';
+        originalBgUrl = '';
+        isCleanBgActive = false;
+        initCanvaCanvas({ image_width: w, image_height: h, text_elements: [] });
+        if (railDesignBtn) switchDrawerTab(railDesignBtn, drawerDesign);
+      };
+
       // Quick Preset Chips on Main Page
       document.querySelectorAll('.canva-quick-preset-chip').forEach(chip => {
-        chip.onclick = () => {
-          const preset = chip.dataset.preset;
-          let w = 1536, h = 512, name = "3:1 Wrap Label";
-          if (preset === '1:1') { w = 1024; h = 1024; name = "1:1 Box"; }
-          else if (preset === '16:9') { w = 1920; h = 1080; name = "16:9 Banner"; }
-          else if (preset === '4:1') { w = 2048; h = 512; name = "4:1 Panoramic"; }
-
-          modal.style.display = 'flex';
-          currentDocFilename = `canva_${preset.replace(':', 'x')}_` + Date.now() + ".png";
-          activeTargetImgId = 'resultImage';
-          const titleInput = document.getElementById('canvaDocTitleInput');
-          if (titleInput) titleInput.value = `${name} - ${w}x${h}`;
-          cleanBgUrl = '';
-          originalBgUrl = '';
-          isCleanBgActive = false;
-          initCanvaCanvas({ image_width: w, image_height: h, text_elements: [] });
-          if (railDesignBtn) switchDrawerTab(railDesignBtn, drawerDesign);
-        };
+        chip.onclick = () => window.launchCanvaWithPreset(chip.dataset.preset);
       });
 
       // Canva Top Bar Triggers
@@ -6253,7 +6256,6 @@
       });
 
       // Add Shapes
-      const addRectShapeBtn = document.getElementById('canvaAddRectShapeBtn');
       if (addRectShapeBtn) {
         addRectShapeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -6267,7 +6269,6 @@
         };
       }
 
-      const addPillBadgeBtn = document.getElementById('canvaAddPillBadgeBtn');
       if (addPillBadgeBtn) {
         addPillBadgeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -6281,7 +6282,6 @@
         };
       }
 
-      const addCircleShapeBtn = document.getElementById('canvaAddCircleShapeBtn');
       if (addCircleShapeBtn) {
         addCircleShapeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -6294,7 +6294,6 @@
         };
       }
 
-      const addLineBtn = document.getElementById('canvaAddLineBtn');
       if (addLineBtn) {
         addLineBtn.onclick = () => {
           if (!canvaCanvas) return;

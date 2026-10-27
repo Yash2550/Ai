@@ -18,7 +18,7 @@ import time
 import uuid
 import requests
 import urllib.parse
-from flask import Flask, render_template, request, jsonify, send_from_directory, send_file
+from flask import Flask, render_template, request, jsonify, send_from_directory, send_file, make_response
 from werkzeug.utils import secure_filename
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance
 import io
@@ -52,6 +52,7 @@ os.makedirs(RESULTS_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["RESULTS_FOLDER"] = RESULTS_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_CONTENT_LENGTH
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 # ---------------------------------------------------------------------------
 # API settings
@@ -1228,7 +1229,11 @@ def run_gemini_inpainting(*args, **kwargs):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    resp = make_response(render_template("index.html"))
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.route("/process", methods=["POST"])
