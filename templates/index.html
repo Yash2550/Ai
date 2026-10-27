@@ -8,9 +8,11 @@
     content="AI-powered product label editor — remove objects, add elements, or replace designs using SDXL generative in-painting." />
   <title>Label Editor AI — Remove · Add · Replace</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Inter:wght@400;600;700;800&family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@400;600;700&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;600;700;800&family=Montserrat:wght@400;600;700;800;900&family=Oswald:wght@400;600;700&family=Outfit:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,700&family=Poppins:wght@400;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
     /* ======================================================
@@ -1521,21 +1523,85 @@
   <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
   <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
 
+  <!-- Top Navigation Bar with Quick Canva Launch -->
+  <div style="width:100%; max-width:1200px; margin:16px auto 0; padding:0 20px; display:flex; justify-content:space-between; align-items:center; position:relative; z-index:20;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 4px 12px rgba(125,42,232,0.35);">
+        🎨
+      </div>
+      <div>
+        <span style="font-weight:900; font-size:16px; letter-spacing:0.4px; background:linear-gradient(135deg, #7d2ae8, #00c4cc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">CANVA PACKAGING STUDIO</span>
+        <span style="background:rgba(125,42,232,0.1); color:#7d2ae8; border:1px solid rgba(125,42,232,0.25); font-size:10px; font-weight:800; padding:2px 7px; border-radius:12px; margin-left:6px; text-transform:uppercase;">PRO SUITE</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <button id="navOpenCanvaBtn" type="button" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:30px; padding:10px 22px; font-size:13px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:8px; box-shadow:0 6px 20px rgba(125,42,232,0.4); transition:transform 0.15s, box-shadow 0.15s;">
+        <span style="font-size:16px;">✨</span>
+        <span>Open Canva Editor</span>
+      </button>
+    </div>
+  </div>
+
   <!-- ============================================================
      HEADER
 ============================================================ -->
   <header>
     <div class="badge">
       <span class="dot"></span>
-      Generative AI · In-Painting · Powered by SDXL
+      Generative AI · Canva Pro Packaging Suite · Powered by SDXL
     </div>
 
     <h1>Label Editor AI</h1>
     <p class="subtitle">
       Upload a product label and let AI <strong style="color:var(--clr-accent)">remove</strong> unwanted elements,
       <strong style="color:var(--clr-accent-2)">add</strong> new ones, or
-      <strong style="color:#f472b6">replace</strong> existing designs — no Photoshop needed.
+      <strong style="color:#f472b6">replace</strong> existing designs — with full Canva-style editing.
     </p>
+
+    <!-- 🎨 CANVA PACKAGING STUDIO HERO CARD (Direct Outer Page Access) -->
+    <div style="margin:22px auto 0; max-width:880px; width:100%; background:linear-gradient(135deg, rgba(125,42,232,0.07) 0%, rgba(0,196,204,0.07) 100%); border:2px solid rgba(125,42,232,0.3); border-radius:22px; padding:22px 28px; box-shadow:0 12px 35px rgba(125,42,232,0.1); backdrop-filter:blur(10px); display:flex; flex-direction:column; gap:16px; text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:52px; height:52px; border-radius:14px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 6px 18px rgba(125,42,232,0.45); flex-shrink:0;">
+            🎨
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 style="font-size:19px; font-weight:900; color:#1e1b4b; margin:0; letter-spacing:-0.2px;">Canva Packaging Design Studio</h2>
+              <span style="background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:12px; text-transform:uppercase;">Canva.com Mode</span>
+            </div>
+            <p style="font-size:13px; color:#4b5563; margin-top:3px; line-height:1.4;">
+              Open Canva suite directly · Upload your label photo to auto-trace text &amp; layers, or start a new packaging design with 14+ AI Pro Tools!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons Row -->
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <!-- Upload & Open Button -->
+        <label id="landingUploadLabel" style="flex:1; min-width:240px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 6px 22px rgba(125,42,232,0.35); transition:transform 0.15s, box-shadow 0.15s;">
+          <span style="font-size:19px;">📤</span>
+          <span>Upload Image &amp; Edit in Canva</span>
+          <input type="file" id="landingCanvaFileInput" accept="image/*" style="display:none;" />
+        </label>
+
+        <!-- Blank Canva Editor Launch Button -->
+        <button id="landingOpenCanvaBtn" type="button" style="flex:1; min-width:220px; background:#ffffff; color:#7d2ae8; border:2px solid #7d2ae8; padding:14px 22px; border-radius:12px; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; box-shadow:0 4px 15px rgba(0,0,0,0.04); transition:all 0.15s;">
+          <span style="font-size:19px;">✨</span>
+          <span>Open Blank Canva Studio</span>
+        </button>
+      </div>
+
+      <!-- Quick Preset Chips -->
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:11px; color:#6b7280; padding-top:2px;">
+        <span style="font-weight:700;">Start with Preset:</span>
+        <button class="canva-quick-preset-chip" data-preset="3:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🏷️ 3:1 Wrap Label (1536×512)</button>
+        <button class="canva-quick-preset-chip" data-preset="1:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📦 1:1 Box (1024×1024)</button>
+        <button class="canva-quick-preset-chip" data-preset="16:9" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">📢 16:9 Banner (1920×1080)</button>
+        <button class="canva-quick-preset-chip" data-preset="4:1" style="background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:4px 12px; font-size:11px; font-weight:700; color:#374151; cursor:pointer; transition:border-color 0.15s;">🧴 4:1 Panoramic (2048×512)</button>
+      </div>
+    </div>
   </header>
 
   <!-- ============================================================
@@ -1896,12 +1962,12 @@
           <!-- Top Canva Navigation Bar -->
           <div style="background:#18191b; border-bottom:1px solid #2e323b; height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; color:#fff; z-index:10; flex-shrink:0;">
             <!-- Brand & Document Info -->
-            <div style="display:flex; align-items:center; gap:12px; min-width:280px;">
-              <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(125,42,232,0.4);">
+            <div style="display:flex; align-items:center; gap:10px; min-width:320px;">
+              <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(125,42,232,0.4); flex-shrink:0;">
                 🎨
               </div>
               <div style="display:flex; flex-direction:column;">
-                <input id="canvaDocTitleInput" value="GOMZI Nutrition Label - 1536x512" 
+                <input id="canvaDocTitleInput" value="GOMZI Packaging Studio - 1536x512" 
                   style="background:transparent; border:none; color:#ffffff; font-weight:700; font-size:14px; outline:none; padding:2px 4px; border-radius:4px; max-width:240px;" 
                   onfocus="this.style.background='#2a2e39'" onblur="this.style.background='transparent'" />
                 <span id="canvaDocStatus" style="font-size:11px; color:#10b981; display:flex; align-items:center; gap:4px;">
@@ -1909,6 +1975,43 @@
                   Ready to edit
                 </span>
               </div>
+
+              <!-- Resize Canvas Button with Dropdown -->
+              <div style="position:relative; margin-left:6px;">
+                <button id="canvaResizeBtn" title="Change Canvas Dimensions / Packaging Presets" type="button"
+                  style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:5px 9px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                  <span>📐</span>
+                  <span id="canvaResizeBtnLabel">Resize</span>
+                  <span style="font-size:9px;">▾</span>
+                </button>
+                <div id="canvaResizeDropdown" style="display:none; position:absolute; left:0; top:32px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:250px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:8px; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#a0a6b5; padding:2px 6px; text-transform:uppercase;">Packaging Presets</span>
+                  <button class="canva-resize-item" data-w="1536" data-h="512" data-name="3:1 Wrap Label" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
+                    <span>🏷️ 3:1 Wrap Label</span><span style="color:#a0a6b5; font-size:11px;">1536×512</span>
+                  </button>
+                  <button class="canva-resize-item" data-w="1024" data-h="1024" data-name="1:1 Product Box" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
+                    <span>📦 1:1 Product Box</span><span style="color:#a0a6b5; font-size:11px;">1024×1024</span>
+                  </button>
+                  <button class="canva-resize-item" data-w="1920" data-h="1080" data-name="16:9 Banner" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
+                    <span>📢 16:9 Banner</span><span style="color:#a0a6b5; font-size:11px;">1920×1080</span>
+                  </button>
+                  <button class="canva-resize-item" data-w="2048" data-h="512" data-name="4:1 Panoramic" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
+                    <span>🧴 4:1 Panoramic</span><span style="color:#a0a6b5; font-size:11px;">2048×512</span>
+                  </button>
+                  <div style="border-top:1px solid #32363f; padding-top:6px; display:flex; gap:6px; align-items:center;">
+                    <input id="canvaCustomW" type="number" placeholder="W" value="1536" style="width:60px; background:#131518; border:1px solid #3a3f4d; color:#fff; padding:4px; font-size:11px; border-radius:4px; text-align:center;" />
+                    <span style="color:#666;">×</span>
+                    <input id="canvaCustomH" type="number" placeholder="H" value="512" style="width:60px; background:#131518; border:1px solid #3a3f4d; color:#fff; padding:4px; font-size:11px; border-radius:4px; text-align:center;" />
+                    <button id="canvaApplyCustomResizeBtn" style="background:#7d2ae8; border:none; color:#fff; border-radius:4px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer; flex:1;">Set</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- New Blank Design Button -->
+              <button id="canvaNewBlankBtn" title="Start a Fresh Blank Design" type="button"
+                style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:5px 9px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                <span>➕</span> Blank
+              </button>
             </div>
 
             <!-- Top Contextual Toolbar (Text & Object controls) -->
@@ -1923,6 +2026,9 @@
                 <option value="Montserrat" selected>Montserrat</option>
                 <option value="Bebas Neue">Bebas Neue</option>
                 <option value="Impact">Impact</option>
+                <option value="Cinzel">Cinzel (Luxury)</option>
+                <option value="Playfair Display">Playfair Display (Serif)</option>
+                <option value="Outfit">Outfit (Clean)</option>
                 <option value="Oswald">Oswald</option>
                 <option value="Anton">Anton</option>
                 <option value="Roboto">Roboto</option>
@@ -1964,11 +2070,19 @@
               <button id="canvaDeleteBtn" title="Delete selected" style="background:transparent; border:none; color:#ef4444; cursor:pointer; padding:4px 6px; font-size:14px;">🗑️</button>
             </div>
 
-            <!-- Right Header Actions (Background toggle, Save, Export, Close) -->
-            <div style="display:flex; align-items:center; gap:10px;">
+            <!-- Right Header Actions (Upload, AI tools, Background toggle, Save, Export, Close) -->
+            <div style="display:flex; align-items:center; gap:8px;">
+              <!-- Direct Upload Image Button in Top Bar -->
+              <label id="canvaTopUploadBtn" title="Upload any image or label directly into Canva" 
+                style="background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(2,132,199,0.35);">
+                <span>📤</span>
+                <span>Upload</span>
+                <input type="file" id="canvaTopFileInput" accept="image/*" style="display:none;" />
+              </label>
+
               <!-- Canva Pro Edit Image Button in Top Bar -->
               <button id="canvaTopEditImageBtn" title="Canva Pro AI Image Editing Tools" 
-                style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(125,42,232,0.35);">
+                style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(125,42,232,0.35);">
                 <span>🪄</span>
                 <span>Edit image</span>
                 <span style="background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:8px; font-size:9px; font-weight:800;">PRO</span>
@@ -1976,22 +2090,22 @@
 
               <!-- Background Toggle Button -->
               <button id="canvaBgToggleBtn" title="Toggle Clean Inpainted vs Original Photo" 
-                style="background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
+                style="background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:8px; padding:7px 10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                 <span>✨</span>
-                <span id="canvaBgToggleLabel">Clean Background</span>
+                <span id="canvaBgToggleLabel">Clean BG</span>
               </button>
 
               <!-- Apply / Save button -->
-              <button id="canvaApplyBtn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(16,185,129,0.3);">
-                <span>💾</span> Apply Changes
+              <button id="canvaApplyBtn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 10px rgba(16,185,129,0.3);">
+                <span>💾</span> Save
               </button>
 
               <!-- Download Export Menu -->
               <div style="position:relative;">
-                <button id="canvaExportMenuBtn" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
-                  <span>📥</span> Download ▾
+                <button id="canvaExportMenuBtn" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                  <span>📥</span> Export ▾
                 </button>
-                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:40px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:260px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:6px; flex-direction:column; gap:4px;">
+                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:38px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:260px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:6px; flex-direction:column; gap:4px;">
                   <button id="canvaExportPngBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     🖼️ <div><strong>PNG Master</strong> (300 DPI, ~16 MB)</div>
                   </button>
@@ -2008,7 +2122,7 @@
               </div>
 
               <!-- Close Button -->
-              <button id="canvaCloseBtn" title="Close Editor" style="background:#22252a; border:1px solid #3a3f4d; color:#fff; border-radius:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px;">
+              <button id="canvaCloseBtn" title="Close Editor" style="background:#22252a; border:1px solid #3a3f4d; color:#fff; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px;">
                 ✖
               </button>
             </div>
@@ -2017,40 +2131,137 @@
           <!-- Main Canva Studio Workspace: Sidebar Rail + Side Drawer + Canvas -->
           <div style="flex:1; display:flex; overflow:hidden; position:relative;">
             
-            <!-- Canva Left Icon Rail (68px wide) -->
-            <div style="width:68px; background:#131518; border-right:1px solid #23272f; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:8px; flex-shrink:0; z-index:5;">
-              <button id="canvaRailEditImageBtn" class="canva-rail-btn" style="width:52px; height:52px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px; position:relative;">
+            <!-- Canva Left Icon Rail (68px wide) - 7 Full Canva Tabs -->
+            <div style="width:68px; background:#131518; border-right:1px solid #23272f; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px; flex-shrink:0; z-index:5;">
+              <!-- Tab 1: Design / Templates -->
+              <button id="canvaRailDesignBtn" class="canva-rail-btn active" style="width:52px; height:50px; border-radius:10px; background:#22252a; border:none; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+                <span>🎨</span>
+                <span style="font-size:10px; font-weight:700;">Design</span>
+              </button>
+
+              <!-- Tab 2: AI Tools (Canva Pro) -->
+              <button id="canvaRailEditImageBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px; position:relative;">
                 <span>🪄</span>
                 <span style="font-size:10px; font-weight:700;">AI Tools</span>
                 <span style="position:absolute; top:2px; right:2px; background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:6px;">PRO</span>
               </button>
 
-              <button id="canvaRailTextBtn" class="canva-rail-btn active" style="width:52px; height:52px; border-radius:10px; background:#22252a; border:none; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px;">
+              <!-- Tab 3: Text -->
+              <button id="canvaRailTextBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>🅰️</span>
                 <span style="font-size:10px; font-weight:700;">Text</span>
               </button>
-              
-              <button id="canvaRailLayersBtn" class="canva-rail-btn" style="width:52px; height:52px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px;">
-                <span>📋</span>
+
+              <!-- Tab 4: Elements (Shapes, Badges, Barcode, QR) -->
+              <button id="canvaRailElementsBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+                <span>🧩</span>
+                <span style="font-size:10px; font-weight:700;">Elements</span>
+              </button>
+
+              <!-- Tab 5: Uploads -->
+              <button id="canvaRailUploadsBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+                <span>📁</span>
+                <span style="font-size:10px; font-weight:700;">Uploads</span>
+              </button>
+
+              <!-- Tab 6: Draw -->
+              <button id="canvaRailDrawBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+                <span>✏️</span>
+                <span style="font-size:10px; font-weight:700;">Draw</span>
+              </button>
+
+              <!-- Tab 7: Layers -->
+              <button id="canvaRailLayersBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+                <span>📑</span>
                 <span style="font-size:10px; font-weight:700;">Layers</span>
-              </button>
-
-              <button id="canvaRailShapesBtn" class="canva-rail-btn" style="width:52px; height:52px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px;">
-                <span>🔲</span>
-                <span style="font-size:10px; font-weight:700;">Shapes</span>
-              </button>
-
-              <button id="canvaRailUploadsBtn" class="canva-rail-btn" style="width:52px; height:52px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px;">
-                <span>🖼️</span>
-                <span style="font-size:10px; font-weight:700;">Upload</span>
               </button>
             </div>
 
-            <!-- Canva Drawer Panel (280px wide) -->
-            <div id="canvaDrawerPanel" style="width:280px; background:#1c1f24; border-right:1px solid #2a2e39; display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; z-index:4;">
+            <!-- Canva Drawer Panel (285px wide) -->
+            <div id="canvaDrawerPanel" style="width:285px; background:#1c1f24; border-right:1px solid #2a2e39; display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; z-index:4;">
               
-              <!-- TAB 1: TEXT DRAWER -->
-              <div id="canvaDrawerText" style="padding:16px; display:flex; flex-direction:column; gap:12px;">
+              <!-- DRAWER 1: DESIGN & TEMPLATES -->
+              <div id="canvaDrawerDesign" style="padding:16px; display:flex; flex-direction:column; gap:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:800; color:#fff; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Templates</span>
+                  <span style="background:rgba(125,42,232,0.25); color:#00c4cc; font-size:10px; font-weight:800; padding:2px 7px; border-radius:10px;">PRO PACKAGING</span>
+                </div>
+
+                <!-- Template Search -->
+                <input id="canvaTemplateSearch" placeholder="🔍 Search templates (e.g. Whey, Serum)..." style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:7px 10px; font-size:12px; outline:none;" />
+
+                <div style="font-size:11px; font-weight:700; color:#a0a6b5; text-transform:uppercase;">Packaging Layouts (1-Click Load)</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                  <!-- Template 1: Whey Isolate -->
+                  <div class="canva-template-card" data-template="whey_isolate" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #111827 0%, #1f2937 50%, #000 100%); border:1px solid #d4af37; display:flex; align-items:center; justify-content:center; color:#d4af37; font-weight:900; font-size:13px; text-align:center; padding:4px;">
+                      ⚡ GOMZI WHEY ISOLATE<br><span style="font-size:10px; color:#fff;">27G PROTEIN · 0G SUGAR</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Gold Luxury Whey</span>
+                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                    </div>
+                  </div>
+
+                  <!-- Template 2: Voltage Pre-Workout -->
+                  <div class="canva-template-card" data-template="pre_workout" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #09090b 0%, #18181b 100%); border:1px solid #00f0ff; display:flex; align-items:center; justify-content:center; color:#00f0ff; font-weight:900; font-size:13px; text-align:center; padding:4px;">
+                      🔥 VOLTAGE PRE-WORKOUT<br><span style="font-size:10px; color:#ff007f;">HIGH INTENSITY ENERGY</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Voltage Extreme</span>
+                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                    </div>
+                  </div>
+
+                  <!-- Template 3: Cosmetic Dropper -->
+                  <div class="canva-template-card" data-template="cosmetic_serum" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:#faf7f2; border:1px solid #c5a059; display:flex; align-items:center; justify-content:center; color:#1f2937; font-weight:800; font-size:12px; text-align:center; padding:4px;">
+                      🧴 LUMINOUS GLOW SERUM<br><span style="font-size:9px; color:#6b7280;">HYALURONIC ACID 2% · 30ML</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Minimalist Serum</span>
+                      <span style="font-size:10px; color:#a0a6b5;">1:1 Box</span>
+                    </div>
+                  </div>
+
+                  <!-- Template 4: Sparkling Energy Soda -->
+                  <div class="canva-template-card" data-template="energy_soda" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #f97316 0%, #fbbf24 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:13px; text-align:center; padding:4px;">
+                      🍊 CITRUS SPARK SODA<br><span style="font-size:10px; color:#000;">ORGANIC SPARKLING CAN</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Citrus Soda Can</span>
+                      <span style="font-size:10px; color:#a0a6b5;">16:9 Banner</span>
+                    </div>
+                  </div>
+
+                  <!-- Template 5: Organic Matcha Green Tea -->
+                  <div class="canva-template-card" data-template="matcha_tea" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:#1b4332; border:1px solid #52b788; display:flex; align-items:center; justify-content:center; color:#d8f3dc; font-weight:800; font-size:12px; text-align:center; padding:4px;">
+                      🍵 CEREMONIAL MATCHA<br><span style="font-size:9px; color:#74c69d;">100% ORGANIC JAPANESE TEA</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Organic Matcha Box</span>
+                      <span style="font-size:10px; color:#a0a6b5;">1:1 Box</span>
+                    </div>
+                  </div>
+
+                  <!-- Template 6: Multivitamin Capsules -->
+                  <div class="canva-template-card" data-template="multivitamin" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                    <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:12px; text-align:center; padding:4px;">
+                      💊 DAILY MULTI-VITAMIN<br><span style="font-size:9px; color:#bfdbfe;">120 VEGAN CAPSULES · GMP</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                      <span style="font-size:12px; font-weight:700; color:#fff;">Pharma Capsule Bottle</span>
+                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DRAWER 2: TEXT DRAWER -->
+              <div id="canvaDrawerText" style="display:none; padding:16px; flex-direction:column; gap:12px;">
                 <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Add Text</div>
                 <button id="canvaAddHeadingBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:12px 14px; text-align:left; cursor:pointer; font-weight:800; font-size:18px; font-family:'Montserrat',sans-serif;">
                   + Add a Heading
@@ -2062,7 +2273,16 @@
                   + Add body text
                 </button>
 
-                <div style="font-weight:700; color:#a0a6b5; font-size:12px; margin-top:10px; text-transform:uppercase;">Quick Label Snippets</div>
+                <!-- Text Effects Subpanel -->
+                <div style="font-weight:700; color:#a0a6b5; font-size:12px; margin-top:8px; text-transform:uppercase;">Text Effects</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <button id="canvaEffectNeonBtn" style="background:#22252a; border:1px solid #32363f; color:#00f0ff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">💫 Neon Glow</button>
+                  <button id="canvaEffectShadowBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🌑 Drop Shadow</button>
+                  <button id="canvaEffectHollowBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🔲 Hollow</button>
+                  <button id="canvaEffectCurveBtn" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">⭕ Curved / Arch</button>
+                </div>
+
+                <div style="font-weight:700; color:#a0a6b5; font-size:12px; margin-top:8px; text-transform:uppercase;">Quick Packaging Snippets</div>
                 <button class="canva-snippet-btn" data-text="NET WT. 300 G" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   📦 NET WT. 300 G
                 </button>
@@ -2075,50 +2295,154 @@
                 <button class="canva-snippet-btn" data-text="DIETARY SUPPLEMENT" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   💊 DIETARY SUPPLEMENT
                 </button>
+                <button class="canva-snippet-btn" data-text="KEEP OUT OF REACH OF CHILDREN" style="background:#22252a; border:1px solid #32363f; color:#ef4444; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                  ⚠️ KEEP OUT OF REACH OF CHILDREN
+                </button>
               </div>
 
-              <!-- TAB 2: LAYERS DRAWER (All Detected OCR Text) -->
+              <!-- DRAWER 3: ELEMENTS (SHAPES, BADGES, BARCODE, QR CODE, NUTRITION) -->
+              <div id="canvaDrawerElements" style="display:none; padding:16px; flex-direction:column; gap:14px;">
+                <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Elements &amp; Badges</div>
+
+                <!-- Dynamic Barcode Generator -->
+                <div style="background:#131518; border:1px solid #32363f; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#00c4cc; text-transform:uppercase;">Dynamic Barcode Generator</span>
+                  <input id="canvaBarcodeValInput" value="8901234567890" style="background:#1c1f24; border:1px solid #3a3f4d; color:#fff; border-radius:4px; padding:5px 8px; font-size:11px; outline:none;" placeholder="Enter barcode number..." />
+                  <button id="canvaAddBarcodeBtn" style="background:#0284c7; border:none; color:#fff; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer;">
+                    ➕ Add Barcode to Canvas
+                  </button>
+                </div>
+
+                <!-- Dynamic QR Code Generator -->
+                <div style="background:#131518; border:1px solid #32363f; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#ffd700; text-transform:uppercase;">Dynamic QR Code Generator</span>
+                  <input id="canvaQrValInput" value="https://gomzigroup.com" style="background:#1c1f24; border:1px solid #3a3f4d; color:#fff; border-radius:4px; padding:5px 8px; font-size:11px; outline:none;" placeholder="Enter website URL..." />
+                  <button id="canvaAddQrBtn" style="background:#d97706; border:none; color:#fff; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer;">
+                    ➕ Add QR Code to Canvas
+                  </button>
+                </div>
+
+                <!-- FDA Nutrition Facts Table Element -->
+                <button id="canvaAddNutritionTableBtn" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #475569; color:#fff; border-radius:8px; padding:10px 12px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                  📊 <span>Add FDA Nutrition Facts Panel</span>
+                </button>
+
+                <!-- Veg / Non-Veg Food Seals -->
+                <div style="display:flex; gap:6px;">
+                  <button id="canvaAddVegBtn" style="flex:1; background:#064e3b; border:1px solid #10b981; color:#a7f3d0; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    🟢 100% Veg Dot
+                  </button>
+                  <button id="canvaAddNonVegBtn" style="flex:1; background:#450a0a; border:1px solid #ef4444; color:#fecaca; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    🔴 Non-Veg Dot
+                  </button>
+                </div>
+
+                <!-- Certification Badges -->
+                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Packaging Seals &amp; Badges</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <button class="canva-badge-item" data-text="100% ORGANIC" data-color="#059669" style="background:#064e3b; border:1px solid #10b981; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌿 ORGANIC</button>
+                  <button class="canva-badge-item" data-text="GMP CERTIFIED" data-color="#d97706" style="background:#451a03; border:1px solid #f59e0b; color:#ffd700; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🏆 GMP SEAL</button>
+                  <button class="canva-badge-item" data-text="100% VEGAN" data-color="#16a34a" style="background:#14532d; border:1px solid #22c55e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌱 VEGAN</button>
+                  <button class="canva-badge-item" data-text="SUGAR FREE" data-color="#0284c7" style="background:#082f49; border:1px solid #38bdf8; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">⚡ SUGAR FREE</button>
+                  <button class="canva-badge-item" data-text="FDA COMPLIANT" data-color="#7c3aed" style="background:#2e1065; border:1px solid #8b5cf6; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🛡️ FDA READY</button>
+                  <button class="canva-badge-item" data-text="LAB TESTED" data-color="#e11d48" style="background:#4c0519; border:1px solid #f43f5e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🔬 LAB TESTED</button>
+                </div>
+
+                <!-- Basic Geometric Shapes -->
+                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Shapes</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <button id="canvaAddRectShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">🔲 Box</button>
+                  <button id="canvaAddPillBadgeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">💊 Pill Banner</button>
+                  <button id="canvaAddCircleShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">⚪ Circle</button>
+                  <button id="canvaAddLineBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">➖ Divider</button>
+                </div>
+              </div>
+
+              <!-- DRAWER 4: UPLOADS DRAWER -->
+              <div id="canvaDrawerUploads" style="display:none; padding:16px; flex-direction:column; gap:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Upload Media</span>
+                  <span id="canvaUploadCountBadge" style="background:#7d2ae8; color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:8px;">0</span>
+                </div>
+
+                <!-- Upload Button -->
+                <label style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border-radius:8px; padding:12px; text-align:center; font-weight:700; font-size:13px; cursor:pointer; display:block; box-shadow:0 4px 14px rgba(125,42,232,0.35);">
+                  📤 Upload from Computer
+                  <input type="file" id="canvaDrawerFileInput" accept="image/*" style="display:none;" />
+                </label>
+
+                <!-- Drag and Drop Dropzone -->
+                <div id="canvaDrawerDropzone" style="border:2px dashed #3a3f4d; border-radius:10px; padding:20px 10px; text-align:center; cursor:pointer; background:#18191b;">
+                  <div style="font-size:24px; margin-bottom:4px;">📥</div>
+                  <div style="font-size:12px; color:#fff; font-weight:700;">Drag &amp; Drop images here</div>
+                  <div style="font-size:10px; color:#a0a6b5; margin-top:2px;">PNG, JPG, SVG, WebP up to 30 MB</div>
+                </div>
+
+                <!-- Uploaded Items Gallery -->
+                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Recent Uploads</div>
+                <div id="canvaUploadsGallery" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:280px; overflow-y:auto;">
+                  <div style="grid-column:1/-1; color:#64748b; font-size:11px; text-align:center; padding:12px;">No images uploaded yet. Upload a logo or bottle photo above!</div>
+                </div>
+              </div>
+
+              <!-- DRAWER 5: DRAW DRAWER -->
+              <div id="canvaDrawerDraw" style="display:none; padding:16px; flex-direction:column; gap:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Freehand Draw</span>
+                  <button id="canvaExitDrawBtn" style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:3px 8px; font-size:11px; cursor:pointer;">Exit Draw</button>
+                </div>
+
+                <!-- Mode Toggle -->
+                <div style="display:flex; gap:6px;">
+                  <button id="canvaDrawPenBtn" class="canva-brush-btn active" data-brush="pen" style="flex:1; background:#7d2ae8; border:none; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖊️ Pen</button>
+                  <button id="canvaDrawMarkerBtn" class="canva-brush-btn" data-brush="marker" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖌️ Marker</button>
+                  <button id="canvaDrawHighlighterBtn" class="canva-brush-btn" data-brush="highlighter" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖍️ Glow</button>
+                  <button id="canvaDrawEraserBtn" class="canva-brush-btn" data-brush="eraser" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🧽 Erase</button>
+                </div>
+
+                <!-- Stroke Color Picker -->
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                    <span>Stroke Color</span>
+                  </div>
+                  <input type="color" id="canvaDrawColorPicker" value="#00f0ff" style="width:100%; height:32px; border:none; border-radius:6px; cursor:pointer; background:transparent;" />
+                </div>
+
+                <!-- Stroke Width -->
+                <div>
+                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                    <span>Stroke Thickness</span><span id="canvaValDrawWidth">4px</span>
+                  </div>
+                  <input type="range" id="canvaSliderDrawWidth" min="1" max="40" value="4" style="width:100%; accent-color:#7d2ae8;" />
+                </div>
+
+                <button id="canvaClearDrawingsBtn" style="background:#22252a; border:1px solid #ef4444; color:#ef4444; border-radius:8px; padding:9px; font-size:11px; font-weight:700; cursor:pointer;">
+                  🗑️ Clear All Freehand Drawings
+                </button>
+              </div>
+
+              <!-- DRAWER 6: LAYERS DRAWER -->
               <div id="canvaDrawerLayers" style="display:none; padding:16px; flex-direction:column; gap:10px;">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">All Text Layers</span>
+                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">All Layers</span>
                   <span id="canvaLayerCountBadge" style="background:#7d2ae8; color:#fff; font-size:11px; font-weight:700; padding:2px 7px; border-radius:10px;">0</span>
                 </div>
-                <input id="canvaLayerSearchInput" placeholder="🔍 Search text..." style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:6px 10px; font-size:12px; outline:none;" />
-                <div id="canvaLayersListContainer" style="display:flex; flex-direction:column; gap:6px; max-height:calc(100vh - 200px); overflow-y:auto;">
+
+                <!-- Alignment Tools Row -->
+                <div style="display:flex; gap:4px; background:#18191b; border:1px solid #32363f; border-radius:6px; padding:4px; justify-content:space-between;">
+                  <button id="canvaAlignCanvasLeftBtn" title="Align Left" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⇤ Left</button>
+                  <button id="canvaAlignCanvasCenterBtn" title="Align Center" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">☵ Center</button>
+                  <button id="canvaAlignCanvasRightBtn" title="Align Right" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⇥ Right</button>
+                  <button id="canvaAlignCanvasTopBtn" title="Align Top" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⤒ Top</button>
+                </div>
+
+                <input id="canvaLayerSearchInput" placeholder="🔍 Search layers..." style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:6px 10px; font-size:12px; outline:none;" />
+                <div id="canvaLayersListContainer" style="display:flex; flex-direction:column; gap:6px; max-height:calc(100vh - 220px); overflow-y:auto;">
                   <!-- Dynamically populated layer items -->
                 </div>
               </div>
 
-              <!-- TAB 3: SHAPES DRAWER -->
-              <div id="canvaDrawerShapes" style="display:none; padding:16px; flex-direction:column; gap:12px;">
-                <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Badges &amp; Shapes</div>
-                <button id="canvaAddRectShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px;">
-                  🔲 Rectangle Box
-                </button>
-                <button id="canvaAddPillBadgeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px;">
-                  💊 Pill Badge / Banner
-                </button>
-                <button id="canvaAddCircleShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px;">
-                  ⚪ Circle / Quality Stamp
-                </button>
-                <button id="canvaAddLineBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:13px; display:flex; align-items:center; gap:8px;">
-                  ➖ Divider Line
-                </button>
-              </div>
-
-              <!-- TAB 4: UPLOADS DRAWER -->
-              <div id="canvaDrawerUploads" style="display:none; padding:16px; flex-direction:column; gap:14px;">
-                <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Upload Media</div>
-                <label style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border-radius:8px; padding:12px; text-align:center; font-weight:700; font-size:13px; cursor:pointer; display:block;">
-                  📤 Upload Logo / Stamp
-                  <input type="file" id="canvaLogoFileInput" accept="image/*" style="display:none;" />
-                </label>
-                <div style="font-size:12px; color:#a0a6b5; line-height:1.5;">
-                  Upload your brand logo (PNG with transparent background), barcode, QR code, or certification stamps (ISO/GMP) to place onto your label design.
-                </div>
-              </div>
-
-              <!-- TAB 5: EDIT IMAGE (CANVA PRO AI TOOLS) -->
+              <!-- DRAWER 7: EDIT IMAGE (CANVA PRO AI TOOLS) -->
               <div id="canvaDrawerEditImage" style="display:none; padding:16px; flex-direction:column; gap:16px;">
                 <!-- Header -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
@@ -3507,18 +3831,22 @@
       const duplicateBtn = document.getElementById('canvaDuplicateBtn');
       const deleteBtn = document.getElementById('canvaDeleteBtn');
 
-      // Drawer Tabs
+      // 7 Canva Drawer Tabs
+      const railDesignBtn = document.getElementById('canvaRailDesignBtn');
+      const drawerDesign = document.getElementById('canvaDrawerDesign');
       const railEditImageBtn = document.getElementById('canvaRailEditImageBtn');
       const topEditImageBtn = document.getElementById('canvaTopEditImageBtn');
       const drawerEditImage = document.getElementById('canvaDrawerEditImage');
       const railTextBtn = document.getElementById('canvaRailTextBtn');
-      const railLayersBtn = document.getElementById('canvaRailLayersBtn');
-      const railShapesBtn = document.getElementById('canvaRailShapesBtn');
-      const railUploadsBtn = document.getElementById('canvaRailUploadsBtn');
       const drawerText = document.getElementById('canvaDrawerText');
-      const drawerLayers = document.getElementById('canvaDrawerLayers');
-      const drawerShapes = document.getElementById('canvaDrawerShapes');
+      const railElementsBtn = document.getElementById('canvaRailElementsBtn');
+      const drawerElements = document.getElementById('canvaDrawerElements');
+      const railUploadsBtn = document.getElementById('canvaRailUploadsBtn');
       const drawerUploads = document.getElementById('canvaDrawerUploads');
+      const railDrawBtn = document.getElementById('canvaRailDrawBtn');
+      const drawerDraw = document.getElementById('canvaDrawerDraw');
+      const railLayersBtn = document.getElementById('canvaRailLayersBtn');
+      const drawerLayers = document.getElementById('canvaDrawerLayers');
 
       // Scope Selectors
       const scopeAllBtn = document.getElementById('canvaScopeAllBtn');
@@ -4679,7 +5007,7 @@
 
       // Switch Left Drawer Tabs
       function switchDrawerTab(activeBtn, activeDrawer) {
-        [railEditImageBtn, railTextBtn, railLayersBtn, railShapesBtn, railUploadsBtn].forEach(b => {
+        [railDesignBtn, railEditImageBtn, railTextBtn, railElementsBtn, railUploadsBtn, railDrawBtn, railLayersBtn].forEach(b => {
           if (b) {
             b.classList.remove('active');
             b.style.background = 'transparent';
@@ -4692,18 +5020,25 @@
           activeBtn.style.color = '#ffffff';
         }
 
-        [drawerEditImage, drawerText, drawerLayers, drawerShapes, drawerUploads].forEach(d => {
+        [drawerDesign, drawerEditImage, drawerText, drawerElements, drawerUploads, drawerDraw, drawerLayers].forEach(d => {
           if (d) d.style.display = 'none';
         });
         if (activeDrawer) activeDrawer.style.display = 'flex';
+
+        // Turn off drawing mode if moving away from Draw tab
+        if (activeBtn !== railDrawBtn && canvaCanvas && canvaCanvas.isDrawingMode && !isEraserBrushActive) {
+          canvaCanvas.isDrawingMode = false;
+        }
       }
 
+      if (railDesignBtn) railDesignBtn.onclick = () => switchDrawerTab(railDesignBtn, drawerDesign);
       if (railEditImageBtn) railEditImageBtn.onclick = () => switchDrawerTab(railEditImageBtn, drawerEditImage);
       if (topEditImageBtn) topEditImageBtn.onclick = () => switchDrawerTab(railEditImageBtn, drawerEditImage);
       if (railTextBtn) railTextBtn.onclick = () => switchDrawerTab(railTextBtn, drawerText);
-      if (railLayersBtn) railLayersBtn.onclick = () => { switchDrawerTab(railLayersBtn, drawerLayers); renderLayersList(); };
-      if (railShapesBtn) railShapesBtn.onclick = () => switchDrawerTab(railShapesBtn, drawerShapes);
+      if (railElementsBtn) railElementsBtn.onclick = () => switchDrawerTab(railElementsBtn, drawerElements);
       if (railUploadsBtn) railUploadsBtn.onclick = () => switchDrawerTab(railUploadsBtn, drawerUploads);
+      if (railDrawBtn) railDrawBtn.onclick = () => { switchDrawerTab(railDrawBtn, drawerDraw); startDrawMode('pen'); };
+      if (railLayersBtn) railLayersBtn.onclick = () => { switchDrawerTab(railLayersBtn, drawerLayers); renderLayersList(); };
 
       // Export Dropdown Toggle
       if (exportMenuBtn) {
@@ -4922,35 +5257,44 @@
         fabric.Object.prototype.padding = 4;
         fabric.Object.prototype.borderScaleFactor = 2;
 
-        // Set Clean Inpainted Background
-        setCanvasBg(data.clean_image_url, function () {
-          // Inject detected text elements as editable Textboxes
-          if (data.text_elements && data.text_elements.length > 0) {
-            data.text_elements.forEach((item, idx) => {
-              if (!item.text || !item.text.trim()) return;
+        const bgUrl = data.clean_image_url || data.image_url || null;
+        if (bgUrl) {
+          setCanvasBg(bgUrl, function () {
+            if (data.text_elements && data.text_elements.length > 0) {
+              data.text_elements.forEach((item, idx) => {
+                if (!item.text || !item.text.trim()) return;
 
-              const tb = new fabric.Textbox(item.text, {
-                left: item.left * scale,
-                top: item.top * scale,
-                width: Math.max(30, item.width * scale),
-                fontSize: Math.max(11, Math.round(item.fontSize * scale)),
-                fill: item.color || '#ffffff',
-                fontFamily: 'Montserrat',
-                fontWeight: 'bold',
-                textAlign: 'left',
-                name: item.text.slice(0, 24)
+                const tb = new fabric.Textbox(item.text, {
+                  left: item.left * scale,
+                  top: item.top * scale,
+                  width: Math.max(30, item.width * scale),
+                  fontSize: Math.max(11, Math.round(item.fontSize * scale)),
+                  fill: item.color || '#ffffff',
+                  fontFamily: 'Montserrat',
+                  fontWeight: 'bold',
+                  textAlign: 'left',
+                  name: item.text.slice(0, 24)
+                });
+                canvaCanvas.add(tb);
               });
-              canvaCanvas.add(tb);
-            });
-          }
-
+            }
+            canvaCanvas.renderAll();
+            renderLayersList();
+            undoStack = [];
+            redoStack = [];
+            saveCanvasState();
+            showToast(`Ready! ${data.text_elements ? data.text_elements.length : 0} layers active.`, '✨', 3000);
+          });
+        } else {
+          // Blank canvas
+          canvaCanvas.backgroundColor = '#111317';
           canvaCanvas.renderAll();
           renderLayersList();
           undoStack = [];
           redoStack = [];
           saveCanvasState();
-          showToast(`Extracted ${data.text_elements.length} editable text layers!`, '✨', 3500);
-        });
+          showToast(`Blank Canva Canvas Ready (${imgW}×${imgH})!`, '🎨', 3000);
+        }
 
         // Event hooks
         canvaCanvas.on('selection:created', (e) => { syncToolbarWithActive(e.selected[0]); renderLayersList(); });
@@ -4959,13 +5303,25 @@
         canvaCanvas.on('object:modified', () => { saveCanvasState(); renderLayersList(); });
       }
 
-      // Public Launch Function
-      window.launchCanvaStudio = async function (filename, imageSrc, targetImgId) {
-        if (!imageSrc || imageSrc.endsWith('#')) {
-          alert('Please generate or edit a label first!');
+      // Public Launch Function — opens either blank or with image
+      window.launchCanvaStudio = async function (filename = null, imageSrc = null, targetImgId = null) {
+        modal.style.display = 'flex';
+
+        // Case 1: Opened from scratch / blank from main page
+        if (!filename && !imageSrc) {
+          currentDocFilename = "canva_design_" + Date.now() + ".png";
+          activeTargetImgId = targetImgId || 'resultImage';
+          const titleInput = document.getElementById('canvaDocTitleInput');
+          if (titleInput) titleInput.value = 'New Packaging Design - 1536x512';
+          cleanBgUrl = '';
+          originalBgUrl = '';
+          isCleanBgActive = false;
+          initCanvaCanvas({ image_width: 1536, image_height: 512, text_elements: [] });
+          if (railDesignBtn) switchDrawerTab(railDesignBtn, drawerDesign);
           return;
         }
 
+        // Case 2: Opened with generated image or uploaded image
         const smartBtn = document.getElementById('smartOpenCanvaEditorBtn');
         const regBtn = document.getElementById('openCanvaEditorBtn');
         const origSmartText = smartBtn ? smartBtn.innerHTML : '';
@@ -4995,17 +5351,845 @@
           originalBgUrl = data.original_image_url || imageSrc;
           isCleanBgActive = true;
 
-          modal.style.display = 'flex';
           initCanvaCanvas(data);
+          if (railTextBtn) switchDrawerTab(railTextBtn, drawerText);
 
         } catch (err) {
           console.error(err);
-          alert('Failed to trace label: ' + err.message);
+          // If digitize fails, still open editor gracefully with image
+          cleanBgUrl = imageSrc;
+          originalBgUrl = imageSrc;
+          initCanvaCanvas({ image_width: 1536, image_height: 512, image_url: imageSrc, text_elements: [] });
+          showToast('Loaded image onto Canva canvas!', '🎨', 3000);
         } finally {
           if (smartBtn) { smartBtn.disabled = false; smartBtn.innerHTML = origSmartText; }
           if (regBtn) { regBtn.disabled = false; regBtn.innerHTML = origRegText; }
         }
       };
+
+      // Direct Upload & Open in Canva Function
+      window.uploadAndOpenInCanva = async function (file) {
+        if (!file) return;
+        showToast("Uploading image to Canva Studio...", "⏳", 5000);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        try {
+          const res = await fetch('/api/canva/upload-image', {
+            method: 'POST',
+            body: formData
+          });
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+
+          modal.style.display = 'flex';
+          currentDocFilename = data.filename;
+          activeTargetImgId = 'resultImage';
+
+          const titleInput = document.getElementById('canvaDocTitleInput');
+          if (titleInput) {
+            titleInput.value = data.original_name.replace(/\.[^/.]+$/, '') + ' - Canva Studio';
+          }
+
+          cleanBgUrl = data.image_url;
+          originalBgUrl = data.image_url;
+          isCleanBgActive = true;
+
+          initCanvaCanvas({
+            image_width: data.width,
+            image_height: data.height,
+            image_url: data.image_url,
+            text_elements: []
+          });
+
+          addUploadGalleryItem(data.image_url, data.original_name);
+          showToast(`Uploaded ${data.original_name} (${data.width}×${data.height}, ${data.aspect_name})!`, "🎉", 4000);
+
+          // Automatically switch to AI Tools drawer
+          if (railEditImageBtn) switchDrawerTab(railEditImageBtn, drawerEditImage);
+
+        } catch (err) {
+          console.error(err);
+          alert("Failed to upload image: " + err.message);
+        }
+      };
+
+      // Add to Uploads Gallery UI
+      function addUploadGalleryItem(imgUrl, fileName) {
+        const gallery = document.getElementById('canvaUploadsGallery');
+        const countBadge = document.getElementById('canvaUploadCountBadge');
+        if (!gallery) return;
+
+        if (gallery.innerText.includes('No images uploaded yet')) {
+          gallery.innerHTML = '';
+        }
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#131518; border:1px solid #32363f; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:4px; cursor:pointer;';
+        card.innerHTML = `
+          <div style="width:100%; height:75px; border-radius:6px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
+            <img src="${imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" />
+          </div>
+          <span style="font-size:10px; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${fileName}">${fileName}</span>
+          <div style="display:flex; gap:4px; margin-top:2px;">
+            <button class="gallery-add-layer" style="flex:1; background:#7d2ae8; border:none; color:#fff; border-radius:4px; padding:3px; font-size:9px; font-weight:700; cursor:pointer;">+ Layer</button>
+            <button class="gallery-set-bg" style="flex:1; background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:4px; padding:3px; font-size:9px; font-weight:700; cursor:pointer;">Set BG</button>
+          </div>
+        `;
+
+        card.querySelector('.gallery-add-layer').onclick = (e) => {
+          e.stopPropagation();
+          fabric.Image.fromURL(imgUrl, function(img) {
+            img.scaleToWidth(160);
+            img.set({ left: 100, top: 100 });
+            canvaCanvas.add(img);
+            canvaCanvas.setActiveObject(img);
+            canvaCanvas.renderAll();
+            renderLayersList();
+            saveCanvasState();
+            showToast("Added image layer to canvas!", "🖼️");
+          });
+        };
+
+        card.querySelector('.gallery-set-bg').onclick = (e) => {
+          e.stopPropagation();
+          setCanvasBg(imgUrl);
+          showToast("Set as Canvas Background!", "✨");
+        };
+
+        gallery.prepend(card);
+        if (countBadge) {
+          countBadge.textContent = gallery.querySelectorAll('.gallery-add-layer').length;
+        }
+      }
+
+      // Outer Main Page & Nav Triggers
+      const landingOpenBtn = document.getElementById('landingOpenCanvaBtn');
+      if (landingOpenBtn) landingOpenBtn.onclick = () => window.launchCanvaStudio();
+
+      const navOpenBtn = document.getElementById('navOpenCanvaBtn');
+      if (navOpenBtn) navOpenBtn.onclick = () => window.launchCanvaStudio();
+
+      const landingFileInput = document.getElementById('landingCanvaFileInput');
+      if (landingFileInput) {
+        landingFileInput.onchange = (e) => {
+          if (e.target.files && e.target.files[0]) {
+            window.uploadAndOpenInCanva(e.target.files[0]);
+          }
+        };
+      }
+
+      // Quick Preset Chips on Main Page
+      document.querySelectorAll('.canva-quick-preset-chip').forEach(chip => {
+        chip.onclick = () => {
+          const preset = chip.dataset.preset;
+          let w = 1536, h = 512, name = "3:1 Wrap Label";
+          if (preset === '1:1') { w = 1024; h = 1024; name = "1:1 Box"; }
+          else if (preset === '16:9') { w = 1920; h = 1080; name = "16:9 Banner"; }
+          else if (preset === '4:1') { w = 2048; h = 512; name = "4:1 Panoramic"; }
+
+          modal.style.display = 'flex';
+          currentDocFilename = `canva_${preset.replace(':', 'x')}_` + Date.now() + ".png";
+          activeTargetImgId = 'resultImage';
+          const titleInput = document.getElementById('canvaDocTitleInput');
+          if (titleInput) titleInput.value = `${name} - ${w}x${h}`;
+          cleanBgUrl = '';
+          originalBgUrl = '';
+          isCleanBgActive = false;
+          initCanvaCanvas({ image_width: w, image_height: h, text_elements: [] });
+          if (railDesignBtn) switchDrawerTab(railDesignBtn, drawerDesign);
+        };
+      });
+
+      // Canva Top Bar Triggers
+      const canvaTopFileInput = document.getElementById('canvaTopFileInput');
+      if (canvaTopFileInput) {
+        canvaTopFileInput.onchange = (e) => {
+          if (e.target.files && e.target.files[0]) {
+            window.uploadAndOpenInCanva(e.target.files[0]);
+          }
+        };
+      }
+
+      const canvaDrawerFileInput = document.getElementById('canvaDrawerFileInput');
+      if (canvaDrawerFileInput) {
+        canvaDrawerFileInput.onchange = (e) => {
+          if (e.target.files && e.target.files[0]) {
+            window.uploadAndOpenInCanva(e.target.files[0]);
+          }
+        };
+      }
+
+      const canvaDrawerDropzone = document.getElementById('canvaDrawerDropzone');
+      if (canvaDrawerDropzone && canvaDrawerFileInput) {
+        canvaDrawerDropzone.onclick = () => canvaDrawerFileInput.click();
+        canvaDrawerDropzone.ondragover = (e) => { e.preventDefault(); canvaDrawerDropzone.style.borderColor = '#7d2ae8'; };
+        canvaDrawerDropzone.ondragleave = (e) => { e.preventDefault(); canvaDrawerDropzone.style.borderColor = '#3a3f4d'; };
+        canvaDrawerDropzone.ondrop = (e) => {
+          e.preventDefault();
+          canvaDrawerDropzone.style.borderColor = '#3a3f4d';
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            window.uploadAndOpenInCanva(e.dataTransfer.files[0]);
+          }
+        };
+      }
+
+      // Drag and Drop directly on Stage Wrapper
+      const stageWrapper = document.getElementById('canvaStageWrapper');
+      if (stageWrapper) {
+        stageWrapper.ondragover = (e) => { e.preventDefault(); stageWrapper.style.outline = '3px dashed #7d2ae8'; stageWrapper.style.outlineOffset = '-10px'; };
+        stageWrapper.ondragleave = (e) => { e.preventDefault(); stageWrapper.style.outline = 'none'; };
+        stageWrapper.ondrop = (e) => {
+          e.preventDefault();
+          stageWrapper.style.outline = 'none';
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            window.uploadAndOpenInCanva(e.dataTransfer.files[0]);
+          }
+        };
+      }
+
+      // New Blank Design
+      const newBlankBtn = document.getElementById('canvaNewBlankBtn');
+      if (newBlankBtn) {
+        newBlankBtn.onclick = () => {
+          if (confirm("Start a new blank design? Unsaved changes will be cleared.")) {
+            window.launchCanvaStudio();
+          }
+        };
+      }
+
+      // Resize Dropdown
+      const resizeBtn = document.getElementById('canvaResizeBtn');
+      const resizeDropdown = document.getElementById('canvaResizeDropdown');
+      if (resizeBtn && resizeDropdown) {
+        resizeBtn.onclick = (e) => {
+          e.stopPropagation();
+          resizeDropdown.style.display = (resizeDropdown.style.display === 'flex') ? 'none' : 'flex';
+        };
+        document.addEventListener('click', () => { resizeDropdown.style.display = 'none'; });
+      }
+
+      document.querySelectorAll('.canva-resize-item').forEach(item => {
+        item.onclick = () => {
+          const w = parseInt(item.dataset.w, 10);
+          const h = parseInt(item.dataset.h, 10);
+          const name = item.dataset.name;
+          resizeCanvaDimensions(w, h, name);
+          if (resizeDropdown) resizeDropdown.style.display = 'none';
+        };
+      });
+
+      const applyCustomResizeBtn = document.getElementById('canvaApplyCustomResizeBtn');
+      if (applyCustomResizeBtn) {
+        applyCustomResizeBtn.onclick = () => {
+          const w = parseInt(document.getElementById('canvaCustomW')?.value || '1536', 10);
+          const h = parseInt(document.getElementById('canvaCustomH')?.value || '512', 10);
+          resizeCanvaDimensions(w, h, `${w}×${h}`);
+          if (resizeDropdown) resizeDropdown.style.display = 'none';
+        };
+      }
+
+      function resizeCanvaDimensions(newW, newH, presetName = "") {
+        if (!canvaCanvas) return;
+        const stageWrapper = document.getElementById('canvaStageWrapper');
+        const artboardContainer = document.getElementById('canvaArtboardContainer');
+        const dimBadge = document.getElementById('canvaLabelDimBadge');
+
+        const maxStageW = stageWrapper ? (stageWrapper.clientWidth - 80) : 1000;
+        const maxStageH = stageWrapper ? (stageWrapper.clientHeight - 80) : 550;
+        const scale = Math.min(maxStageW / newW, maxStageH / newH, 0.95);
+
+        const canvasW = Math.round(newW * scale);
+        const canvasH = Math.round(newH * scale);
+
+        canvaCanvas.setWidth(canvasW);
+        canvaCanvas.setHeight(canvasH);
+        canvaCanvas.originalScale = scale;
+        canvaCanvas.nativeWidth = newW;
+        canvaCanvas.nativeHeight = newH;
+
+        if (artboardContainer) {
+          artboardContainer.style.width = canvasW + 'px';
+          artboardContainer.style.height = canvasH + 'px';
+        }
+        if (dimBadge) dimBadge.textContent = `${newW} × ${newH} px`;
+
+        canvaCanvas.renderAll();
+        saveCanvasState();
+        showToast(`Canvas resized to ${newW} × ${newH} (${presetName})`, "📐", 2500);
+      }
+
+      // Template Card Clicks
+      document.querySelectorAll('.canva-template-card').forEach(card => {
+        card.onclick = () => {
+          loadPackagingTemplate(card.dataset.template);
+        };
+      });
+
+      // Template Search Filter
+      const tplSearchInput = document.getElementById('canvaTemplateSearch');
+      if (tplSearchInput) {
+        tplSearchInput.oninput = () => {
+          const q = tplSearchInput.value.toLowerCase().trim();
+          document.querySelectorAll('.canva-template-card').forEach(c => {
+            const txt = c.innerText.toLowerCase();
+            c.style.display = (!q || txt.includes(q)) ? 'block' : 'none';
+          });
+        };
+      }
+
+      // Template Generator Function
+      function loadPackagingTemplate(tplKey) {
+        if (!canvaCanvas) return;
+        canvaCanvas.clear();
+
+        if (tplKey === 'whey_isolate') {
+          resizeCanvaDimensions(1536, 512, '3:1 Wrap Label');
+          canvaCanvas.backgroundColor = '#0b0d12';
+
+          const brandText = new fabric.Textbox('GOMZI NUTRITION', {
+            left: 550, top: 70, width: 440, fontSize: 32, fontFamily: 'Cinzel',
+            fontWeight: '900', fill: '#d4af37', textAlign: 'center'
+          });
+          const productText = new fabric.Textbox('100% WHEY ISOLATE', {
+            left: 500, top: 125, width: 540, fontSize: 56, fontFamily: 'Bebas Neue',
+            fontWeight: '900', fill: '#ffffff', textAlign: 'center'
+          });
+          const badgeRect = new fabric.Rect({
+            left: 570, top: 215, width: 400, height: 42, rx: 21, ry: 21,
+            fill: '#1c1f28', stroke: '#d4af37', strokeWidth: 1.5
+          });
+          const badgeText = new fabric.Textbox('⚡ 27G PROTEIN · 0G ADDED SUGAR · DIGEZYME®', {
+            left: 570, top: 226, width: 400, fontSize: 13, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#ffd700', textAlign: 'center'
+          });
+          const flavorText = new fabric.Textbox('FLAVOR: RICH BELGIAN CHOCOLATE', {
+            left: 550, top: 280, width: 440, fontSize: 16, fontFamily: 'Montserrat',
+            fontWeight: '700', fill: '#00c4cc', textAlign: 'center'
+          });
+
+          const nutBox = new fabric.Rect({
+            left: 60, top: 60, width: 340, height: 380, rx: 8, ry: 8,
+            fill: '#151821', stroke: '#2e3547', strokeWidth: 1.5
+          });
+          const nutHeader = new fabric.Textbox('NUTRITION FACTS\nPer 100g Serving', {
+            left: 80, top: 80, width: 300, fontSize: 18, fontFamily: 'Montserrat',
+            fontWeight: '900', fill: '#ffffff', textAlign: 'left'
+          });
+          const nutBody = new fabric.Textbox('Energy: 395 kcal\nProtein: 82.5 g\nTotal Carbohydrate: 3.2 g\nTotal Fat: 1.8 g\nBCAA: 6.8 g · Glutamine: 4.5 g', {
+            left: 80, top: 140, width: 300, fontSize: 13, fontFamily: 'Inter',
+            fontWeight: '500', fill: '#a0a6b5', textAlign: 'left', lineHeight: 1.5
+          });
+
+          const netBox = new fabric.Rect({
+            left: 1120, top: 120, width: 340, height: 260, rx: 8, ry: 8,
+            fill: '#151821', stroke: '#2e3547', strokeWidth: 1.5
+          });
+          const netText = new fabric.Textbox('NET WT. 1 KG (2.2 LBS)\nDIETARY SUPPLEMENT', {
+            left: 1140, top: 150, width: 300, fontSize: 18, fontFamily: 'Montserrat',
+            fontWeight: '900', fill: '#ffffff', textAlign: 'center'
+          });
+          const certText = new fabric.Textbox('✓ GMP CERTIFIED FACILITY\n✓ 100% DOPING FREE\n✓ LAB TESTED PURITY', {
+            left: 1140, top: 220, width: 300, fontSize: 13, fontFamily: 'Montserrat',
+            fontWeight: '700', fill: '#10b981', textAlign: 'center', lineHeight: 1.4
+          });
+
+          canvaCanvas.add(nutBox, nutHeader, nutBody, brandText, productText, badgeRect, badgeText, flavorText, netBox, netText, certText);
+
+        } else if (tplKey === 'pre_workout') {
+          resizeCanvaDimensions(1536, 512, '3:1 Wrap Label');
+          canvaCanvas.backgroundColor = '#06070a';
+
+          const titleText = new fabric.Textbox('VOLTAGE EXTREME', {
+            left: 500, top: 85, width: 540, fontSize: 62, fontFamily: 'Impact',
+            fill: '#00f0ff', textAlign: 'center', shadow: new fabric.Shadow({ color: '#00f0ff', blur: 30 })
+          });
+          const subText = new fabric.Textbox('HIGH INTENSITY PRE-WORKOUT POWDER', {
+            left: 480, top: 175, width: 580, fontSize: 16, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#ff007f', textAlign: 'center'
+          });
+          const badgeRect = new fabric.Rect({
+            left: 550, top: 230, width: 440, height: 46, rx: 23, ry: 23,
+            fill: '#ff007f', shadow: new fabric.Shadow({ color: '#ff007f', blur: 20 })
+          });
+          const badgeText = new fabric.Textbox('🔥 350MG CAFFEINE · 4G CITRULLINE · 3.2G BETA-ALANINE', {
+            left: 550, top: 242, width: 440, fontSize: 13, fontFamily: 'Montserrat',
+            fontWeight: '900', fill: '#ffffff', textAlign: 'center'
+          });
+          const servText = new fabric.Textbox('30 SERVINGS · EXPLOSIVE PUMP & FOCUS', {
+            left: 500, top: 305, width: 540, fontSize: 14, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#ffd700', textAlign: 'center'
+          });
+
+          canvaCanvas.add(titleText, subText, badgeRect, badgeText, servText);
+
+        } else if (tplKey === 'cosmetic_serum') {
+          resizeCanvaDimensions(1024, 1024, '1:1 Product Box');
+          canvaCanvas.backgroundColor = '#faf8f5';
+
+          const brandText = new fabric.Textbox('A U R A', {
+            left: 200, top: 230, width: 624, fontSize: 44, fontFamily: 'Playfair Display',
+            fontWeight: '700', fill: '#1f2937', textAlign: 'center', charSpacing: 350
+          });
+          const divLine = new fabric.Line([412, 320, 612, 320], { stroke: '#c5a059', strokeWidth: 1.5 });
+          const serumName = new fabric.Textbox('HYALURONIC ACID 2% + B5', {
+            left: 200, top: 360, width: 624, fontSize: 26, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#111827', textAlign: 'center'
+          });
+          const subText = new fabric.Textbox('HYDRATING & PLUMPING CELLULAR SERUM\nWITH MULTI-MOLECULAR HYALURONIC COMPLEX', {
+            left: 220, top: 420, width: 584, fontSize: 13, fontFamily: 'Inter',
+            fontWeight: '500', fill: '#6b7280', textAlign: 'center', lineHeight: 1.5
+          });
+          const certCircle = new fabric.Circle({
+            left: 472, top: 550, radius: 40, fill: 'transparent', stroke: '#c5a059', strokeWidth: 1.5
+          });
+          const certText = new fabric.Textbox('100%\nCLEAN', {
+            left: 472, top: 575, width: 80, fontSize: 12, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#c5a059', textAlign: 'center'
+          });
+          const volText = new fabric.Textbox('30 ml / 1.0 fl. oz. e', {
+            left: 200, top: 710, width: 624, fontSize: 15, fontFamily: 'Montserrat',
+            fontWeight: '700', fill: '#374151', textAlign: 'center'
+          });
+
+          canvaCanvas.add(brandText, divLine, serumName, subText, certCircle, certText, volText);
+
+        } else if (tplKey === 'energy_soda') {
+          resizeCanvaDimensions(1920, 1080, '16:9 Banner');
+          canvaCanvas.backgroundColor = '#ea580c';
+
+          const titleText = new fabric.Textbox('CITRUS BURST', {
+            left: 460, top: 310, width: 1000, fontSize: 90, fontFamily: 'Impact',
+            fill: '#fef08a', textAlign: 'center'
+          });
+          const descText = new fabric.Textbox('100% ORGANIC SPARKLING ENERGY SODA', {
+            left: 460, top: 440, width: 1000, fontSize: 28, fontFamily: 'Montserrat',
+            fontWeight: '900', fill: '#ffffff', textAlign: 'center'
+          });
+          const badgeText = new fabric.Textbox('⚡ REAL FRUIT JUICE · VITAMIN C 1000MG · ZERO ARTIFICIAL', {
+            left: 460, top: 520, width: 1000, fontSize: 18, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#fed7aa', textAlign: 'center'
+          });
+
+          canvaCanvas.add(titleText, descText, badgeText);
+
+        } else if (tplKey === 'matcha_tea') {
+          resizeCanvaDimensions(1024, 1024, '1:1 Product Box');
+          canvaCanvas.backgroundColor = '#1c3d2f';
+
+          const title = new fabric.Textbox('CEREMONIAL MATCHA', {
+            left: 150, top: 310, width: 724, fontSize: 44, fontFamily: 'Playfair Display',
+            fontWeight: '900', fill: '#d8f3dc', textAlign: 'center'
+          });
+          const subtitle = new fabric.Textbox('100% PURE JAPANESE ORGANIC GREEN TEA POWDER', {
+            left: 150, top: 390, width: 724, fontSize: 15, fontFamily: 'Montserrat',
+            fontWeight: '700', fill: '#95d5b2', textAlign: 'center'
+          });
+          const leafBadge = new fabric.Textbox('🍃 USDA ORGANIC · SHADE GROWN · FIRST HARVEST', {
+            left: 150, top: 470, width: 724, fontSize: 13, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#b7e4c7', textAlign: 'center'
+          });
+          const net = new fabric.Textbox('NET WT. 100 G / 3.5 OZ', {
+            left: 150, top: 570, width: 724, fontSize: 16, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#ffffff', textAlign: 'center'
+          });
+
+          canvaCanvas.add(title, subtitle, leafBadge, net);
+
+        } else if (tplKey === 'multivitamin') {
+          resizeCanvaDimensions(1536, 512, '3:1 Wrap Label');
+          canvaCanvas.backgroundColor = '#0f172a';
+
+          const title = new fabric.Textbox('DAILY MULTI-VITAMIN', {
+            left: 450, top: 105, width: 640, fontSize: 52, fontFamily: 'Bebas Neue',
+            fill: '#ffffff', textAlign: 'center'
+          });
+          const sub = new fabric.Textbox('COMPLETE SPECTRUM · 24 ESSENTIAL VITAMINS & MINERALS', {
+            left: 450, top: 175, width: 640, fontSize: 15, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: '#38bdf8', textAlign: 'center'
+          });
+          const count = new fabric.Textbox('120 VEGAN CAPSULES · ONCE DAILY', {
+            left: 450, top: 235, width: 640, fontSize: 14, fontFamily: 'Montserrat',
+            fontWeight: '700', fill: '#cbd5e1', textAlign: 'center'
+          });
+
+          canvaCanvas.add(title, sub, count);
+        }
+
+        canvaCanvas.renderAll();
+        renderLayersList();
+        undoStack = [];
+        redoStack = [];
+        saveCanvasState();
+        showToast("Template loaded! All text and elements are fully editable.", "🎨", 3000);
+      }
+
+      // Barcode Generator
+      const addBarcodeBtn = document.getElementById('canvaAddBarcodeBtn');
+      if (addBarcodeBtn) {
+        addBarcodeBtn.onclick = () => {
+          const val = document.getElementById('canvaBarcodeValInput')?.value || '8901234567890';
+          addBarcodeToCanvas(val);
+        };
+      }
+
+      function addBarcodeToCanvas(numberStr) {
+        if (!canvaCanvas) return;
+        const hiddenCanvas = document.createElement('canvas');
+        try {
+          if (window.JsBarcode) {
+            JsBarcode(hiddenCanvas, numberStr || '8901234567890', {
+              format: 'CODE128',
+              width: 2,
+              height: 60,
+              displayValue: true,
+              fontSize: 14,
+              font: 'Montserrat',
+              background: '#ffffff',
+              lineColor: '#000000',
+              margin: 10
+            });
+            fabric.Image.fromURL(hiddenCanvas.toDataURL(), function(img) {
+              img.scaleToWidth(220);
+              img.set({ left: 100, top: 120, name: 'Barcode: ' + numberStr });
+              canvaCanvas.add(img);
+              canvaCanvas.setActiveObject(img);
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              showToast("Barcode added to Canvas!", "📦");
+            });
+          }
+        } catch(e) {
+          console.error(e);
+          showToast("Failed to generate barcode: " + e.message, "⚠️");
+        }
+      }
+
+      // QR Code Generator
+      const addQrBtn = document.getElementById('canvaAddQrBtn');
+      if (addQrBtn) {
+        addQrBtn.onclick = () => {
+          const val = document.getElementById('canvaQrValInput')?.value || 'https://gomzigroup.com';
+          addQrCodeToCanvas(val);
+        };
+      }
+
+      function addQrCodeToCanvas(urlStr) {
+        if (!canvaCanvas) return;
+        const hiddenDiv = document.createElement('div');
+        hiddenDiv.style.display = 'none';
+        document.body.appendChild(hiddenDiv);
+
+        try {
+          if (window.QRCode) {
+            new QRCode(hiddenDiv, {
+              text: urlStr || 'https://gomzigroup.com',
+              width: 180,
+              height: 180,
+              colorDark: '#000000',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.H
+            });
+            setTimeout(() => {
+              const qrImg = hiddenDiv.querySelector('img') || hiddenDiv.querySelector('canvas');
+              const src = qrImg ? (qrImg.src || qrImg.toDataURL()) : '';
+              if (src) {
+                fabric.Image.fromURL(src, function(img) {
+                  img.scaleToWidth(120);
+                  img.set({ left: 120, top: 140, name: 'QR Code' });
+                  canvaCanvas.add(img);
+                  canvaCanvas.setActiveObject(img);
+                  canvaCanvas.renderAll();
+                  renderLayersList();
+                  saveCanvasState();
+                  showToast("QR Code added to Canvas!", "📱");
+                });
+              }
+              document.body.removeChild(hiddenDiv);
+            }, 120);
+          }
+        } catch(e) {
+          console.error(e);
+          if (hiddenDiv.parentNode) document.body.removeChild(hiddenDiv);
+        }
+      }
+
+      // FDA Nutrition Facts Panel
+      const addNutritionTableBtn = document.getElementById('canvaAddNutritionTableBtn');
+      if (addNutritionTableBtn) {
+        addNutritionTableBtn.onclick = () => {
+          if (!canvaCanvas) return;
+          const box = new fabric.Rect({
+            left: 80, top: 60, width: 280, height: 380, fill: '#ffffff', stroke: '#000000', strokeWidth: 3, rx: 2, ry: 2
+          });
+          const header = new fabric.Textbox('Nutrition Facts', {
+            left: 92, top: 72, width: 256, fontSize: 24, fontFamily: 'Montserrat', fontWeight: '900', fill: '#000000'
+          });
+          const serv = new fabric.Textbox('Serving Size 1 Scoop (30g)\nServings Per Container: 30', {
+            left: 92, top: 110, width: 256, fontSize: 10, fontFamily: 'Inter', fill: '#000000'
+          });
+          const line1 = new fabric.Line([92, 142, 348, 142], { stroke: '#000000', strokeWidth: 6 });
+          const cal = new fabric.Textbox('Amount Per Serving\nCalories 120', {
+            left: 92, top: 152, width: 256, fontSize: 13, fontFamily: 'Montserrat', fontWeight: '800', fill: '#000000'
+          });
+          const line2 = new fabric.Line([92, 195, 348, 195], { stroke: '#000000', strokeWidth: 3 });
+          const details = new fabric.Textbox('Total Fat 1.5g               2%\nSodium 140mg             6%\nTotal Carb 2g                1%\nProtein 25g                  50%\nBCAA 5.5g                   *', {
+            left: 92, top: 205, width: 256, fontSize: 11, fontFamily: 'Montserrat', fontWeight: '700', fill: '#000000', lineHeight: 1.4
+          });
+          const group = new fabric.Group([box, header, serv, line1, cal, line2, details], {
+            left: 80, top: 60, name: 'FDA Nutrition Facts Panel'
+          });
+          canvaCanvas.add(group);
+          canvaCanvas.setActiveObject(group);
+          canvaCanvas.renderAll();
+          renderLayersList();
+          saveCanvasState();
+          showToast("FDA Nutrition Facts Panel added!", "📊");
+        };
+      }
+
+      // Veg & Non-Veg Dot Stamps
+      const addVegBtn = document.getElementById('canvaAddVegBtn');
+      if (addVegBtn) addVegBtn.onclick = () => addVegDotStamp(true);
+
+      const addNonVegBtn = document.getElementById('canvaAddNonVegBtn');
+      if (addNonVegBtn) addNonVegBtn.onclick = () => addVegDotStamp(false);
+
+      function addVegDotStamp(isVeg) {
+        if (!canvaCanvas) return;
+        const color = isVeg ? '#10b981' : '#ef4444';
+        const box = new fabric.Rect({
+          left: 100, top: 100, width: 34, height: 34, fill: '#ffffff', stroke: color, strokeWidth: 2, rx: 3, ry: 3
+        });
+        const circle = new fabric.Circle({
+          left: 108, top: 108, radius: 9, fill: color
+        });
+        const group = new fabric.Group([box, circle], {
+          left: 100, top: 100, name: isVeg ? '100% Veg Seal' : 'Non-Veg Seal'
+        });
+        canvaCanvas.add(group);
+        canvaCanvas.setActiveObject(group);
+        canvaCanvas.renderAll();
+        renderLayersList();
+        saveCanvasState();
+        showToast((isVeg ? "100% Veg Dot Seal" : "Non-Veg Dot Seal") + " added!", "🟢");
+      }
+
+      // Badge Stamps
+      document.querySelectorAll('.canva-badge-item').forEach(badge => {
+        badge.onclick = () => {
+          if (!canvaCanvas) return;
+          const text = badge.dataset.text;
+          const col = badge.dataset.color || '#7d2ae8';
+
+          const rect = new fabric.Rect({
+            left: 100, top: 100, width: 170, height: 36, rx: 18, ry: 18,
+            fill: '#18191b', stroke: col, strokeWidth: 1.5
+          });
+          const tb = new fabric.Textbox(text, {
+            left: 100, top: 109, width: 170, fontSize: 11, fontFamily: 'Montserrat',
+            fontWeight: '800', fill: col, textAlign: 'center'
+          });
+          const group = new fabric.Group([rect, tb], {
+            left: 100, top: 100, name: 'Badge: ' + text
+          });
+          canvaCanvas.add(group);
+          canvaCanvas.setActiveObject(group);
+          canvaCanvas.renderAll();
+          renderLayersList();
+          saveCanvasState();
+          showToast(`Added ${text} badge!`, "✨");
+        };
+      });
+
+      // Freehand Draw Controller
+      let currentBrushMode = 'pen';
+      document.querySelectorAll('.canva-brush-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.canva-brush-btn').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = '#22252a';
+            b.style.color = '#a0a6b5';
+          });
+          btn.classList.add('active');
+          btn.style.background = '#7d2ae8';
+          btn.style.color = '#fff';
+          currentBrushMode = btn.dataset.brush;
+          startDrawMode(currentBrushMode);
+        };
+      });
+
+      const drawColorPicker = document.getElementById('canvaDrawColorPicker');
+      if (drawColorPicker) {
+        drawColorPicker.oninput = () => {
+          if (canvaCanvas && canvaCanvas.isDrawingMode) {
+            startDrawMode(currentBrushMode);
+          }
+        };
+      }
+
+      const sliderDrawWidth = document.getElementById('canvaSliderDrawWidth');
+      const valDrawWidth = document.getElementById('canvaValDrawWidth');
+      if (sliderDrawWidth) {
+        sliderDrawWidth.oninput = () => {
+          if (valDrawWidth) valDrawWidth.textContent = sliderDrawWidth.value + 'px';
+          if (canvaCanvas && canvaCanvas.isDrawingMode) {
+            startDrawMode(currentBrushMode);
+          }
+        };
+      }
+
+      const exitDrawBtn = document.getElementById('canvaExitDrawBtn');
+      if (exitDrawBtn) {
+        exitDrawBtn.onclick = () => {
+          if (canvaCanvas) canvaCanvas.isDrawingMode = false;
+          showToast("Exited Draw Mode", "ℹ️");
+        };
+      }
+
+      const clearDrawingsBtn = document.getElementById('canvaClearDrawingsBtn');
+      if (clearDrawingsBtn) {
+        clearDrawingsBtn.onclick = () => {
+          if (!canvaCanvas) return;
+          const objects = canvaCanvas.getObjects();
+          const paths = objects.filter(o => o.isType('path'));
+          paths.forEach(p => canvaCanvas.remove(p));
+          canvaCanvas.renderAll();
+          renderLayersList();
+          saveCanvasState();
+          showToast("Cleared freehand drawings!", "🗑️");
+        };
+      }
+
+      function startDrawMode(brushType = 'pen') {
+        if (!canvaCanvas) return;
+        canvaCanvas.isDrawingMode = true;
+        const color = drawColorPicker ? drawColorPicker.value : '#00f0ff';
+        const w = parseInt(sliderDrawWidth ? sliderDrawWidth.value : '4', 10);
+
+        if (brushType === 'highlighter') {
+          canvaCanvas.freeDrawingBrush.color = color + '66'; // semi-transparent
+          canvaCanvas.freeDrawingBrush.width = w * 4;
+        } else if (brushType === 'marker') {
+          canvaCanvas.freeDrawingBrush.color = color;
+          canvaCanvas.freeDrawingBrush.width = w * 2;
+        } else if (brushType === 'eraser') {
+          canvaCanvas.freeDrawingBrush.color = canvaCanvas.backgroundColor || '#111317';
+          canvaCanvas.freeDrawingBrush.width = w * 3;
+        } else {
+          // Pen
+          canvaCanvas.freeDrawingBrush.color = color;
+          canvaCanvas.freeDrawingBrush.width = w;
+        }
+      }
+
+      // Text Effects
+      const effectNeonBtn = document.getElementById('canvaEffectNeonBtn');
+      if (effectNeonBtn) {
+        effectNeonBtn.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) {
+            obj.set('shadow', new fabric.Shadow({
+              color: '#00f0ff',
+              blur: 25,
+              offsetX: 0,
+              offsetY: 0
+            }));
+            canvaCanvas.renderAll();
+            saveCanvasState();
+            showToast("Neon Glow Effect Applied!", "💫");
+          }
+        };
+      }
+
+      const effectShadowBtn = document.getElementById('canvaEffectShadowBtn');
+      if (effectShadowBtn) {
+        effectShadowBtn.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) {
+            obj.set('shadow', new fabric.Shadow({
+              color: 'rgba(0,0,0,0.8)',
+              blur: 15,
+              offsetX: 6,
+              offsetY: 6
+            }));
+            canvaCanvas.renderAll();
+            saveCanvasState();
+            showToast("Drop Shadow Effect Applied!", "🌑");
+          }
+        };
+      }
+
+      const effectHollowBtn = document.getElementById('canvaEffectHollowBtn');
+      if (effectHollowBtn) {
+        effectHollowBtn.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) {
+            obj.set({
+              fill: 'transparent',
+              stroke: colorPicker ? colorPicker.value : '#ffffff',
+              strokeWidth: 2
+            });
+            canvaCanvas.renderAll();
+            saveCanvasState();
+            showToast("Hollow Text Effect Applied!", "🔲");
+          }
+        };
+      }
+
+      const effectCurveBtn = document.getElementById('canvaEffectCurveBtn');
+      if (effectCurveBtn) {
+        effectCurveBtn.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj && obj.text) {
+            obj.set('charSpacing', 120);
+            canvaCanvas.renderAll();
+            saveCanvasState();
+            showToast("Curved / Spaced Typography Applied!", "⭕");
+          }
+        };
+      }
+
+      // Layer Alignment to Canvas
+      const alignCanvasLeft = document.getElementById('canvaAlignCanvasLeftBtn');
+      if (alignCanvasLeft) {
+        alignCanvasLeft.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) { obj.set('left', 20); canvaCanvas.renderAll(); saveCanvasState(); }
+        };
+      }
+      const alignCanvasCenter = document.getElementById('canvaAlignCanvasCenterBtn');
+      if (alignCanvasCenter) {
+        alignCanvasCenter.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) {
+            const center = (canvaCanvas.width / 2) - ((obj.width * (obj.scaleX || 1)) / 2);
+            obj.set('left', center);
+            canvaCanvas.renderAll();
+            saveCanvasState();
+          }
+        };
+      }
+      const alignCanvasRight = document.getElementById('canvaAlignCanvasRightBtn');
+      if (alignCanvasRight) {
+        alignCanvasRight.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) {
+            const right = canvaCanvas.width - ((obj.width * (obj.scaleX || 1)) + 20);
+            obj.set('left', right);
+            canvaCanvas.renderAll();
+            saveCanvasState();
+          }
+        };
+      }
+      const alignCanvasTop = document.getElementById('canvaAlignCanvasTopBtn');
+      if (alignCanvasTop) {
+        alignCanvasTop.onclick = () => {
+          const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
+          if (obj) { obj.set('top', 20); canvaCanvas.renderAll(); saveCanvasState(); }
+        };
+      }
 
       // Button Triggers
       const smartCanvaBtn = document.getElementById('smartOpenCanvaEditorBtn');
@@ -5069,6 +6253,7 @@
       });
 
       // Add Shapes
+      const addRectShapeBtn = document.getElementById('canvaAddRectShapeBtn');
       if (addRectShapeBtn) {
         addRectShapeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -5082,6 +6267,7 @@
         };
       }
 
+      const addPillBadgeBtn = document.getElementById('canvaAddPillBadgeBtn');
       if (addPillBadgeBtn) {
         addPillBadgeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -5095,6 +6281,7 @@
         };
       }
 
+      const addCircleShapeBtn = document.getElementById('canvaAddCircleShapeBtn');
       if (addCircleShapeBtn) {
         addCircleShapeBtn.onclick = () => {
           if (!canvaCanvas) return;
@@ -5107,6 +6294,7 @@
         };
       }
 
+      const addLineBtn = document.getElementById('canvaAddLineBtn');
       if (addLineBtn) {
         addLineBtn.onclick = () => {
           if (!canvaCanvas) return;

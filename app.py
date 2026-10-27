@@ -2379,6 +2379,78 @@ def save_editor_result():
 # Canva Pro AI Tools Routes
 # ---------------------------------------------------------------------------
 
+@app.route("/api/canva/upload-image", methods=["POST"])
+def canva_upload_image():
+    """
+    Direct upload endpoint for Canva Packaging Studio:
+    Accepts an uploaded image file (or base64 data), saves it to UPLOAD_FOLDER,
+    and returns dimensions, aspect ratio, clean preview, and URL.
+    """
+    try:
+        image_file = request.files.get("image") or request.files.get("file")
+        image_b64 = None
+
+        if not image_file and request.is_json:
+            data = request.get_json(silent=True) or {}
+            image_b64 = data.get("image_data")
+
+        if not image_file and not image_b64:
+            return jsonify({"error": "No image file or image_data provided"}), 400
+
+        unique_stem = f"canva_{uuid.uuid4().hex[:10]}"
+        save_name = f"{unique_stem}.png"
+        input_path = os.path.join(app.config["UPLOAD_FOLDER"], save_name)
+
+        if image_file:
+            orig_filename = secure_filename(image_file.filename) or "upload.png"
+            image_file.save(input_path)
+        else:
+            if "," in image_b64:
+                image_b64 = image_b64.split(",", 1)[1]
+            raw_bytes = base64.b64decode(image_b64)
+            with open(input_path, "wb") as f:
+                f.write(raw_bytes)
+            orig_filename = "pasted_image.png"
+
+        # Determine dimensions and aspect ratio with PIL
+        with Image.open(input_path) as pil_img:
+            w, h = pil_img.size
+            if pil_img.mode not in ("RGB", "RGBA"):
+                pil_img = pil_img.convert("RGBA" if "transparency" in pil_img.info else "RGB")
+                pil_img.save(input_path)
+
+        # Detect approximate aspect ratio name
+        ratio = w / float(h)
+        if 2.6 <= ratio <= 3.5:
+            aspect_name = "3:1 (Ultra-Wide Packaging Label)"
+        elif 3.5 < ratio:
+            aspect_name = "4:1 (Panoramic Wrap Label)"
+        elif 1.6 <= ratio <= 2.0:
+            aspect_name = "16:9 (Landscape Banner)"
+        elif 0.85 <= ratio <= 1.15:
+            aspect_name = "1:1 (Square Product Box)"
+        elif ratio < 0.85:
+            aspect_name = "Vertical Packaging"
+        else:
+            aspect_name = f"{round(ratio, 2)}:1 Custom Label"
+
+        app.logger.info("Canva direct image uploaded: %s (%dx%d, %s)", save_name, w, h, aspect_name)
+
+        return jsonify({
+            "success": True,
+            "filename": save_name,
+            "original_name": orig_filename,
+            "image_url": f"/static/uploads/{save_name}?t={int(time.time())}",
+            "width": w,
+            "height": h,
+            "aspect_name": aspect_name,
+            "aspect_ratio": ratio
+        })
+    except Exception as e:
+        app.logger.error("Canva direct image upload failed: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/canva/bg-remover", methods=["POST"])
 def canva_bg_remover():
     """Removes background from an image or layer, returning transparent PNG."""
