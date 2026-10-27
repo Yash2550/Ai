@@ -2068,12 +2068,12 @@ def _build_svg_from_image(filepath: str) -> bytes:
 
 
 
-def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 8000) -> str:
+def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 7600) -> str:
     """
     Returns path to cached Ultra-HD version of the image at 300 DPI.
-    Produces an image around 18-22 MB (PNG) with Lanczos resampling,
-    edge unsharp-masking, and contrast micro-tuning so text and fine details
-    remain crystal clear when zoomed in.
+    Produces a master image around 15-18 MB (PNG) with Lanczos resampling,
+    edge unsharp-masking, and contrast micro-tuning so text, fine details,
+    and barcodes remain crystal clear when zoomed in to 1000%.
     """
     stem, _ = os.path.splitext(filepath)
     cache_path = f"{stem}_ultrahd_{target_max_dim}.png"
@@ -2090,21 +2090,22 @@ def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 8000) -> str:
     with Image.open(filepath) as img:
         im = img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB")
         w, h = im.size
-        scale = target_max_dim / float(max(w, h))
+        scale = max(1.0, target_max_dim / float(max(w, h)))
         if scale > 1.0:
             new_w = int(round(w * scale))
             new_h = int(round(h * scale))
             im = im.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            # Edge sharpening for clean typography, barcode lines, and micro details
-            im = im.filter(ImageFilter.UnsharpMask(radius=2.0, percent=150, threshold=2))
+            # Edge typography unsharp-masking
+            im = im.filter(ImageFilter.UnsharpMask(radius=2.2, percent=160, threshold=2))
             enh = ImageEnhance.Contrast(im)
             im = enh.enhance(1.03)
-        im.save(cache_path, format="PNG", dpi=(300, 300), compress_level=3)
+        # compress_level=1 preserves lossless raw pixel master at ~15-18 MB
+        im.save(cache_path, format="PNG", dpi=(300, 300), compress_level=1)
 
     return cache_path
 
 
-def _get_ultra_hd_image(filepath: str, target_max_dim: int = 8000) -> Image.Image:
+def _get_ultra_hd_image(filepath: str, target_max_dim: int = 7600) -> Image.Image:
     """
     Load an Ultra-HD image, using disk cache for instant retrieval.
     """
@@ -2114,15 +2115,15 @@ def _get_ultra_hd_image(filepath: str, target_max_dim: int = 8000) -> Image.Imag
 
 def _build_pdf_from_image(filepath: str) -> bytes:
     """
-    Generate an Ultra-HD 300 DPI PDF (~15-20 MB) that preserves crystal-clear
+    Generate an Ultra-HD 300 DPI PDF (~15-18 MB) that preserves crystal-clear
     details, text, and graphics when zoomed in.
     """
-    with _get_ultra_hd_image(filepath, target_max_dim=8000) as hd_img:
+    with _get_ultra_hd_image(filepath, target_max_dim=7600) as hd_img:
         img_rgb = hd_img.convert("RGB")
         px_w, px_h = img_rgb.size
         dpi_val = 300.0
 
-        # Try reportlab first for vector canvas if installed
+        # Try reportlab first for true 300 DPI print canvas
         try:
             from reportlab.lib.utils import ImageReader
             from reportlab.pdfgen import canvas as rl_canvas
@@ -2134,7 +2135,7 @@ def _build_pdf_from_image(filepath: str) -> bytes:
             c = rl_canvas.Canvas(out_io, pagesize=(pt_w, pt_h))
 
             img_buf = io.BytesIO()
-            img_rgb.save(img_buf, format="PNG", dpi=(300, 300), compress_level=3)
+            img_rgb.save(img_buf, format="PNG", dpi=(300, 300), compress_level=1)
             img_buf.seek(0)
 
             c.drawImage(ImageReader(img_buf), 0, 0, width=pt_w, height=pt_h)
@@ -2371,6 +2372,386 @@ def save_editor_result():
         })
     except Exception as e:
         app.logger.error("Failed to save editor result: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Canva Pro AI Tools Routes
+# ---------------------------------------------------------------------------
+
+@app.route("/api/canva/bg-remover", methods=["POST"])
+def canva_bg_remover():
+    """Removes background from an image or layer, returning transparent PNG."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.remove_background(raw_bytes)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva BG Remover error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/magic-eraser", methods=["POST"])
+def canva_magic_eraser():
+    """Erases brushed objects or imperfections cleanly using Telea inpainting."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        mask_b64 = data.get("mask_data", "")
+        radius = int(data.get("radius", 7))
+
+        if not img_b64 or not mask_b64:
+            return jsonify({"error": "Missing image or mask data"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        if "," in mask_b64:
+            mask_b64 = mask_b64.split(",", 1)[1]
+
+        raw_img = base64.b64decode(img_b64)
+        raw_mask = base64.b64decode(mask_b64)
+
+        erased_bytes = canva_pro_tools.magic_erase(raw_img, raw_mask, radius=radius)
+        out_b64 = "data:image/png;base64," + base64.b64encode(erased_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Magic Eraser error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/upscale", methods=["POST"])
+def canva_upscale():
+    """Upscales image to Ultra-HD 300 DPI super-resolution."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        scale = float(data.get("scale", 2.0))
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        upscaled_bytes = canva_pro_tools.upscale_super_res(raw_bytes, scale_factor=scale)
+        out_b64 = "data:image/png;base64," + base64.b64encode(upscaled_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Upscale error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/bg-generator", methods=["POST"])
+def canva_bg_generator():
+    """Generates designer product packaging background."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        preset = data.get("preset", "carbon_dark")
+        width = int(data.get("width", 1536))
+        height = int(data.get("height", 512))
+
+        bg_bytes = canva_pro_tools.generate_preset_background(preset, width=width, height=height)
+        out_b64 = "data:image/png;base64," + base64.b64encode(bg_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva BG Generator error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/vectorify", methods=["POST"])
+def canva_vectorify():
+    """Converts a raster image or logo into scalable SVG vectors using vtracer."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        svg_str = canva_pro_tools.vectorify_image(raw_bytes)
+        return jsonify({"svg_content": svg_str, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Vectorify error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/texture", methods=["POST"])
+def canva_texture():
+    """Overlays realistic packaging textures (crumpled paper, foil, screen, carbon)."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        texture_name = data.get("texture", "paper")
+        opacity = float(data.get("opacity", 0.35))
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_packaging_texture(raw_bytes, texture_name=texture_name, opacity=opacity)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Texture error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/style-match", methods=["POST"])
+def canva_style_match():
+    """Applies artistic styles: Etching, Scrapbook, Line Art."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        style_name = data.get("style", "etching")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_artistic_style(raw_bytes, style_name=style_name)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Style Match error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/blur", methods=["POST"])
+def canva_blur():
+    """Applies blur to the image."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        blur_radius = int(data.get("radius", 15))
+        blur_type = data.get("type", "gaussian")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_blur(raw_bytes, blur_radius=blur_radius, blur_type=blur_type)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Blur error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/auto-focus", methods=["POST"])
+def canva_auto_focus():
+    """Depth-of-field portrait/product blur keeping subject sharp."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        blur_strength = int(data.get("blur_strength", 25))
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_auto_focus(raw_bytes, blur_strength=blur_strength)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Auto Focus error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/face-retouch", methods=["POST"])
+def canva_face_retouch():
+    """Model/Face skin smoothing and radiance retouching."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        smoothness = float(data.get("smoothness", 0.6))
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_face_retouch(raw_bytes, smoothness=smoothness)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Face Retouch error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/magic-expand", methods=["POST"])
+def canva_magic_expand():
+    """Expands canvas outward (e.g. 1:1 to 3:1 packaging wrap) using mirror inpainting."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        aspect = data.get("aspect", "3:1")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes = canva_pro_tools.apply_magic_expand(raw_bytes, target_aspect=aspect)
+        out_b64 = "data:image/png;base64," + base64.b64encode(result_bytes).decode("ascii")
+        return jsonify({"image_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Magic Expand error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/magic-grab", methods=["POST"])
+def canva_magic_grab():
+    """Extracts foreground subject into a movable layer and inpaints background."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result = canva_pro_tools.magic_grab(raw_bytes)
+        fg_b64 = "data:image/png;base64," + base64.b64encode(result["foreground_bytes"]).decode("ascii")
+        bg_b64 = "data:image/png;base64," + base64.b64encode(result["background_bytes"]).decode("ascii")
+
+        return jsonify({
+            "foreground_url": fg_b64,
+            "background_url": bg_b64,
+            "bbox": result["bbox"],
+            "success": True
+        })
+    except Exception as e:
+        app.logger.error("Canva Magic Grab error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/grab-text", methods=["POST"])
+def canva_grab_text():
+    """Detects text boxes, erases raster text, and returns editable text elements."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result = canva_pro_tools.grab_text(raw_bytes)
+        bg_b64 = "data:image/png;base64," + base64.b64encode(result["clean_background_bytes"]).decode("ascii")
+
+        return jsonify({
+            "clean_background_url": bg_b64,
+            "text_elements": result["text_elements"],
+            "count": len(result["text_elements"]),
+            "success": True
+        })
+    except Exception as e:
+        app.logger.error("Canva Grab Text error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/image-to-video", methods=["POST"])
+def canva_image_to_video():
+    """Generates 3D turntable spin preview animation."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        gif_bytes = canva_pro_tools.generate_spin_preview_gif(raw_bytes)
+        out_b64 = "data:image/gif;base64," + base64.b64encode(gif_bytes).decode("ascii")
+        return jsonify({"video_url": out_b64, "success": True})
+    except Exception as e:
+        app.logger.error("Canva Image to Video error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/export-master", methods=["POST"])
+def canva_export_master():
+    """
+    Renders and downloads full Ultra-HD 300 DPI Master file (PNG / JPG / PDF)
+    at 15-18 MB directly from the user's active Canva editor design.
+    """
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        fmt = data.get("format", "png").lower()
+        stem = data.get("filename", "edited_label").rsplit(".", 1)[0]
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result_bytes, mimetype, out_filename = canva_pro_tools.render_master_export(
+            raw_bytes, fmt=fmt, target_max_dim=7600, stem=stem
+        )
+
+        out_io = io.BytesIO(result_bytes)
+        return send_file(
+            out_io,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=out_filename
+        )
+    except Exception as e:
+        app.logger.error("Canva Export Master error: %s", e)
         return jsonify({"error": str(e)}), 500
 
 

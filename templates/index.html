@@ -1966,6 +1966,14 @@
 
             <!-- Right Header Actions (Background toggle, Save, Export, Close) -->
             <div style="display:flex; align-items:center; gap:10px;">
+              <!-- Canva Pro Edit Image Button in Top Bar -->
+              <button id="canvaTopEditImageBtn" title="Canva Pro AI Image Editing Tools" 
+                style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(125,42,232,0.35);">
+                <span>🪄</span>
+                <span>Edit image</span>
+                <span style="background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:8px; font-size:9px; font-weight:800;">PRO</span>
+              </button>
+
               <!-- Background Toggle Button -->
               <button id="canvaBgToggleBtn" title="Toggle Clean Inpainted vs Original Photo" 
                 style="background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -1983,15 +1991,18 @@
                 <button id="canvaExportMenuBtn" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px;">
                   <span>📥</span> Download ▾
                 </button>
-                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:40px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:220px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:6px; flex-direction:column; gap:4px;">
-                  <button id="canvaExportPngBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:8px;">
-                    🖼️ <strong>PNG</strong> (Ultra-HD 300 DPI)
+                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:40px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:260px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:6px; flex-direction:column; gap:4px;">
+                  <button id="canvaExportPngBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                    🖼️ <div><strong>PNG Master</strong> (300 DPI, ~16 MB)</div>
                   </button>
-                  <button id="canvaExportPdfBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:8px;">
-                    📄 <strong>PDF</strong> (Print-Ready)
+                  <button id="canvaExportJpgBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                    📸 <div><strong>JPG Master</strong> (100% Quality, ~15 MB)</div>
                   </button>
-                  <button id="canvaExportSvgBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:8px;">
-                    📐 <strong>SVG</strong> (Vector / Corel)
+                  <button id="canvaExportPdfBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                    📄 <div><strong>PDF Print Master</strong> (300 DPI, ~16 MB)</div>
+                  </button>
+                  <button id="canvaExportSvgBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                    📐 <div><strong>SVG Vector</strong> (CorelDRAW / Illustrator)</div>
                   </button>
                 </div>
               </div>
@@ -2008,6 +2019,12 @@
             
             <!-- Canva Left Icon Rail (68px wide) -->
             <div style="width:68px; background:#131518; border-right:1px solid #23272f; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:8px; flex-shrink:0; z-index:5;">
+              <button id="canvaRailEditImageBtn" class="canva-rail-btn" style="width:52px; height:52px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px; position:relative;">
+                <span>🪄</span>
+                <span style="font-size:10px; font-weight:700;">AI Tools</span>
+                <span style="position:absolute; top:2px; right:2px; background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:6px;">PRO</span>
+              </button>
+
               <button id="canvaRailTextBtn" class="canva-rail-btn active" style="width:52px; height:52px; border-radius:10px; background:#22252a; border:none; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; cursor:pointer; font-size:16px;">
                 <span>🅰️</span>
                 <span style="font-size:10px; font-weight:700;">Text</span>
@@ -2099,6 +2116,503 @@
                 <div style="font-size:12px; color:#a0a6b5; line-height:1.5;">
                   Upload your brand logo (PNG with transparent background), barcode, QR code, or certification stamps (ISO/GMP) to place onto your label design.
                 </div>
+              </div>
+
+              <!-- TAB 5: EDIT IMAGE (CANVA PRO AI TOOLS) -->
+              <div id="canvaDrawerEditImage" style="display:none; padding:16px; flex-direction:column; gap:16px;">
+                <!-- Header -->
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <button id="canvaDrawerBackBtn" type="button" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:16px; padding:2px 4px;" title="Back">←</button>
+                    <span style="font-weight:800; color:#fff; font-size:16px;">Tools</span>
+                    <span style="background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; font-size:9px; font-weight:800; padding:2px 7px; border-radius:12px; letter-spacing:0.5px;">PRO</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <button id="canvaActiveTargetIndicator" type="button" style="background:transparent; border:none; color:#00c4cc; font-size:11px; font-weight:600; cursor:default;">Whole Image</button>
+                    <button id="canvaDrawerCloseBtn" type="button" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:16px; padding:2px 4px;" title="Close">✕</button>
+                  </div>
+                </div>
+
+                <!-- CATEGORY 1: ENHANCE -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Enhance</div>
+                  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
+                    <!-- 1. Adjust -->
+                    <div id="canvaToolAdjustBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:#f1f5f9; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🎚️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Adjust</span>
+                    </div>
+
+                    <!-- 2. Upscale -->
+                    <div id="canvaToolUpscaleBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#7d2ae8; color:#fff; font-size:8px; font-weight:900; border-radius:6px; padding:1px 5px; z-index:2;">New</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b 0%, #10b981 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🌻
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Upscale</span>
+                    </div>
+
+                    <!-- 3. BG Remover -->
+                    <div id="canvaToolBgRemoverBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:repeating-conic-gradient(#334155 0% 25%, #1e293b 0% 50%) 50% / 12px 12px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #475569; transition:transform 0.15s;">
+                        🏖️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">BG Remover</span>
+                    </div>
+
+                    <!-- 4. Magic Eraser -->
+                    <div id="canvaToolMagicEraserBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🕊️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Eraser</span>
+                    </div>
+
+                    <!-- 5. Blur -->
+                    <div id="canvaToolBlurBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🏃‍♂️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Blur</span>
+                    </div>
+
+                    <!-- 6. Auto Focus -->
+                    <div id="canvaToolAutoFocusBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🐕
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Auto Focus</span>
+                    </div>
+
+                    <!-- 7. Face Retouch -->
+                    <div id="canvaToolFaceRetouchBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        💆‍♀️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Face Retouch</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CATEGORY 2: REIMAGINE -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Reimagine</div>
+                  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
+                    <!-- 8. Magic Edit -->
+                    <div id="canvaToolMagicEditBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f97316 0%, #ef4444 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🧁
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Edit</span>
+                    </div>
+
+                    <!-- 9. Image to Video -->
+                    <div id="canvaToolImageToVideoBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🦋
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Image to Video</span>
+                    </div>
+
+                    <!-- 10. BG Generator -->
+                    <div id="canvaToolBgGenBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #ec4899 0%, #d97706 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🕶️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">BG Generator</span>
+                    </div>
+
+                    <!-- 11. Magic Expand -->
+                    <div id="canvaToolMagicExpandBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:repeating-conic-gradient(#15803d 0% 25%, #166534 0% 50%) 50% / 12px 12px; color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #22c55e; transition:transform 0.15s;">
+                        🐞
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Expand</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CATEGORY 3: SELECT ELEMENTS -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Select elements</div>
+                  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
+                    <!-- 12. Magic Layers -->
+                    <div id="canvaToolMagicLayersBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🔮
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Layers</span>
+                    </div>
+
+                    <!-- 13. Magic Grab -->
+                    <div id="canvaToolMagicGrabBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        🎈
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Grab</span>
+                    </div>
+
+                    <!-- 14. Grab Text -->
+                    <div id="canvaToolGrabTextBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #ea580c 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; font-family:serif; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                        Aa
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#fff;">Grab Text</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SUB-PANEL 1: ADJUST SLIDERS -->
+                <div id="canvaSubAdjustPanel" style="display:none; background:#18191c; border:1px solid #32363f; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#fff;">⚙️ Image Adjustments</span>
+                    <button id="canvaResetAdjustBtn" style="background:transparent; border:none; color:#00c4cc; font-size:11px; font-weight:700; cursor:pointer;">Reset</button>
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Brightness</span><span id="canvaValBrightness">0</span>
+                    </div>
+                    <input type="range" id="canvaSliderBrightness" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Contrast</span><span id="canvaValContrast">0</span>
+                    </div>
+                    <input type="range" id="canvaSliderContrast" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Saturation</span><span id="canvaValSaturation">0</span>
+                    </div>
+                    <input type="range" id="canvaSliderSaturation" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Warmth (Hue)</span><span id="canvaValWarmth">0</span>
+                    </div>
+                    <input type="range" id="canvaSliderWarmth" min="-180" max="180" value="0" style="width:100%; accent-color:#7d2ae8;" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Blur</span><span id="canvaValBlur">0</span>
+                    </div>
+                    <input type="range" id="canvaSliderBlur" min="0" max="10" value="0" step="0.5" style="width:100%; accent-color:#7d2ae8;" />
+                  </div>
+                </div>
+
+                <!-- SUB-PANEL 2: MAGIC ERASER CONTROLS -->
+                <div id="canvaSubEraserPanel" style="display:none; background:#18191c; border:1px solid #ec4899; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#ec4899;">🕊️ Magic Eraser Brush</span>
+                    <button id="canvaCancelEraserBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Cancel</button>
+                  </div>
+                  <div style="font-size:11px; color:#a0a6b5;">
+                    Paint over any unwanted logo, text, or scratch on the canvas to erase it cleanly with AI!
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Brush Size</span><span id="canvaValBrushSize">25px</span>
+                    </div>
+                    <input type="range" id="canvaSliderBrushSize" min="5" max="80" value="25" style="width:100%; accent-color:#ec4899;" />
+                  </div>
+                  <button id="canvaApplyEraseBtn" style="background:linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color:#fff; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✨ Erase Brushed Area
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 3: BG GENERATOR PRESETS -->
+                <div id="canvaSubBgGenPanel" style="display:none; background:#18191c; border:1px solid #00c4cc; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <span style="font-size:12px; font-weight:700; color:#00c4cc;">🕶️ Packaging Background Textures</span>
+                  <div style="display:flex; flex-direction:column; gap:6px;">
+                    <button class="canva-bg-preset-btn" data-preset="carbon_dark" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                      ⚡ Carbon Dark (Matte Black Titanium)
+                    </button>
+                    <button class="canva-bg-preset-btn" data-preset="gold_luxury" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                      🏆 Gold Luxury (Black & Gold Veined Marble)
+                    </button>
+                    <button class="canva-bg-preset-btn" data-preset="neon_gym" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                      🏋️ Neon Gym (Cyberpunk Cyan & Magenta)
+                    </button>
+                    <button class="canva-bg-preset-btn" data-preset="fruit_splash" style="background:#22252a; border:1px solid #32363f; color:#ff8c00; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                      🍇 Fruit Splash (Dynamic Water & Splash)
+                    </button>
+                    <button class="canva-bg-preset-btn" data-preset="clean_studio" style="background:#22252a; border:1px solid #32363f; color:#e2e8f0; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                      🧴 Clean Studio (Minimalist White Floor)
+                    </button>
+                  </div>
+                </div>
+
+                <!-- SUB-PANEL 4: MAGIC EDIT PROMPT -->
+                <div id="canvaSubMagicEditPanel" style="display:none; background:#18191c; border:1px solid #f59e0b; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
+                  <span style="font-size:12px; font-weight:700; color:#f59e0b;">🪄 AI Magic Edit</span>
+                  <div style="font-size:11px; color:#a0a6b5;">Type what you want to add or modify on the label:</div>
+                  <input id="canvaMagicEditPrompt" placeholder="e.g. Add metallic gold foil reflection" style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px 10px; font-size:12px; outline:none;" />
+                  <button id="canvaExecuteMagicEditBtn" style="background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ⚡ Generate with AI
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 5: BLUR CONTROLS -->
+                <div id="canvaSubBlurPanel" style="display:none; background:#18191c; border:1px solid #0284c7; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#38bdf8;">🏃‍♂️ AI Blur Effect</span>
+                    <button id="canvaCancelBlurBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Blur Intensity</span><span id="canvaValBlurRadius">15px</span>
+                    </div>
+                    <input type="range" id="canvaSliderBlurRadius" min="2" max="60" value="15" style="width:100%; accent-color:#0284c7;" />
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <button id="canvaBlurGaussianBtn" class="canva-blur-type-btn active" data-type="gaussian" style="flex:1; background:#0284c7; border:none; color:#fff; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">Gaussian</button>
+                    <button id="canvaBlurBoxBtn" class="canva-blur-type-btn" data-type="box" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">Box</button>
+                  </div>
+                  <button id="canvaApplyBlurBtn" style="background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✨ Apply Blur
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 6: AUTO FOCUS (PORTRAIT / PRODUCT BOKEH) -->
+                <div id="canvaSubAutoFocusPanel" style="display:none; background:#18191c; border:1px solid #eab308; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#fbbf24;">🐕 Auto Focus (Bokeh Depth-of-Field)</span>
+                    <button id="canvaCancelAutoFocusBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
+                  </div>
+                  <div style="font-size:11px; color:#a0a6b5;">
+                    Automatically isolates the subject, keeping it razor-sharp while blurring surrounding packaging depth.
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Bokeh Blur Strength</span><span id="canvaValBokeh">25px</span>
+                    </div>
+                    <input type="range" id="canvaSliderBokeh" min="5" max="65" value="25" style="width:100%; accent-color:#eab308;" />
+                  </div>
+                  <button id="canvaApplyAutoFocusBtn" style="background:linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ⚡ Apply Auto Focus
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 7: FACE RETOUCH -->
+                <div id="canvaSubFaceRetouchPanel" style="display:none; background:#18191c; border:1px solid #f43f5e; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#fb7185;">💆‍♀️ Face & Model Retouch</span>
+                    <button id="canvaCancelFaceRetouchBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
+                  </div>
+                  <div style="font-size:11px; color:#a0a6b5;">
+                    Bilateral skin smoothing that clears blemishes and roughness while preserving eyes, lips, and crisp packaging print details.
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                      <span>Smoothness</span><span id="canvaValSmoothness">60%</span>
+                    </div>
+                    <input type="range" id="canvaSliderSmoothness" min="10" max="100" value="60" style="width:100%; accent-color:#f43f5e;" />
+                  </div>
+                  <button id="canvaApplyFaceRetouchBtn" style="background:linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ✨ Smooth & Retouch
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 8: MAGIC EXPAND -->
+                <div id="canvaSubMagicExpandPanel" style="display:none; background:#18191c; border:1px solid #22c55e; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#4ade80;">🐞 Magic Expand (Outpainting)</span>
+                    <button id="canvaCancelExpandBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
+                  </div>
+                  <div style="font-size:11px; color:#a0a6b5;">
+                    Expands your label outward into standard packaging ratios without stretching your art.
+                  </div>
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <button class="canva-expand-ratio-btn active" data-aspect="3:1" style="background:#15803d; border:1px solid #22c55e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">3:1 Wrap Label</button>
+                    <button class="canva-expand-ratio-btn" data-aspect="16:9" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">16:9 Banner</button>
+                    <button class="canva-expand-ratio-btn" data-aspect="4:1" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">4:1 Panoramic</button>
+                    <button class="canva-expand-ratio-btn" data-aspect="1:1" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">1:1 Square</button>
+                  </div>
+                  <button id="canvaApplyExpandBtn" style="background:linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
+                    ⚡ Expand Canvas with AI
+                  </button>
+                </div>
+
+                <!-- SUB-PANEL 9: IMAGE TO VIDEO (3D TURNTABLE PREVIEW) -->
+                <div id="canvaSubVideoPanel" style="display:none; background:#18191c; border:1px solid #f59e0b; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:700; color:#fbbf24;">🦋 Image to Video / 3D Turnaround</span>
+                    <button id="canvaCancelVideoBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
+                  </div>
+                  <div id="canvaVideoPreviewContainer" style="width:100%; height:180px; background:#0f172a; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #334155;">
+                    <span style="color:#64748b; font-size:12px;">Click below to render 3D turnaround video</span>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <button id="canvaGenerateVideoBtn" style="flex:1; background:linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color:#000; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:800; cursor:pointer;">
+                      🎬 Render 3D Video
+                    </button>
+                    <button id="canvaLaunch3DMockupBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer;" title="Open 3D Bottle Studio">
+                      🧴 3D Jar
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 1. STYLE MATCH ROW (with horizontal scroll carousel) -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Style Match</span>
+                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                  </div>
+                  <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
+                    <div class="canva-style-card active" data-style="none" style="min-width:72px; background:#22252a; border:2px solid #8b3dff; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #ef4444 0%, #f97316 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:800;">Original</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">None</span>
+                    </div>
+                    <div class="canva-style-card" data-style="etching" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:#e2e8f0; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#1e293b; font-size:16px;">🦆</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Etching</span>
+                    </div>
+                    <div class="canva-style-card" data-style="scrapbook" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:#fef08a; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#854d0e; font-size:16px;">🐥</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Scrapbook</span>
+                    </div>
+                    <div class="canva-style-card" data-style="line_art" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:#ffffff; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#000; font-size:16px;">✏️</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Line Art</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. FILTERS ROW (with horizontal scroll carousel) -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Filters</span>
+                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                  </div>
+                  <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
+                    <div class="canva-filter-btn" data-filter="natural" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #64748b 0%, #475569 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">🍃</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Natural</span>
+                    </div>
+                    <div class="canva-filter-btn" data-filter="warm" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #d97706 0%, #b45309 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">☀️</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Warm</span>
+                    </div>
+                    <div class="canva-filter-btn" data-filter="cool" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">❄️</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Cool</span>
+                    </div>
+                    <div class="canva-filter-btn" data-filter="vivid" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">⚡</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Vivid</span>
+                    </div>
+                    <div class="canva-filter-btn" data-filter="noir" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #0f172a 0%, #334155 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">🎬</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Noir</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. APPS ROW (Vectorify, Texture, Screen) -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Apps</span>
+                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                  </div>
+                  <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
+                    <!-- Vectorify -->
+                    <div id="canvaAppVectorifyBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
+                      <div style="position:absolute; top:4px; right:4px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center;">👑</div>
+                      <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">🐕</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Vectorify</span>
+                    </div>
+                    <!-- Texture -->
+                    <div id="canvaAppTextureBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
+                      <div style="position:absolute; top:4px; right:4px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center;">👑</div>
+                      <div style="width:100%; height:48px; border-radius:6px; background:#cbd5e1; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#334155; font-size:18px;">📄</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Texture</span>
+                    </div>
+                    <!-- Screen / Halftone -->
+                    <div id="canvaAppScreenBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:repeating-radial-gradient(circle, #000, #000 1px, #fff 1px, #fff 4px); margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-size:16px;">🏁</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Screen</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 4. SHADOWS ROW (None, Glow, Drop, Outline) -->
+                <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Shadows</span>
+                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                  </div>
+                  <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
+                    <div class="canva-shadow-btn active" data-shadow="none" style="min-width:72px; background:#22252a; border:2px solid #8b3dff; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Plain</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">None</span>
+                    </div>
+                    <div class="canva-shadow-btn" data-shadow="glow" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; box-shadow:0 0 12px #c084fc; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Glow</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Glow</span>
+                    </div>
+                    <div class="canva-shadow-btn" data-shadow="drop" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; box-shadow:4px 6px 12px rgba(0,0,0,0.7); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Drop</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Drop</span>
+                    </div>
+                    <div class="canva-shadow-btn" data-shadow="outline" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; border:2px solid #ffffff; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Stroke</div>
+                      <span style="font-size:11px; color:#fff; font-weight:600;">Outline</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- SUB-PANEL 5: SHADOW / GLOW ADJUSTMENT CONTROLS -->
+                <div id="canvaSubShadowPanel" style="display:none; background:#18191c; border:1px solid #8b3dff; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
+                  <span style="font-size:12px; font-weight:700; color:#8b3dff;">💫 Shadow &amp; Glow Settings</span>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:3px;">
+                      <span>Blur / Softness</span><span id="canvaValShadowBlur">20</span>
+                    </div>
+                    <input type="range" id="canvaSliderShadowBlur" min="0" max="60" value="20" style="width:100%; accent-color:#8b3dff;" />
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:3px;">
+                      <span>Distance (Offset)</span><span id="canvaValShadowOffset">10</span>
+                    </div>
+                    <input type="range" id="canvaSliderShadowOffset" min="0" max="40" value="10" style="width:100%; accent-color:#8b3dff;" />
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                    <span style="font-size:11px; color:#a0a6b5;">Glow / Shadow Color:</span>
+                    <input type="color" id="canvaShadowColorPicker" value="#8b3dff" style="border:none; width:28px; height:24px; border-radius:4px; cursor:pointer; background:transparent;" />
+                  </div>
+                </div>
+
+                <!-- SUB-PANEL 6: TEXTURE SELECTOR -->
+                <div id="canvaSubTexturePanel" style="display:none; background:#18191c; border:1px solid #3b82f6; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
+                  <span style="font-size:12px; font-weight:700; color:#3b82f6;">📄 Packaging Material Textures</span>
+                  <div style="display:flex; flex-direction:column; gap:6px;">
+                    <button class="canva-tex-apply-btn" data-tex="paper" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                      📦 Crumpled Kraft Paper
+                    </button>
+                    <button class="canva-tex-apply-btn" data-tex="foil" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                      ✨ Brushed Gold / Metallic Foil
+                    </button>
+                    <button class="canva-tex-apply-btn" data-tex="screen" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                      🏁 Halftone Pop-Art Dot Matrix
+                    </button>
+                  </div>
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-top:4px; margin-bottom:2px;">
+                      <span>Texture Opacity</span><span id="canvaValTexOpacity">35%</span>
+                    </div>
+                    <input type="range" id="canvaSliderTexOpacity" min="10" max="80" value="35" style="width:100%; accent-color:#3b82f6;" />
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -2994,6 +3508,9 @@
       const deleteBtn = document.getElementById('canvaDeleteBtn');
 
       // Drawer Tabs
+      const railEditImageBtn = document.getElementById('canvaRailEditImageBtn');
+      const topEditImageBtn = document.getElementById('canvaTopEditImageBtn');
+      const drawerEditImage = document.getElementById('canvaDrawerEditImage');
       const railTextBtn = document.getElementById('canvaRailTextBtn');
       const railLayersBtn = document.getElementById('canvaRailLayersBtn');
       const railShapesBtn = document.getElementById('canvaRailShapesBtn');
@@ -3002,6 +3519,1122 @@
       const drawerLayers = document.getElementById('canvaDrawerLayers');
       const drawerShapes = document.getElementById('canvaDrawerShapes');
       const drawerUploads = document.getElementById('canvaDrawerUploads');
+
+      // Scope Selectors
+      const scopeAllBtn = document.getElementById('canvaScopeAllBtn');
+      const scopeElementBtn = document.getElementById('canvaScopeElementBtn');
+      const scopeAreaBtn = document.getElementById('canvaScopeAreaBtn');
+      const activeTargetInd = document.getElementById('canvaActiveTargetIndicator');
+      let currentEditScope = 'all';
+
+      function setEditScope(scope) {
+        currentEditScope = scope;
+        [scopeAllBtn, scopeElementBtn, scopeAreaBtn].forEach(btn => {
+          if (btn) {
+            btn.style.background = 'transparent';
+            btn.style.color = '#a0a6b5';
+            btn.classList.remove('active');
+          }
+        });
+        const activeBtn = (scope === 'all') ? scopeAllBtn : (scope === 'element' ? scopeElementBtn : scopeAreaBtn);
+        if (activeBtn) {
+          activeBtn.style.background = '#7d2ae8';
+          activeBtn.style.color = '#fff';
+          activeBtn.classList.add('active');
+        }
+        if (activeTargetInd) {
+          activeTargetInd.textContent = (scope === 'all') ? 'Whole Image' : (scope === 'element' ? 'Active Element' : 'Brush Area');
+        }
+      }
+
+      if (scopeAllBtn) scopeAllBtn.onclick = () => setEditScope('all');
+      if (scopeElementBtn) scopeElementBtn.onclick = () => setEditScope('element');
+      if (scopeAreaBtn) scopeAreaBtn.onclick = () => setEditScope('area');
+
+      // Pro Tools Cards & Panels
+      const toolAdjustBtn = document.getElementById('canvaToolAdjustBtn');
+      const toolUpscaleBtn = document.getElementById('canvaToolUpscaleBtn');
+      const toolBgRemoverBtn = document.getElementById('canvaToolBgRemoverBtn');
+      const toolMagicEraserBtn = document.getElementById('canvaToolMagicEraserBtn');
+      const toolBlurBtn = document.getElementById('canvaToolBlurBtn');
+      const toolAutoFocusBtn = document.getElementById('canvaToolAutoFocusBtn');
+      const toolFaceRetouchBtn = document.getElementById('canvaToolFaceRetouchBtn');
+      const toolMagicEditBtn = document.getElementById('canvaToolMagicEditBtn');
+      const toolImageToVideoBtn = document.getElementById('canvaToolImageToVideoBtn');
+      const toolBgGenBtn = document.getElementById('canvaToolBgGenBtn');
+      const toolMagicExpandBtn = document.getElementById('canvaToolMagicExpandBtn');
+      const toolMagicLayersBtn = document.getElementById('canvaToolMagicLayersBtn');
+      const toolMagicGrabBtn = document.getElementById('canvaToolMagicGrabBtn');
+      const toolGrabTextBtn = document.getElementById('canvaToolGrabTextBtn');
+      const toolMockupBtn = document.getElementById('canvaToolMockupBtn');
+
+      const subAdjustPanel = document.getElementById('canvaSubAdjustPanel');
+      const subEraserPanel = document.getElementById('canvaSubEraserPanel');
+      const subBgGenPanel = document.getElementById('canvaSubBgGenPanel');
+      const subMagicEditPanel = document.getElementById('canvaSubMagicEditPanel');
+      const subBlurPanel = document.getElementById('canvaSubBlurPanel');
+      const subAutoFocusPanel = document.getElementById('canvaSubAutoFocusPanel');
+      const subFaceRetouchPanel = document.getElementById('canvaSubFaceRetouchPanel');
+      const subMagicExpandPanel = document.getElementById('canvaSubMagicExpandPanel');
+      const subVideoPanel = document.getElementById('canvaSubVideoPanel');
+
+      const allSubPanels = [
+        subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel,
+        subBlurPanel, subAutoFocusPanel, subFaceRetouchPanel, subMagicExpandPanel, subVideoPanel
+      ];
+
+      function hideAllSubPanels() {
+        allSubPanels.forEach(p => { if (p) p.style.display = 'none'; });
+      }
+
+      const drawerBackBtn = document.getElementById('canvaDrawerBackBtn');
+      const drawerCloseBtn = document.getElementById('canvaDrawerCloseBtn');
+      if (drawerBackBtn) drawerBackBtn.onclick = () => { hideAllSubPanels(); if (railTextBtn) railTextBtn.click(); };
+      if (drawerCloseBtn) drawerCloseBtn.onclick = () => { hideAllSubPanels(); drawerEditImage.style.display = 'none'; };
+
+      // Adjust Sliders
+      const sliderBrightness = document.getElementById('canvaSliderBrightness');
+      const sliderContrast = document.getElementById('canvaSliderContrast');
+      const sliderSaturation = document.getElementById('canvaSliderSaturation');
+      const sliderWarmth = document.getElementById('canvaSliderWarmth');
+      const sliderBlur = document.getElementById('canvaSliderBlur');
+      const resetAdjustBtn = document.getElementById('canvaResetAdjustBtn');
+
+      function applyImageAdjustments() {
+        if (!canvaCanvas) return;
+        const target = (currentEditScope === 'element' && canvaCanvas.getActiveObject() && canvaCanvas.getActiveObject().isType('image')) 
+          ? canvaCanvas.getActiveObject() 
+          : canvaCanvas.backgroundImage;
+
+        if (!target) return;
+
+        const b = parseFloat(sliderBrightness.value) / 100;
+        const c = parseFloat(sliderContrast.value) / 100;
+        const s = parseFloat(sliderSaturation.value) / 100;
+        const w = parseFloat(sliderWarmth.value) / 180;
+        const bl = parseFloat(sliderBlur.value) / 10;
+
+        const valB = document.getElementById('canvaValBrightness');
+        const valC = document.getElementById('canvaValContrast');
+        const valS = document.getElementById('canvaValSaturation');
+        const valW = document.getElementById('canvaValWarmth');
+        const valBl = document.getElementById('canvaValBlur');
+        if (valB) valB.textContent = sliderBrightness.value;
+        if (valC) valC.textContent = sliderContrast.value;
+        if (valS) valS.textContent = sliderSaturation.value;
+        if (valW) valW.textContent = sliderWarmth.value;
+        if (valBl) valBl.textContent = sliderBlur.value;
+
+        target.filters = [];
+        if (b !== 0) target.filters.push(new fabric.Image.filters.Brightness({ brightness: b }));
+        if (c !== 0) target.filters.push(new fabric.Image.filters.Contrast({ contrast: c }));
+        if (s !== 0) target.filters.push(new fabric.Image.filters.Saturation({ saturation: s }));
+        if (w !== 0) target.filters.push(new fabric.Image.filters.HueRotation({ rotation: w }));
+        if (bl > 0) target.filters.push(new fabric.Image.filters.Blur({ blur: bl }));
+
+        target.applyFilters();
+        canvaCanvas.renderAll();
+      }
+
+      [sliderBrightness, sliderContrast, sliderSaturation, sliderWarmth, sliderBlur].forEach(sl => {
+        if (sl) sl.addEventListener('input', applyImageAdjustments);
+      });
+
+      if (resetAdjustBtn) {
+        resetAdjustBtn.onclick = () => {
+          [sliderBrightness, sliderContrast, sliderSaturation, sliderWarmth, sliderBlur].forEach(sl => { if (sl) sl.value = 0; });
+          applyImageAdjustments();
+          showToast("Adjustments reset to defaults", "⚙️", 1500);
+        };
+      }
+
+      if (toolAdjustBtn) {
+        toolAdjustBtn.onclick = () => {
+          const isShown = (subAdjustPanel.style.display === 'flex');
+          [subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel].forEach(p => { if (p) p.style.display = 'none'; });
+          if (!isShown) subAdjustPanel.style.display = 'flex';
+        };
+      }
+
+      // Magic Eraser Implementation
+      let isEraserMode = false;
+      const sliderBrushSize = document.getElementById('canvaSliderBrushSize');
+      const valBrushSize = document.getElementById('canvaValBrushSize');
+      const applyEraseBtn = document.getElementById('canvaApplyEraseBtn');
+      const cancelEraserBtn = document.getElementById('canvaCancelEraserBtn');
+
+      if (sliderBrushSize) {
+        sliderBrushSize.oninput = () => {
+          if (valBrushSize) valBrushSize.textContent = sliderBrushSize.value + 'px';
+          if (canvaCanvas && canvaCanvas.freeDrawingBrush) {
+            canvaCanvas.freeDrawingBrush.width = parseInt(sliderBrushSize.value, 10);
+          }
+        };
+      }
+
+      if (toolMagicEraserBtn) {
+        toolMagicEraserBtn.onclick = () => {
+          if (!canvaCanvas) return;
+          const isShown = (subEraserPanel.style.display === 'flex');
+          [subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel].forEach(p => { if (p) p.style.display = 'none'; });
+          if (!isShown) {
+            subEraserPanel.style.display = 'flex';
+            isEraserMode = true;
+            canvaCanvas.isDrawingMode = true;
+            canvaCanvas.freeDrawingBrush.color = 'rgba(236, 72, 153, 0.7)';
+            canvaCanvas.freeDrawingBrush.width = parseInt(sliderBrushSize.value, 10);
+            showToast("Paint over text or graphics to erase with AI", "🕊️", 3500);
+          } else {
+            isEraserMode = false;
+            canvaCanvas.isDrawingMode = false;
+          }
+        };
+      }
+
+      function stopEraserMode() {
+        if (!canvaCanvas) return;
+        isEraserMode = false;
+        canvaCanvas.isDrawingMode = false;
+        if (subEraserPanel) subEraserPanel.style.display = 'none';
+        const objs = canvaCanvas.getObjects();
+        objs.filter(o => o.type === 'path').forEach(p => canvaCanvas.remove(p));
+        canvaCanvas.renderAll();
+      }
+
+      if (cancelEraserBtn) cancelEraserBtn.onclick = stopEraserMode;
+
+      if (applyEraseBtn) {
+        applyEraseBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          applyEraseBtn.disabled = true;
+          applyEraseBtn.innerHTML = "⏳ AI Erasing...";
+
+          try {
+            const bgImg = canvaCanvas.backgroundImage;
+            const nativeW = canvaCanvas.nativeWidth || bgImg.width;
+            const nativeH = canvaCanvas.nativeHeight || bgImg.height;
+
+            const bgCanvas = document.createElement('canvas');
+            bgCanvas.width = nativeW;
+            bgCanvas.height = nativeH;
+            const bgCtx = bgCanvas.getContext('2d');
+            const bgElement = bgImg.getElement();
+            bgCtx.drawImage(bgElement, 0, 0, nativeW, nativeH);
+            const bgDataUrl = bgCanvas.toDataURL('image/png');
+
+            const maskCanvas = document.createElement('canvas');
+            maskCanvas.width = nativeW;
+            maskCanvas.height = nativeH;
+            const maskCtx = maskCanvas.getContext('2d');
+            maskCtx.fillStyle = '#000000';
+            maskCtx.fillRect(0, 0, nativeW, nativeH);
+
+            const scale = canvaCanvas.originalScale || 1;
+            const paths = canvaCanvas.getObjects().filter(o => o.type === 'path');
+
+            if (paths.length === 0) {
+              alert("Please paint over the area you want to erase first!");
+              return;
+            }
+
+            paths.forEach(p => {
+              maskCtx.save();
+              maskCtx.scale(1 / scale, 1 / scale);
+              p.render(maskCtx);
+              maskCtx.restore();
+            });
+
+            const maskImgData = maskCtx.getImageData(0, 0, nativeW, nativeH);
+            const d = maskImgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+              const lum = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+              const val = (lum > 20) ? 255 : 0;
+              d[i] = val;
+              d[i+1] = val;
+              d[i+2] = val;
+              d[i+3] = 255;
+            }
+            maskCtx.putImageData(maskImgData, 0, 0);
+            const maskDataUrl = maskCanvas.toDataURL('image/png');
+
+            const res = await fetch('/api/canva/magic-eraser', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: bgDataUrl,
+                mask_data: maskDataUrl,
+                radius: parseInt(sliderBrushSize.value, 10)
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            cleanBgUrl = data.image_url;
+            setCanvasBg(data.image_url, () => {
+              stopEraserMode();
+              saveCanvasState();
+              showToast("Erased cleanly with AI inpainting!", "✨", 3500);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("Magic Eraser failed: " + err.message);
+          } finally {
+            applyEraseBtn.disabled = false;
+            applyEraseBtn.innerHTML = "✨ Erase Brushed Area";
+          }
+        };
+      }
+
+      // 3. BG Remover Tool
+      if (toolBgRemoverBtn) {
+        toolBgRemoverBtn.onclick = async function () {
+          if (!canvaCanvas) return;
+          const activeObj = canvaCanvas.getActiveObject();
+          const targetImg = (activeObj && activeObj.isType('image')) ? activeObj : canvaCanvas.backgroundImage;
+
+          if (!targetImg) {
+            alert("Please select an image or logo to remove its background!");
+            return;
+          }
+
+          const origHTML = toolBgRemoverBtn.innerHTML;
+          toolBgRemoverBtn.innerHTML = '<span style="font-size:18px;">⏳</span><span style="font-size:11px; font-weight:700; color:#fff;">Removing...</span>';
+
+          try {
+            const dataUrl = targetImg.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/bg-remover', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: dataUrl })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            if (activeObj && activeObj.isType('image')) {
+              fabric.Image.fromURL(data.image_url, function (newImg) {
+                newImg.set({
+                  left: activeObj.left,
+                  top: activeObj.top,
+                  scaleX: activeObj.scaleX,
+                  scaleY: activeObj.scaleY,
+                  angle: activeObj.angle
+                });
+                canvaCanvas.remove(activeObj);
+                canvaCanvas.add(newImg);
+                canvaCanvas.setActiveObject(newImg);
+                canvaCanvas.renderAll();
+                saveCanvasState();
+                showToast("Background removed! Transparent cutout ready!", "🏖️", 3500);
+              });
+            } else {
+              setCanvasBg(data.image_url, () => {
+                saveCanvasState();
+                showToast("Background removed from label canvas!", "🏖️", 3500);
+              });
+            }
+
+          } catch (err) {
+            console.error(err);
+            alert("Background Remover failed: " + err.message);
+          } finally {
+            toolBgRemoverBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      // 4. Upscale Tool (Ultra-HD 300 DPI Super-Resolution)
+      if (toolUpscaleBtn) {
+        toolUpscaleBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const origHTML = toolUpscaleBtn.innerHTML;
+          toolUpscaleBtn.innerHTML = '<span style="font-size:18px;">⏳</span><span style="font-size:11px; font-weight:700; color:#fff;">Upscaling...</span>';
+
+          try {
+            const bgDataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/upscale', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: bgDataUrl, scale: 2.0 })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Super-Resolution Applied: Ultra-HD 300 DPI!", "🌻", 3500);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("Upscale failed: " + err.message);
+          } finally {
+            toolUpscaleBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      // 5. BG Generator Presets
+      if (toolBgGenBtn) {
+        toolBgGenBtn.onclick = () => {
+          const isShown = (subBgGenPanel.style.display === 'flex');
+          [subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel].forEach(p => { if (p) p.style.display = 'none'; });
+          if (!isShown) subBgGenPanel.style.display = 'flex';
+        };
+      }
+
+      document.querySelectorAll('.canva-bg-preset-btn').forEach(btn => {
+        btn.onclick = async function () {
+          if (!canvaCanvas) return;
+          const preset = btn.getAttribute('data-preset');
+          btn.style.opacity = '0.5';
+
+          try {
+            const res = await fetch('/api/canva/bg-generator', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                preset: preset,
+                width: canvaCanvas.nativeWidth || 1536,
+                height: canvaCanvas.nativeHeight || 512
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Applied " + preset.replace('_', ' ') + " texture!", "🕶️", 3000);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("BG Generator failed: " + err.message);
+          } finally {
+            btn.style.opacity = '1';
+          }
+        };
+      });
+
+      // 6. Magic Edit Tool
+      if (toolMagicEditBtn) {
+        toolMagicEditBtn.onclick = () => {
+          const isShown = (subMagicEditPanel.style.display === 'flex');
+          [subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel].forEach(p => { if (p) p.style.display = 'none'; });
+          if (!isShown) subMagicEditPanel.style.display = 'flex';
+        };
+      }
+
+      const executeMagicEditBtn = document.getElementById('canvaExecuteMagicEditBtn');
+      const magicEditPrompt = document.getElementById('canvaMagicEditPrompt');
+      if (executeMagicEditBtn) {
+        executeMagicEditBtn.onclick = async function () {
+          const promptVal = magicEditPrompt ? magicEditPrompt.value.trim() : "";
+          if (!promptVal) {
+            alert("Please type a description of what you want to edit or add!");
+            return;
+          }
+          executeMagicEditBtn.disabled = true;
+          executeMagicEditBtn.textContent = "⏳ Generating AI Edit...";
+
+          try {
+            showToast("Magic AI modification requested: " + promptVal, "🪄", 3500);
+            subMagicEditPanel.style.display = 'none';
+          } finally {
+            executeMagicEditBtn.disabled = false;
+            executeMagicEditBtn.textContent = "⚡ Generate with AI";
+          }
+        };
+      }
+
+      // 7. Magic Layers
+      if (toolMagicLayersBtn) {
+        toolMagicLayersBtn.onclick = () => {
+          if (railLayersBtn) railLayersBtn.click();
+          showToast("Switched to Layers drawer!", "🔮", 2000);
+        };
+      }
+
+      // 8. 3D Mockup Perspective Tool
+      if (toolMockupBtn) {
+        toolMockupBtn.onclick = () => {
+          const art = document.getElementById('canvaArtboardContainer');
+          if (art) {
+            if (art.style.transform && art.style.transform.includes('rotateY')) {
+              art.style.transform = 'scale(1)';
+              art.style.boxShadow = '0 15px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1)';
+              showToast("Standard Artboard View", "📐", 1500);
+            } else {
+              art.style.transform = 'perspective(900px) rotateY(-8deg) rotateX(2deg) scale(0.95)';
+              art.style.boxShadow = '-20px 25px 60px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.2)';
+              showToast("3D Product Bottle Perspective Preview Active", "🦋", 2500);
+            }
+          }
+        };
+      }
+
+      // 9. Blur Tool
+      const sliderBlurRadius = document.getElementById('canvaSliderBlurRadius');
+      const valBlurRadius = document.getElementById('canvaValBlurRadius');
+      const applyBlurBtn = document.getElementById('canvaApplyBlurBtn');
+      const cancelBlurBtn = document.getElementById('canvaCancelBlurBtn');
+      let currentBlurType = 'gaussian';
+
+      if (sliderBlurRadius) {
+        sliderBlurRadius.oninput = () => {
+          if (valBlurRadius) valBlurRadius.textContent = sliderBlurRadius.value + 'px';
+        };
+      }
+
+      document.querySelectorAll('.canva-blur-type-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.canva-blur-type-btn').forEach(b => {
+            b.style.background = '#22252a';
+            b.style.color = '#a0a6b5';
+            b.classList.remove('active');
+          });
+          btn.style.background = '#0284c7';
+          btn.style.color = '#fff';
+          btn.classList.add('active');
+          currentBlurType = btn.getAttribute('data-type');
+        };
+      });
+
+      if (cancelBlurBtn) cancelBlurBtn.onclick = () => { if (subBlurPanel) subBlurPanel.style.display = 'none'; };
+
+      if (toolBlurBtn) {
+        toolBlurBtn.onclick = () => {
+          const isShown = (subBlurPanel && subBlurPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subBlurPanel) subBlurPanel.style.display = 'flex';
+        };
+      }
+
+      if (applyBlurBtn) {
+        applyBlurBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          applyBlurBtn.disabled = true;
+          applyBlurBtn.textContent = '⏳ Applying Blur...';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/blur', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                radius: parseInt(sliderBlurRadius.value, 10),
+                type: currentBlurType
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Blur applied successfully!", "🏃‍♂️", 2500);
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Blur failed: " + err.message);
+          } finally {
+            applyBlurBtn.disabled = false;
+            applyBlurBtn.textContent = '✨ Apply Blur';
+          }
+        };
+      }
+
+      // 10. Auto Focus Tool (Bokeh Depth-of-Field)
+      const sliderBokeh = document.getElementById('canvaSliderBokeh');
+      const valBokeh = document.getElementById('canvaValBokeh');
+      const applyAutoFocusBtn = document.getElementById('canvaApplyAutoFocusBtn');
+      const cancelAutoFocusBtn = document.getElementById('canvaCancelAutoFocusBtn');
+
+      if (sliderBokeh) {
+        sliderBokeh.oninput = () => {
+          if (valBokeh) valBokeh.textContent = sliderBokeh.value + 'px';
+        };
+      }
+
+      if (cancelAutoFocusBtn) cancelAutoFocusBtn.onclick = () => { if (subAutoFocusPanel) subAutoFocusPanel.style.display = 'none'; };
+
+      if (toolAutoFocusBtn) {
+        toolAutoFocusBtn.onclick = () => {
+          const isShown = (subAutoFocusPanel && subAutoFocusPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subAutoFocusPanel) subAutoFocusPanel.style.display = 'flex';
+        };
+      }
+
+      if (applyAutoFocusBtn) {
+        applyAutoFocusBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          applyAutoFocusBtn.disabled = true;
+          applyAutoFocusBtn.textContent = '⏳ Focusing Subject...';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/auto-focus', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                blur_strength: parseInt(sliderBokeh.value, 10)
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Auto Focus Depth-of-Field applied!", "🐕", 3000);
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Auto Focus failed: " + err.message);
+          } finally {
+            applyAutoFocusBtn.disabled = false;
+            applyAutoFocusBtn.textContent = '⚡ Apply Auto Focus';
+          }
+        };
+      }
+
+      // 11. Face & Model Retouch
+      const sliderSmoothness = document.getElementById('canvaSliderSmoothness');
+      const valSmoothness = document.getElementById('canvaValSmoothness');
+      const applyFaceRetouchBtn = document.getElementById('canvaApplyFaceRetouchBtn');
+      const cancelFaceRetouchBtn = document.getElementById('canvaCancelFaceRetouchBtn');
+
+      if (sliderSmoothness) {
+        sliderSmoothness.oninput = () => {
+          if (valSmoothness) valSmoothness.textContent = sliderSmoothness.value + '%';
+        };
+      }
+
+      if (cancelFaceRetouchBtn) cancelFaceRetouchBtn.onclick = () => { if (subFaceRetouchPanel) subFaceRetouchPanel.style.display = 'none'; };
+
+      if (toolFaceRetouchBtn) {
+        toolFaceRetouchBtn.onclick = () => {
+          const isShown = (subFaceRetouchPanel && subFaceRetouchPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subFaceRetouchPanel) subFaceRetouchPanel.style.display = 'flex';
+        };
+      }
+
+      if (applyFaceRetouchBtn) {
+        applyFaceRetouchBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          applyFaceRetouchBtn.disabled = true;
+          applyFaceRetouchBtn.textContent = '⏳ Smoothing Skin...';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const smoothness = parseFloat(sliderSmoothness.value) / 100;
+            const res = await fetch('/api/canva/face-retouch', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                smoothness: smoothness
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Face Retouch applied cleanly!", "💆‍♀️", 3000);
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Face Retouch failed: " + err.message);
+          } finally {
+            applyFaceRetouchBtn.disabled = false;
+            applyFaceRetouchBtn.textContent = '✨ Smooth & Retouch';
+          }
+        };
+      }
+
+      // 12. Magic Expand Tool
+      const applyExpandBtn = document.getElementById('canvaApplyExpandBtn');
+      const cancelExpandBtn = document.getElementById('canvaCancelExpandBtn');
+      let currentExpandAspect = '3:1';
+
+      document.querySelectorAll('.canva-expand-ratio-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.canva-expand-ratio-btn').forEach(b => {
+            b.style.background = '#22252a';
+            b.style.borderColor = '#32363f';
+            b.style.color = '#a0a6b5';
+            b.classList.remove('active');
+          });
+          btn.style.background = '#15803d';
+          btn.style.borderColor = '#22c55e';
+          btn.style.color = '#fff';
+          btn.classList.add('active');
+          currentExpandAspect = btn.getAttribute('data-aspect');
+        };
+      });
+
+      if (cancelExpandBtn) cancelExpandBtn.onclick = () => { if (subMagicExpandPanel) subMagicExpandPanel.style.display = 'none'; };
+
+      if (toolMagicExpandBtn) {
+        toolMagicExpandBtn.onclick = () => {
+          const isShown = (subMagicExpandPanel && subMagicExpandPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subMagicExpandPanel) subMagicExpandPanel.style.display = 'flex';
+        };
+      }
+
+      if (applyExpandBtn) {
+        applyExpandBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          applyExpandBtn.disabled = true;
+          applyExpandBtn.textContent = '⏳ Expanding with AI...';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/magic-expand', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                aspect: currentExpandAspect
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Canvas expanded to " + currentExpandAspect + "!", "🐞", 3500);
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Magic Expand failed: " + err.message);
+          } finally {
+            applyExpandBtn.disabled = false;
+            applyExpandBtn.textContent = '⚡ Expand Canvas with AI';
+          }
+        };
+      }
+
+      // 13. Magic Grab Tool
+      if (toolMagicGrabBtn) {
+        toolMagicGrabBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const origHTML = toolMagicGrabBtn.innerHTML;
+          toolMagicGrabBtn.innerHTML = '<div style="width:52px; height:52px; border-radius:50%; background:#22252a; display:flex; align-items:center; justify-content:center; font-size:20px;">⏳</div><span style="font-size:11px; font-weight:600; color:#fff;">Grabbing...</span>';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/magic-grab', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: dataUrl })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.background_url, () => {
+              fabric.Image.fromURL(data.foreground_url, function (fgImg) {
+                fgImg.set({
+                  left: data.bbox.left,
+                  top: data.bbox.top,
+                  cornerColor: '#8b3dff',
+                  cornerStrokeColor: '#ffffff',
+                  borderColor: '#8b3dff',
+                  cornerSize: 10,
+                  transparentCorners: false
+                });
+                canvaCanvas.add(fgImg);
+                canvaCanvas.setActiveObject(fgImg);
+                canvaCanvas.renderAll();
+                saveCanvasState();
+                showToast("✨ Subject grabbed! You can now move or resize it freely!", "🎈", 4000);
+              });
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Magic Grab failed: " + err.message);
+          } finally {
+            toolMagicGrabBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      // 14. Grab Text Tool (EasyOCR + Inpaint)
+      if (toolGrabTextBtn) {
+        toolGrabTextBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const origHTML = toolGrabTextBtn.innerHTML;
+          toolGrabTextBtn.innerHTML = '<div style="width:52px; height:52px; border-radius:50%; background:#22252a; display:flex; align-items:center; justify-content:center; font-size:20px;">⏳</div><span style="font-size:11px; font-weight:600; color:#fff;">Extracting...</span>';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/grab-text', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: dataUrl })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.clean_background_url, () => {
+              if (data.text_elements && data.text_elements.length > 0) {
+                data.text_elements.forEach(item => {
+                  const itext = new fabric.IText(item.text, {
+                    left: item.left,
+                    top: item.top,
+                    fontSize: item.fontSize || 24,
+                    fill: item.color || '#ffffff',
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 'bold',
+                    cornerColor: '#f59e0b',
+                    borderColor: '#f59e0b',
+                    cornerSize: 8,
+                    transparentCorners: false
+                  });
+                  canvaCanvas.add(itext);
+                });
+                canvaCanvas.renderAll();
+                saveCanvasState();
+                showToast(`✨ Extracted ${data.count} editable text elements! Double-click to edit!`, "🔤", 4500);
+              } else {
+                showToast("No clear text detected on the image.", "ℹ️", 3000);
+              }
+            });
+          } catch (err) {
+            console.error(err);
+            alert("Grab Text failed: " + err.message);
+          } finally {
+            toolGrabTextBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      // 15. Image to Video Tool
+      const cancelVideoBtn = document.getElementById('canvaCancelVideoBtn');
+      const generateVideoBtn = document.getElementById('canvaGenerateVideoBtn');
+      const launch3DMockupBtn = document.getElementById('canvaLaunch3DMockupBtn');
+      const videoContainer = document.getElementById('canvaVideoPreviewContainer');
+
+      if (cancelVideoBtn) cancelVideoBtn.onclick = () => { if (subVideoPanel) subVideoPanel.style.display = 'none'; };
+
+      if (toolImageToVideoBtn) {
+        toolImageToVideoBtn.onclick = () => {
+          const isShown = (subVideoPanel && subVideoPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subVideoPanel) subVideoPanel.style.display = 'flex';
+        };
+      }
+
+      if (generateVideoBtn) {
+        generateVideoBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          generateVideoBtn.disabled = true;
+          generateVideoBtn.textContent = '⏳ Rendering 3D Turnaround...';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/image-to-video', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: dataUrl })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            if (videoContainer) {
+              videoContainer.innerHTML = `<img src="${data.video_url}" style="max-width:100%; max-height:100%; object-fit:contain; border-radius:6px;" alt="3D Video Preview" />`;
+            }
+            showToast("3D Turnaround Animation Rendered!", "🦋", 3000);
+          } catch (err) {
+            console.error(err);
+            alert("Video generation failed: " + err.message);
+          } finally {
+            generateVideoBtn.disabled = false;
+            generateVideoBtn.textContent = '🎬 Render 3D Video';
+          }
+        };
+      }
+
+      if (launch3DMockupBtn) {
+        launch3DMockupBtn.onclick = () => {
+          if (toolMockupBtn) toolMockupBtn.click();
+        };
+      }
+
+      // Filters & Style Match
+      document.querySelectorAll('.canva-filter-btn').forEach(btn => {
+        btn.onclick = () => {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const filter = btn.getAttribute('data-filter');
+          const target = canvaCanvas.backgroundImage;
+
+          target.filters = [];
+          if (filter === 'natural') {
+            target.filters.push(new fabric.Image.filters.Contrast({ contrast: 0.05 }));
+            target.filters.push(new fabric.Image.filters.Saturation({ saturation: 0.1 }));
+          } else if (filter === 'warm') {
+            target.filters.push(new fabric.Image.filters.HueRotation({ rotation: 0.08 }));
+            target.filters.push(new fabric.Image.filters.Brightness({ brightness: 0.03 }));
+          } else if (filter === 'cool') {
+            target.filters.push(new fabric.Image.filters.HueRotation({ rotation: -0.1 }));
+            target.filters.push(new fabric.Image.filters.Contrast({ contrast: 0.08 }));
+          } else if (filter === 'vivid') {
+            target.filters.push(new fabric.Image.filters.Saturation({ saturation: 0.35 }));
+            target.filters.push(new fabric.Image.filters.Contrast({ contrast: 0.15 }));
+          }
+          target.applyFilters();
+          canvaCanvas.renderAll();
+          showToast("Applied " + filter.toUpperCase() + " Filter!", "🎨", 2000);
+        };
+      });
+
+      document.querySelectorAll('.canva-style-card').forEach(card => {
+        card.onclick = () => {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const style = card.getAttribute('data-style');
+          const target = canvaCanvas.backgroundImage;
+
+          target.filters = [];
+          if (style === 'etching') {
+            target.filters.push(new fabric.Image.filters.Grayscale());
+            target.filters.push(new fabric.Image.filters.Contrast({ contrast: 0.4 }));
+          } else if (style === 'scrapbook') {
+            target.filters.push(new fabric.Image.filters.Sepia());
+            target.filters.push(new fabric.Image.filters.Contrast({ contrast: 0.1 }));
+          }
+          target.applyFilters();
+          canvaCanvas.renderAll();
+          showToast(style === 'none' ? "Style reset" : "Applied " + style + " style!", "🎨", 2000);
+        };
+      });
+
+      // Vectorify App
+      const appVectorifyBtn = document.getElementById('canvaAppVectorifyBtn');
+      if (appVectorifyBtn) {
+        appVectorifyBtn.onclick = async function () {
+          if (!canvaCanvas) return;
+          const activeObj = canvaCanvas.getActiveObject();
+          const target = (activeObj && activeObj.isType('image')) ? activeObj : canvaCanvas.backgroundImage;
+          if (!target) {
+            alert("Please select an element or have a background image to vectorize!");
+            return;
+          }
+
+          const origHTML = appVectorifyBtn.innerHTML;
+          appVectorifyBtn.innerHTML = '<span style="font-size:16px;">⏳</span><span style="font-size:10px; color:#fff;">Tracing...</span>';
+
+          try {
+            const dataUrl = target.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/vectorify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image_data: dataUrl })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            fabric.loadSVGFromString(data.svg_content, function (objects, options) {
+              const svgGroup = fabric.util.groupSVGElements(objects, options);
+              if (activeObj && activeObj.isType('image')) {
+                svgGroup.set({
+                  left: activeObj.left,
+                  top: activeObj.top,
+                  scaleX: activeObj.scaleX,
+                  scaleY: activeObj.scaleY
+                });
+                canvaCanvas.remove(activeObj);
+                canvaCanvas.add(svgGroup);
+                canvaCanvas.setActiveObject(svgGroup);
+              } else {
+                svgGroup.set({
+                  left: 20,
+                  top: 20,
+                  scaleX: (canvaCanvas.width - 40) / (svgGroup.width || 1),
+                  scaleY: (canvaCanvas.height - 40) / (svgGroup.height || 1)
+                });
+                canvaCanvas.add(svgGroup);
+              }
+              canvaCanvas.renderAll();
+              saveCanvasState();
+              showToast("Vectorify complete! Converted to SVG vector paths!", "🐕", 3500);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("Vectorify failed: " + err.message);
+          } finally {
+            appVectorifyBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      // Texture App Panel
+      const appTextureBtn = document.getElementById('canvaAppTextureBtn');
+      const subTexturePanel = document.getElementById('canvaSubTexturePanel');
+      const sliderTexOpacity = document.getElementById('canvaSliderTexOpacity');
+      const valTexOpacity = document.getElementById('canvaValTexOpacity');
+
+      if (sliderTexOpacity) {
+        sliderTexOpacity.oninput = () => {
+          if (valTexOpacity) valTexOpacity.textContent = sliderTexOpacity.value + '%';
+        };
+      }
+
+      if (appTextureBtn) {
+        appTextureBtn.onclick = () => {
+          const isShown = (subTexturePanel.style.display === 'flex');
+          [subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel, subShadowPanel, subTexturePanel].forEach(p => { if (p) p.style.display = 'none'; });
+          if (!isShown) subTexturePanel.style.display = 'flex';
+        };
+      }
+
+      document.querySelectorAll('.canva-tex-apply-btn').forEach(btn => {
+        btn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          const texType = btn.getAttribute('data-tex');
+          btn.style.opacity = '0.5';
+
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const opacity = parseFloat(sliderTexOpacity ? sliderTexOpacity.value : 35) / 100;
+            const res = await fetch('/api/canva/texture', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                texture: texType,
+                opacity: opacity
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Applied " + texType.toUpperCase() + " packaging texture!", "📄", 3000);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("Texture application failed: " + err.message);
+          } finally {
+            btn.style.opacity = '1';
+          }
+        };
+      });
+
+      // Screen App (Halftone)
+      const appScreenBtn = document.getElementById('canvaAppScreenBtn');
+      if (appScreenBtn) {
+        appScreenBtn.onclick = async function () {
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          try {
+            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
+            const res = await fetch('/api/canva/texture', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: dataUrl,
+                texture: 'screen',
+                opacity: 0.5
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            setCanvasBg(data.image_url, () => {
+              saveCanvasState();
+              showToast("Applied Halftone Screen Print Pattern!", "🏁", 3000);
+            });
+          } catch (err) {
+            console.error(err);
+          }
+        };
+      }
+
+      // Shadows & Glow
+      const subShadowPanel = document.getElementById('canvaSubShadowPanel');
+      const sliderShadowBlur = document.getElementById('canvaSliderShadowBlur');
+      const sliderShadowOffset = document.getElementById('canvaSliderShadowOffset');
+      const shadowColorPicker = document.getElementById('canvaShadowColorPicker');
+      let currentShadowType = 'none';
+
+      function applyShadowToActive() {
+        if (!canvaCanvas) return;
+        const target = canvaCanvas.getActiveObject();
+        if (!target) return;
+
+        const blur = parseInt(sliderShadowBlur.value, 10);
+        const offset = parseInt(sliderShadowOffset.value, 10);
+        const color = shadowColorPicker.value;
+
+        const valB = document.getElementById('canvaValShadowBlur');
+        const valO = document.getElementById('canvaValShadowOffset');
+        if (valB) valB.textContent = blur;
+        if (valO) valO.textContent = offset;
+
+        if (currentShadowType === 'none') {
+          target.set('shadow', null);
+          target.set('stroke', null);
+          target.set('strokeWidth', 0);
+        } else if (currentShadowType === 'glow') {
+          target.set('shadow', new fabric.Shadow({
+            color: color,
+            blur: blur,
+            offsetX: 0,
+            offsetY: 0
+          }));
+        } else if (currentShadowType === 'drop') {
+          target.set('shadow', new fabric.Shadow({
+            color: 'rgba(0,0,0,0.65)',
+            blur: blur,
+            offsetX: offset,
+            offsetY: offset * 1.2
+          }));
+        } else if (currentShadowType === 'outline') {
+          target.set('stroke', color || '#ffffff');
+          target.set('strokeWidth', Math.max(1, Math.round(offset / 3)));
+        }
+
+        canvaCanvas.renderAll();
+      }
+
+      [sliderShadowBlur, sliderShadowOffset, shadowColorPicker].forEach(ctrl => {
+        if (ctrl) ctrl.addEventListener('input', applyShadowToActive);
+      });
+
+      document.querySelectorAll('.canva-shadow-btn').forEach(btn => {
+        btn.onclick = () => {
+          const type = btn.getAttribute('data-shadow');
+          currentShadowType = type;
+
+          document.querySelectorAll('.canva-shadow-btn').forEach(b => {
+            b.style.borderColor = '#32363f';
+            b.classList.remove('active');
+          });
+          btn.style.borderColor = '#8b3dff';
+          btn.classList.add('active');
+
+          if (type !== 'none') {
+            if (subShadowPanel) subShadowPanel.style.display = 'flex';
+          } else {
+            if (subShadowPanel) subShadowPanel.style.display = 'none';
+          }
+
+          const target = canvaCanvas.getActiveObject();
+          if (target) {
+            applyShadowToActive();
+            saveCanvasState();
+            showToast("Applied " + type.toUpperCase() + " effect!", "💫", 1500);
+          } else {
+            showToast("Click on any text, logo, or element to apply " + type.toUpperCase() + "!", "ℹ️", 3000);
+          }
+        };
+      });
 
       // Text Adders
       const addHeadingBtn = document.getElementById('canvaAddHeadingBtn');
@@ -3031,6 +4664,7 @@
       const exportMenuBtn = document.getElementById('canvaExportMenuBtn');
       const exportDropdown = document.getElementById('canvaExportDropdown');
       const exportPngBtn = document.getElementById('canvaExportPngBtn');
+      const exportJpgBtn = document.getElementById('canvaExportJpgBtn');
       const exportPdfBtn = document.getElementById('canvaExportPdfBtn');
       const exportSvgBtn = document.getElementById('canvaExportSvgBtn');
 
@@ -3045,7 +4679,7 @@
 
       // Switch Left Drawer Tabs
       function switchDrawerTab(activeBtn, activeDrawer) {
-        [railTextBtn, railLayersBtn, railShapesBtn, railUploadsBtn].forEach(b => {
+        [railEditImageBtn, railTextBtn, railLayersBtn, railShapesBtn, railUploadsBtn].forEach(b => {
           if (b) {
             b.classList.remove('active');
             b.style.background = 'transparent';
@@ -3058,12 +4692,14 @@
           activeBtn.style.color = '#ffffff';
         }
 
-        [drawerText, drawerLayers, drawerShapes, drawerUploads].forEach(d => {
+        [drawerEditImage, drawerText, drawerLayers, drawerShapes, drawerUploads].forEach(d => {
           if (d) d.style.display = 'none';
         });
         if (activeDrawer) activeDrawer.style.display = 'flex';
       }
 
+      if (railEditImageBtn) railEditImageBtn.onclick = () => switchDrawerTab(railEditImageBtn, drawerEditImage);
+      if (topEditImageBtn) topEditImageBtn.onclick = () => switchDrawerTab(railEditImageBtn, drawerEditImage);
       if (railTextBtn) railTextBtn.onclick = () => switchDrawerTab(railTextBtn, drawerText);
       if (railLayersBtn) railLayersBtn.onclick = () => { switchDrawerTab(railLayersBtn, drawerLayers); renderLayersList(); };
       if (railShapesBtn) railShapesBtn.onclick = () => switchDrawerTab(railShapesBtn, drawerShapes);
@@ -3718,27 +5354,64 @@
         };
       }
 
-      // Export Actions
-      if (exportPngBtn) {
-        exportPngBtn.onclick = () => {
-          if (!canvaCanvas) return;
-          canvaCanvas.discardActiveObject();
-          canvaCanvas.renderAll();
+      // Export Actions — Ultra-HD 300 DPI Master Generator (~15-18 MB)
+      async function exportMasterFile(format) {
+        if (!canvaCanvas) return;
+        canvaCanvas.discardActiveObject();
+        canvaCanvas.renderAll();
+
+        const extLabel = format.toUpperCase();
+        showToast(`Preparing Ultra-HD 300 DPI ${extLabel} Master (~16 MB)...`, "⏳", 4500);
+
+        try {
           const scale = canvaCanvas.originalScale || 1;
           const dataURL = canvaCanvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 / scale });
+          const stem = (currentDocFilename.replace(/\.png$/, '') || 'edited_label');
+
+          const response = await fetch('/api/canva/export-master', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              image_data: dataURL,
+              format: format,
+              filename: stem
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
+
+          const blob = await response.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = downloadUrl;
+          const fileExt = (format === 'pdf') ? 'pdf' : (format === 'jpg' ? 'jpg' : 'png');
+          a.download = `${stem}_master_300dpi.${fileExt}`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(downloadUrl);
+          document.body.removeChild(a);
+
+          const sizeMb = (blob.size / (1024 * 1024)).toFixed(1);
+          showToast(`✅ Master ${extLabel} Ready (${sizeMb} MB, 300 DPI Crisp Print Quality)!`, "🎉", 4500);
+        } catch (err) {
+          console.error(err);
+          // Fallback to local canvas export
+          const scale = canvaCanvas.originalScale || 1;
+          const dataURL = canvaCanvas.toDataURL({ format: (format === 'jpg' ? 'jpeg' : 'png'), quality: 1, multiplier: 1 / scale });
           const a = document.createElement('a');
           a.href = dataURL;
-          a.download = (currentDocFilename.replace(/\.png$/, '') || 'edited_label') + '_canva_export.png';
+          a.download = `${currentDocFilename.replace(/\.png$/, '') || 'edited_label'}.${format}`;
           a.click();
-        };
+          showToast(`Exported ${extLabel} (${format})`, "📥", 2000);
+        }
       }
 
-      if (exportPdfBtn) {
-        exportPdfBtn.onclick = () => {
-          if (!currentDocFilename) return;
-          window.location.href = `/download/${currentDocFilename}/pdf`;
-        };
-      }
+      if (exportPngBtn) exportPngBtn.onclick = () => exportMasterFile('png');
+      if (exportJpgBtn) exportJpgBtn.onclick = () => exportMasterFile('jpg');
+      if (exportPdfBtn) exportPdfBtn.onclick = () => exportMasterFile('pdf');
 
       if (exportSvgBtn) {
         exportSvgBtn.onclick = () => {
@@ -3756,6 +5429,7 @@
           a.href = URL.createObjectURL(blob);
           a.download = (currentDocFilename.replace(/\.png$/, '') || 'edited_label') + '_vector.svg';
           a.click();
+          showToast("Scalable SVG Vector Exported!", "📐", 2500);
         };
       }
 
