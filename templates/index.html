@@ -1908,7 +1908,8 @@
             <select id="apiProviderSelect" name="api_provider"
               style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text); font-family:inherit; font-size:13px; outline:none; cursor:pointer;">
               <option value="recraft">Recraft.ai</option>
-              <option value="nanobanana" selected>Nano Banana</option>
+              <option value="nanobanana" selected>Nano Banana (PixAPI)</option>
+              <option value="googleflow">Google Flow (Nano Banana 2 / Pro)</option>
               <option value="openai">OpenAI (DALL-E 3)</option>
               <option value="gemini">Google Gemini</option>
               <option value="edenai">Eden AI (DALL-E 3)</option>
@@ -3401,7 +3402,71 @@
                       </div>
                       <span style="font-size:11px; font-weight:600; color:#334155;">Blur</span>
                     </div>
+
+                    <!-- 9. Google Flow Image AI -->
+                    <div id="canvaToolGoogleFlowBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:6px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; font-size:8px; font-weight:900; border-radius:6px; padding:1px 5px; z-index:2;">Flow</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #fef08a 0%, #facc15 100%); color:#854d0e; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 2px 6px rgba(234,179,8,0.25); border:1.5px solid #fde047; transition:transform 0.15s;">
+                        🍌
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Google Flow</span>
+                    </div>
                   </div>
+                </div>
+
+                <!-- SUB-PANEL: GOOGLE FLOW IMAGE AI (NANO BANANA 2 / PRO) -->
+                <div id="canvaSubGoogleFlowPanel" style="display:none; background:#ffffff; border:1.5px solid #eab308; border-radius:12px; padding:12px; flex-direction:column; gap:10px; box-shadow:0 4px 14px rgba(234,179,8,0.15);">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span style="font-size:16px;">🍌</span>
+                      <span style="font-size:13px; font-weight:800; color:#0f172a;">Google Flow Image AI</span>
+                      <span style="background:#fef9c3; color:#854d0e; font-size:9px; font-weight:800; padding:1px 6px; border-radius:10px;">Nano Banana</span>
+                    </div>
+                    <button id="canvaCloseGoogleFlowBtn" type="button" style="background:transparent; border:none; color:#64748b; font-size:14px; cursor:pointer;" title="Close">✕</button>
+                  </div>
+                  <p style="font-size:11px; color:#64748b; margin:0; line-height:1.4;">
+                    Generate packaging labels &amp; product graphics via Google Flow API (useapi.net).
+                  </p>
+
+                  <!-- Model Selection -->
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <label style="font-size:11px; font-weight:700; color:#334155;">Flow Model:</label>
+                    <select id="canvaFlowModelSelect" style="width:100%; padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:600; color:#0f172a; outline:none; background:#fff;">
+                      <option value="nano-banana-2-lite" selected>Nano Banana 2 Lite (Fast · 0 Credits)</option>
+                      <option value="nano-banana-2">Nano Banana 2.1 (Quality)</option>
+                      <option value="nano-banana-pro">Nano Banana Pro (Gemini 3 Pro Image)</option>
+                    </select>
+                  </div>
+
+                  <!-- Aspect Ratio Selection -->
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <label style="font-size:11px; font-weight:700; color:#334155;">Aspect Ratio:</label>
+                    <select id="canvaFlowAspectSelect" style="width:100%; padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:600; color:#0f172a; outline:none; background:#fff;">
+                      <option value="1:1" selected>Square (1:1)</option>
+                      <option value="16:9">Wide / Landscape (16:9)</option>
+                      <option value="9:16">Portrait (9:16)</option>
+                      <option value="3:1">Wrap Label (3:1)</option>
+                      <option value="auto">Auto (Match Reference)</option>
+                    </select>
+                  </div>
+
+                  <!-- Prompt Textarea -->
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <label style="font-size:11px; font-weight:700; color:#334155;">Image Prompt:</label>
+                    <textarea id="canvaFlowPromptInput" rows="3" placeholder="e.g. Luxury gold foil whey protein jar packaging label with clean typography..." style="width:100%; padding:8px; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-family:inherit; resize:vertical; outline:none; box-sizing:border-box;"></textarea>
+                  </div>
+
+                  <!-- Reference image toggle -->
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <input type="checkbox" id="canvaFlowUseCanvasRef" style="accent-color:#eab308; cursor:pointer;" />
+                    <label for="canvaFlowUseCanvasRef" style="font-size:11px; color:#475569; cursor:pointer; font-weight:600;">Use canvas as visual reference (Image-to-Image)</label>
+                  </div>
+
+                  <!-- Generate Button -->
+                  <button id="canvaExecuteGoogleFlowBtn" type="button" style="background:linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#ffffff; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(234,179,8,0.3); transition:all 0.15s;">
+                    <span>⚡</span>
+                    <span>Generate &amp; Add to Canvas</span>
+                  </button>
                 </div>
 
                 <!-- SUB-PANEL: GRAB TEXT INTERACTIVE PREVIEW & SELECTION -->
@@ -3784,10 +3849,19 @@
       const deselectAllGrabBtn = document.getElementById('canvaDeselectAllGrabBtn');
       const applyGrabBtn = document.getElementById('canvaApplyGrabTextBtn');
 
+      const toolGoogleFlowBtn = document.getElementById('canvaToolGoogleFlowBtn');
+      const subGoogleFlowPanel = document.getElementById('canvaSubGoogleFlowPanel');
+      const closeGoogleFlowBtn = document.getElementById('canvaCloseGoogleFlowBtn');
+      const executeGoogleFlowBtn = document.getElementById('canvaExecuteGoogleFlowBtn');
+      const flowPromptInput = document.getElementById('canvaFlowPromptInput');
+      const flowModelSelect = document.getElementById('canvaFlowModelSelect');
+      const flowAspectSelect = document.getElementById('canvaFlowAspectSelect');
+      const flowUseCanvasRef = document.getElementById('canvaFlowUseCanvasRef');
+
       const allSubPanels = [
         subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel,
         subBlurPanel, subAutoFocusPanel, subFaceRetouchPanel, subMagicExpandPanel, subVideoPanel,
-        subGrabTextPanel
+        subGrabTextPanel, subGoogleFlowPanel
       ];
 
       function hideAllSubPanels() {
@@ -4720,6 +4794,95 @@
           } finally {
             applyGrabBtn.disabled = false;
             applyGrabBtn.innerHTML = origBtnHTML;
+          }
+        };
+      }
+
+      // Google Flow Image AI Tool (Nano Banana 2 Lite / 2.1 / Pro via useapi.net)
+      if (toolGoogleFlowBtn) {
+        toolGoogleFlowBtn.onclick = () => {
+          const isShown = (subGoogleFlowPanel && subGoogleFlowPanel.style.display === 'flex');
+          hideAllSubPanels();
+          if (!isShown && subGoogleFlowPanel) {
+            subGoogleFlowPanel.style.display = 'flex';
+            if (flowPromptInput) flowPromptInput.focus();
+          }
+        };
+      }
+
+      if (closeGoogleFlowBtn) {
+        closeGoogleFlowBtn.onclick = () => {
+          if (subGoogleFlowPanel) subGoogleFlowPanel.style.display = 'none';
+        };
+      }
+
+      if (executeGoogleFlowBtn) {
+        executeGoogleFlowBtn.onclick = async function () {
+          const promptVal = flowPromptInput ? flowPromptInput.value.trim() : '';
+          if (!promptVal) {
+            alert("Please type a description of the image you want to generate with Google Flow!");
+            if (flowPromptInput) flowPromptInput.focus();
+            return;
+          }
+
+          const origBtnHTML = executeGoogleFlowBtn.innerHTML;
+          executeGoogleFlowBtn.disabled = true;
+          executeGoogleFlowBtn.innerHTML = '<span>⏳</span><span>Generating with Google Flow...</span>';
+
+          try {
+            let refImage = null;
+            if (flowUseCanvasRef && flowUseCanvasRef.checked) {
+              refImage = getNativeImageBase64();
+            }
+
+            const modelVal = flowModelSelect ? flowModelSelect.value : 'nano-banana-2-lite';
+            const aspectVal = flowAspectSelect ? flowAspectSelect.value : '1:1';
+
+            const res = await fetch('/api/canva/google-flow-generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                prompt: promptVal,
+                model: modelVal,
+                aspect_ratio: aspectVal,
+                reference_image: refImage
+              })
+            });
+
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            // Add generated image to canvas as high-res layer
+            fabric.Image.fromURL(data.image_url, function(imgObj) {
+              const maxTargetW = canvaCanvas.width * 0.75;
+              const maxTargetH = canvaCanvas.height * 0.75;
+              const scale = Math.min(maxTargetW / imgObj.width, maxTargetH / imgObj.height, 1.0);
+
+              imgObj.scale(scale);
+              imgObj.set({
+                left: (canvaCanvas.width - imgObj.width * scale) / 2,
+                top: (canvaCanvas.height - imgObj.height * scale) / 2,
+                cornerColor: '#7d2ae8',
+                cornerStyle: 'circle',
+                borderColor: '#7d2ae8',
+                transparentCorners: false,
+                name: 'Flow: ' + promptVal.slice(0, 18)
+              });
+              canvaCanvas.add(imgObj);
+              canvaCanvas.setActiveObject(imgObj);
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              showToast("✨ Google Flow image added to canvas!", "🍌", 4000);
+              if (subGoogleFlowPanel) subGoogleFlowPanel.style.display = 'none';
+            }, { crossOrigin: 'anonymous' });
+
+          } catch (err) {
+            console.error(err);
+            alert("Google Flow generation failed: " + err.message);
+          } finally {
+            executeGoogleFlowBtn.disabled = false;
+            executeGoogleFlowBtn.innerHTML = origBtnHTML;
           }
         };
       }

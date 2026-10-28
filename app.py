@@ -80,6 +80,12 @@ if GEMINI_API_KEY: GEMINI_API_KEY = GEMINI_API_KEY.strip("'\"")
 EDENAI_API_KEY = os.getenv("EDENAI_API_KEY")
 if EDENAI_API_KEY: EDENAI_API_KEY = EDENAI_API_KEY.strip("'\"")
 
+GOOGLE_FLOW_API_TOKEN = os.getenv("GOOGLE_FLOW_API_TOKEN") or os.getenv("USEAPI_TOKEN")
+if GOOGLE_FLOW_API_TOKEN: GOOGLE_FLOW_API_TOKEN = GOOGLE_FLOW_API_TOKEN.strip("'\"")
+
+GOOGLE_FLOW_EMAIL = os.getenv("GOOGLE_FLOW_EMAIL")
+if GOOGLE_FLOW_EMAIL: GOOGLE_FLOW_EMAIL = GOOGLE_FLOW_EMAIL.strip("'\"")
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -1226,6 +1232,29 @@ def run_openai_inpainting(*args, **kwargs):
 def run_gemini_inpainting(*args, **kwargs):
     raise RuntimeError("Google Gemini (Imagen 3) does not support inpainting. Please use Recraft or Nano Banana.")
 
+def run_googleflow_generations(prompt: str, image_size: str = "1:1", model: str = "nano-banana-2-lite") -> str:
+    """Generate image via Google Flow API (Nano Banana 2 Lite / 2.1 / Pro)."""
+    import google_flow_api
+    res = google_flow_api.generate_google_flow_image(
+        prompt=prompt,
+        model=model,
+        aspect_ratio=image_size,
+        count=1
+    )
+    return res["primary_data_uri"]
+
+def run_googleflow_inpainting(image_path: str, mask_path: str = None, prompt: str = "", negative_prompt: str = None, image_size: str = "1:1", model: str = "nano-banana-2-lite") -> str:
+    """Inpaint / image-to-image edit via Google Flow API with reference asset."""
+    import google_flow_api
+    res = google_flow_api.generate_google_flow_image(
+        prompt=prompt,
+        model=model,
+        aspect_ratio=image_size or "auto",
+        reference_images=[image_path],
+        count=1
+    )
+    return res["primary_data_uri"]
+
 
 @app.route("/")
 def index():
@@ -1277,6 +1306,11 @@ def process_image():
     elif api_provider == "edenai":
         if not EDENAI_API_KEY or EDENAI_API_KEY.startswith("your_edenai_"):
             return jsonify({"error": "EDENAI_API_KEY is not configured."}), 500
+    elif api_provider in ("googleflow", "google-flow"):
+        if not GOOGLE_FLOW_API_TOKEN or GOOGLE_FLOW_API_TOKEN.startswith("your_"):
+            return jsonify({"error": "GOOGLE_FLOW_API_TOKEN is not configured in .env."}), 500
+        if not GOOGLE_FLOW_EMAIL or GOOGLE_FLOW_EMAIL.startswith("your_"):
+            return jsonify({"error": "GOOGLE_FLOW_EMAIL is not configured in .env."}), 500
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify({"error": "NANOBANANA_API_KEY is not configured. Create a .env file with your key from your Nano Banana dashboard."}), 500
@@ -1299,6 +1333,9 @@ def process_image():
             elif api_provider == "edenai":
                 app.logger.info("Running Eden AI Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_edenai_generations(enhanced_prompt, image_size)
+            elif api_provider in ("googleflow", "google-flow"):
+                app.logger.info("Running Google Flow Text-to-Image Generation (size=%s)...", image_size)
+                final_image_url = run_googleflow_generations(enhanced_prompt, image_size)
             else:
                 app.logger.info("Running Nano Banana Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, image_size)
@@ -1536,6 +1573,10 @@ def process_image():
             final_image_url = run_openai_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
         elif api_provider == "gemini":
             final_image_url = run_gemini_inpainting(input_path, mask_path, inpaint_prompt, negative_prompt)
+        elif api_provider in ("googleflow", "google-flow"):
+            app.logger.info("Running Google Flow Image Edit (mode=%s)...", mode)
+            nb_size = compute_image_size_ratio(original_w, original_h)
+            final_image_url = run_googleflow_inpainting(input_path, None, inpaint_prompt, negative_prompt, nb_size)
         elif api_provider == "edenai":
             raise RuntimeError("Eden AI (DALL-E 3) does not support inpainting. Please use Recraft or Nano Banana.")
         else:
@@ -1546,10 +1587,15 @@ def process_image():
                 image_data_uri, mask_data_uri, inpaint_prompt, negative_prompt, nb_size
             )
 
-        # ---- Step 4: Download result ----
-        result_resp = requests.get(final_image_url, timeout=30)
-        result_resp.raise_for_status()
-        img_bytes = result_resp.content
+        # ---- Step 4: Download result or decode base64 ----
+        if final_image_url.startswith("data:image"):
+            import base64
+            b64_data = final_image_url.split(",", 1)[1]
+            img_bytes = base64.b64decode(b64_data)
+        else:
+            result_resp = requests.get(final_image_url, timeout=30)
+            result_resp.raise_for_status()
+            img_bytes = result_resp.content
 
         output_filename = f"result_{unique_stem}.png"
         output_path = os.path.join(app.config["RESULTS_FOLDER"], output_filename)
@@ -1808,6 +1854,11 @@ def smart_process():
     elif api_provider == "gemini":
         if not GEMINI_API_KEY or GEMINI_API_KEY.startswith("your_gemini_"):
             return jsonify({"error": "GEMINI_API_KEY is not configured."}), 500
+    elif api_provider in ("googleflow", "google-flow"):
+        if not GOOGLE_FLOW_API_TOKEN or GOOGLE_FLOW_API_TOKEN.startswith("your_"):
+            return jsonify({"error": "GOOGLE_FLOW_API_TOKEN (or USEAPI_TOKEN) is not configured in .env."}), 500
+        if not GOOGLE_FLOW_EMAIL or GOOGLE_FLOW_EMAIL.startswith("your_"):
+            return jsonify({"error": "GOOGLE_FLOW_EMAIL is not configured in .env."}), 500
     else:
         if not NANOBANANA_API_KEY or NANOBANANA_API_KEY.startswith("your_nanobanana_"):
             return jsonify({"error": "NANOBANANA_API_KEY is not configured."}), 500
@@ -1894,6 +1945,9 @@ def smart_process():
                 final_url = run_openai_inpainting(input_path, None, prompt, negative_prompt)
             elif api_provider == "gemini":
                 final_url = run_gemini_inpainting(input_path, None, prompt, negative_prompt)
+            elif api_provider in ("googleflow", "google-flow"):
+                nb_size = compute_image_size_ratio(original_w, original_h)
+                final_url = run_googleflow_inpainting(input_path, None, prompt, negative_prompt, nb_size)
             else:
                 # Pixapi GPT - skip CLIPSeg, use direct edit instruction
                 inpaint_prompt = (
@@ -1908,10 +1962,15 @@ def smart_process():
 
             # Download result (if processed via API)
             if final_url:
-                result_resp = requests.get(final_url, timeout=30)
-                result_resp.raise_for_status()
-                img_bytes = result_resp.content
-     
+                if final_url.startswith("data:image"):
+                    import base64
+                    b64_data = final_url.split(",", 1)[1]
+                    img_bytes = base64.b64decode(b64_data)
+                else:
+                    result_resp = requests.get(final_url, timeout=30)
+                    result_resp.raise_for_status()
+                    img_bytes = result_resp.content
+
                 output_filename = f"result_{unique_stem}.png"
                 output_path = os.path.join(app.config["RESULTS_FOLDER"], output_filename)
                 with Image.open(io.BytesIO(img_bytes)) as img:
@@ -1974,6 +2033,8 @@ def smart_process():
             final_url = run_gemini_generations(enhanced_prompt, gen_size)
         elif api_provider == "edenai":
             final_url = run_edenai_generations(enhanced_prompt, gen_size)
+        elif api_provider in ("googleflow", "google-flow"):
+            final_url = run_googleflow_generations(enhanced_prompt, gen_size)
         else:
             final_url = run_nanobanana_generations(enhanced_prompt, negative_prompt, gen_size)
 
@@ -2844,6 +2905,47 @@ def canva_image_to_video():
         return jsonify({"video_url": out_b64, "success": True})
     except Exception as e:
         app.logger.error("Canva Image to Video error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/google-flow-generate", methods=["POST"])
+def canva_google_flow_generate():
+    """
+    Generates images using Google Flow API (Nano Banana 2 Lite / 2.1 / Pro via useapi.net).
+    Can be used for text-to-image or image-to-image styling directly onto Canva canvas.
+    """
+    try:
+        import google_flow_api
+        data = request.get_json(force=True)
+        prompt = (data.get("prompt") or "").strip()
+        if not prompt:
+            return jsonify({"error": "Prompt description is required."}), 400
+
+        model = data.get("model", "nano-banana-2-lite")
+        aspect_ratio = data.get("aspect_ratio", "1:1")
+        count = int(data.get("count", 1))
+        seed = data.get("seed")
+
+        ref_image = data.get("reference_image")
+        refs = [ref_image] if ref_image else None
+
+        res = google_flow_api.generate_google_flow_image(
+            prompt=prompt,
+            model=model,
+            aspect_ratio=aspect_ratio,
+            count=count,
+            seed=seed,
+            reference_images=refs
+        )
+
+        return jsonify({
+            "image_url": res["primary_data_uri"],
+            "images": [img["data_uri"] for img in res["images"]],
+            "model": res["model"],
+            "success": True
+        })
+    except Exception as e:
+        app.logger.error("Canva Google Flow Generate error: %s", e)
         return jsonify({"error": str(e)}), 500
 
 
