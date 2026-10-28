@@ -1513,6 +1513,54 @@
         width: 100% !important;
       }
     }
+  
+    /* ======================================================
+       CANVA STUDIO — AUTHENTIC CLEAN WHITE THEME
+    ====================================================== */
+    #canvaStudioModal {
+      background: #f1f3f5 !important;
+      color: #0f172a !important;
+    }
+    #canvaStudioModal ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #canvaStudioModal ::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    #canvaStudioModal ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    #canvaStudioModal ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .canva-rail-btn {
+      transition: all 0.15s ease;
+    }
+    .canva-rail-btn:hover {
+      background: #f8fafc !important;
+      color: #1e293b !important;
+    }
+    .canva-rail-btn.active {
+      background: #f3e8ff !important;
+      color: #7d2ae8 !important;
+      border-left: 3px solid #7d2ae8 !important;
+      font-weight: 800 !important;
+    }
+    .canva-template-card:hover {
+      transform: translateY(-2px);
+      border-color: #7d2ae8 !important;
+      box-shadow: 0 4px 14px rgba(125, 42, 232, 0.12) !important;
+    }
+    .canva-circle-tool:hover div:first-child {
+      transform: scale(1.06);
+    }
+    .canva-badge-item:hover, .canva-snippet-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
   </style>
 </head>
 
@@ -2765,21 +2813,21 @@
     </div>
   </section>
 
-  <!-- Canva-Style Fullscreen Studio Modal -->
-        <div id="canvaStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0e131f; z-index:999999; flex-direction:column; overflow:hidden; font-family:'Inter',system-ui,sans-serif;">
+  <!-- Canva-Style Fullscreen Studio Modal (Clean White Canva.com Theme) -->
+        <div id="canvaStudioModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#f1f3f5; z-index:999999; flex-direction:column; overflow:hidden; font-family:'Inter',system-ui,sans-serif; color:#0f172a;">
           
           <!-- Top Canva Navigation Bar -->
-          <div style="background:#18191b; border-bottom:1px solid #2e323b; height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; color:#fff; z-index:10; flex-shrink:0;">
+          <div style="background:#ffffff; border-bottom:1px solid #e2e8f0; height:56px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; color:#0f172a; z-index:10; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
             <!-- Brand & Document Info -->
             <div style="display:flex; align-items:center; gap:10px; min-width:320px;">
-              <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(125,42,232,0.4); flex-shrink:0;">
+              <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(125,42,232,0.3); flex-shrink:0;">
                 🎨
               </div>
               <div style="display:flex; flex-direction:column;">
                 <input id="canvaDocTitleInput" value="GOMZI Packaging Studio - 1536x512" 
-                  style="background:transparent; border:none; color:#ffffff; font-weight:700; font-size:14px; outline:none; padding:2px 4px; border-radius:4px; max-width:240px;" 
-                  onfocus="this.style.background='#2a2e39'" onblur="this.style.background='transparent'" />
-                <span id="canvaDocStatus" style="font-size:11px; color:#10b981; display:flex; align-items:center; gap:4px;">
+                  style="background:transparent; border:1px solid transparent; color:#0f172a; font-weight:700; font-size:14px; outline:none; padding:3px 6px; border-radius:6px; max-width:240px; transition:all 0.15s;" 
+                  onfocus="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';" onblur="this.style.background='transparent'; this.style.borderColor='transparent';" />
+                <span id="canvaDocStatus" style="font-size:11px; color:#059669; font-weight:600; display:flex; align-items:center; gap:4px;">
                   <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#10b981;"></span>
                   Ready to edit
                 </span>
@@ -2788,50 +2836,50 @@
               <!-- Resize Canvas Button with Dropdown -->
               <div style="position:relative; margin-left:6px;">
                 <button id="canvaResizeBtn" title="Change Canvas Dimensions / Packaging Presets" type="button"
-                  style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:5px 9px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                  style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
                   <span>📐</span>
                   <span id="canvaResizeBtnLabel">Resize</span>
-                  <span style="font-size:9px;">▾</span>
+                  <span style="font-size:9px; color:#64748b;">▾</span>
                 </button>
-                <div id="canvaResizeDropdown" style="display:none; position:absolute; left:0; top:32px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:250px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:8px; flex-direction:column; gap:6px;">
-                  <span style="font-size:11px; font-weight:800; color:#a0a6b5; padding:2px 6px; text-transform:uppercase;">Packaging Presets</span>
-                  <button class="canva-resize-item" data-w="1536" data-h="512" data-name="3:1 Wrap Label" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
-                    <span>🏷️ 3:1 Wrap Label</span><span style="color:#a0a6b5; font-size:11px;">1536×512</span>
+                <div id="canvaResizeDropdown" style="display:none; position:absolute; left:0; top:36px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; width:260px; box-shadow:0 12px 30px rgba(0,0,0,0.1); z-index:99; padding:8px; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#64748b; padding:2px 6px; text-transform:uppercase;">Packaging Presets</span>
+                  <button class="canva-resize-item" data-w="1536" data-h="512" data-name="3:1 Wrap Label" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:7px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between; transition:background 0.15s;">
+                    <span>🏷️ 3:1 Wrap Label</span><span style="color:#64748b; font-size:11px;">1536×512</span>
                   </button>
-                  <button class="canva-resize-item" data-w="1024" data-h="1024" data-name="1:1 Product Box" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
-                    <span>📦 1:1 Product Box</span><span style="color:#a0a6b5; font-size:11px;">1024×1024</span>
+                  <button class="canva-resize-item" data-w="1024" data-h="1024" data-name="1:1 Product Box" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:7px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between; transition:background 0.15s;">
+                    <span>📦 1:1 Product Box</span><span style="color:#64748b; font-size:11px;">1024×1024</span>
                   </button>
-                  <button class="canva-resize-item" data-w="1920" data-h="1080" data-name="16:9 Banner" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
-                    <span>📢 16:9 Banner</span><span style="color:#a0a6b5; font-size:11px;">1920×1080</span>
+                  <button class="canva-resize-item" data-w="1920" data-h="1080" data-name="16:9 Banner" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:7px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between; transition:background 0.15s;">
+                    <span>📢 16:9 Banner</span><span style="color:#64748b; font-size:11px;">1920×1080</span>
                   </button>
-                  <button class="canva-resize-item" data-w="2048" data-h="512" data-name="4:1 Panoramic" style="background:transparent; border:none; color:#fff; text-align:left; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between;">
-                    <span>🧴 4:1 Panoramic</span><span style="color:#a0a6b5; font-size:11px;">2048×512</span>
+                  <button class="canva-resize-item" data-w="2048" data-h="512" data-name="4:1 Panoramic" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:7px 10px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; justify-content:space-between; transition:background 0.15s;">
+                    <span>🧴 4:1 Panoramic</span><span style="color:#64748b; font-size:11px;">2048×512</span>
                   </button>
-                  <div style="border-top:1px solid #32363f; padding-top:6px; display:flex; gap:6px; align-items:center;">
-                    <input id="canvaCustomW" type="number" placeholder="W" value="1536" style="width:60px; background:#131518; border:1px solid #3a3f4d; color:#fff; padding:4px; font-size:11px; border-radius:4px; text-align:center;" />
-                    <span style="color:#666;">×</span>
-                    <input id="canvaCustomH" type="number" placeholder="H" value="512" style="width:60px; background:#131518; border:1px solid #3a3f4d; color:#fff; padding:4px; font-size:11px; border-radius:4px; text-align:center;" />
-                    <button id="canvaApplyCustomResizeBtn" style="background:#7d2ae8; border:none; color:#fff; border-radius:4px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer; flex:1;">Set</button>
+                  <div style="border-top:1px solid #e2e8f0; padding-top:6px; display:flex; gap:6px; align-items:center;">
+                    <input id="canvaCustomW" type="number" placeholder="W" value="1536" style="width:64px; background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; padding:5px; font-size:11px; border-radius:4px; text-align:center;" />
+                    <span style="color:#94a3b8;">×</span>
+                    <input id="canvaCustomH" type="number" placeholder="H" value="512" style="width:64px; background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; padding:5px; font-size:11px; border-radius:4px; text-align:center;" />
+                    <button id="canvaApplyCustomResizeBtn" style="background:#7d2ae8; border:none; color:#fff; border-radius:4px; padding:5px 10px; font-size:11px; font-weight:700; cursor:pointer; flex:1;">Set</button>
                   </div>
                 </div>
               </div>
 
               <!-- New Blank Design Button -->
               <button id="canvaNewBlankBtn" title="Start a Fresh Blank Design" type="button"
-                style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:5px 9px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:4px;">
+                style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
                 <span>➕</span> Blank
               </button>
             </div>
 
             <!-- Top Contextual Toolbar (Text & Object controls) -->
-            <div id="canvaTopToolbar" style="display:flex; align-items:center; gap:8px; background:#22252a; padding:4px 10px; border-radius:10px; border:1px solid #32363f; max-width:680px; overflow-x:auto;">
+            <div id="canvaTopToolbar" style="display:flex; align-items:center; gap:8px; background:#ffffff; padding:4px 10px; border-radius:10px; border:1px solid #e2e8f0; box-shadow:0 1px 3px rgba(0,0,0,0.04); max-width:680px; overflow-x:auto;">
               <!-- Undo / Redo -->
-              <button id="canvaUndoBtn" title="Undo (Ctrl+Z)" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:15px; padding:6px 8px; border-radius:6px;">↩️</button>
-              <button id="canvaRedoBtn" title="Redo (Ctrl+Y)" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:15px; padding:6px 8px; border-radius:6px;">↪️</button>
-              <div style="width:1px; height:20px; background:#3a3f4d;"></div>
+              <button id="canvaUndoBtn" title="Undo (Ctrl+Z)" style="background:transparent; border:none; color:#475569; cursor:pointer; font-size:15px; padding:5px 7px; border-radius:6px;">↩️</button>
+              <button id="canvaRedoBtn" title="Redo (Ctrl+Y)" style="background:transparent; border:none; color:#475569; cursor:pointer; font-size:15px; padding:5px 7px; border-radius:6px;">↪️</button>
+              <div style="width:1px; height:20px; background:#e2e8f0;"></div>
 
               <!-- Font Family -->
-              <select id="canvaFontFamily" style="background:#18191b; color:#fff; border:1px solid #3a3f4d; border-radius:6px; padding:5px 8px; font-size:13px; font-weight:600; cursor:pointer; outline:none; min-width:110px;">
+              <select id="canvaFontFamily" style="background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:6px; padding:5px 8px; font-size:13px; font-weight:600; cursor:pointer; outline:none; min-width:110px;">
                 <option value="Montserrat" selected>Montserrat</option>
                 <option value="Bebas Neue">Bebas Neue</option>
                 <option value="Impact">Impact</option>
@@ -2847,35 +2895,35 @@
               </select>
 
               <!-- Font Size Controls -->
-              <div style="display:flex; align-items:center; background:#18191b; border:1px solid #3a3f4d; border-radius:6px; overflow:hidden;">
-                <button id="canvaFontSizeDec" style="background:none; border:none; color:#fff; padding:4px 8px; cursor:pointer; font-weight:700;">-</button>
-                <input id="canvaFontSizeInput" type="number" value="28" style="width:40px; background:transparent; border:none; color:#fff; text-align:center; font-size:12px; font-weight:700; outline:none;" />
-                <button id="canvaFontSizeInc" style="background:none; border:none; color:#fff; padding:4px 8px; cursor:pointer; font-weight:700;">+</button>
+              <div style="display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; overflow:hidden;">
+                <button id="canvaFontSizeDec" style="background:none; border:none; color:#334155; padding:4px 8px; cursor:pointer; font-weight:700;">-</button>
+                <input id="canvaFontSizeInput" type="number" value="28" style="width:40px; background:transparent; border:none; color:#0f172a; text-align:center; font-size:12px; font-weight:700; outline:none;" />
+                <button id="canvaFontSizeInc" style="background:none; border:none; color:#334155; padding:4px 8px; cursor:pointer; font-weight:700;">+</button>
               </div>
 
               <!-- Text Color Picker -->
               <div title="Text Color" style="position:relative; display:inline-flex; align-items:center;">
-                <input type="color" id="canvaColorPicker" value="#ffffff" style="opacity:0; position:absolute; left:0; top:0; width:100%; height:100%; cursor:pointer;" />
-                <div id="canvaColorPreview" style="width:26px; height:26px; border-radius:6px; background:#ffffff; border:2px solid #555; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#000;">A</div>
+                <input type="color" id="canvaColorPicker" value="#1e293b" style="opacity:0; position:absolute; left:0; top:0; width:100%; height:100%; cursor:pointer;" />
+                <div id="canvaColorPreview" style="width:26px; height:26px; border-radius:6px; background:#1e293b; border:2px solid #cbd5e1; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff;">A</div>
               </div>
 
               <!-- Styles: Bold, Italic, Underline, Uppercase -->
-              <button id="canvaBoldBtn" title="Bold" style="background:transparent; border:none; color:#fff; font-weight:900; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">B</button>
-              <button id="canvaItalicBtn" title="Italic" style="background:transparent; border:none; color:#fff; font-style:italic; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">I</button>
-              <button id="canvaUnderlineBtn" title="Underline" style="background:transparent; border:none; color:#fff; text-decoration:underline; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">U</button>
-              <button id="canvaUpperBtn" title="Uppercase (TT)" style="background:transparent; border:none; color:#fff; font-size:12px; font-weight:700; cursor:pointer; padding:5px 8px; border-radius:6px;">TT</button>
+              <button id="canvaBoldBtn" title="Bold" style="background:transparent; border:none; color:#334155; font-weight:900; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">B</button>
+              <button id="canvaItalicBtn" title="Italic" style="background:transparent; border:none; color:#334155; font-style:italic; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">I</button>
+              <button id="canvaUnderlineBtn" title="Underline" style="background:transparent; border:none; color:#334155; text-decoration:underline; font-size:13px; cursor:pointer; padding:5px 8px; border-radius:6px;">U</button>
+              <button id="canvaUpperBtn" title="Uppercase (TT)" style="background:transparent; border:none; color:#334155; font-size:12px; font-weight:700; cursor:pointer; padding:5px 8px; border-radius:6px;">TT</button>
 
-              <div style="width:1px; height:20px; background:#3a3f4d;"></div>
+              <div style="width:1px; height:20px; background:#e2e8f0;"></div>
 
               <!-- Alignment -->
-              <button id="canvaAlignLeftBtn" title="Align Left" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; padding:4px 6px; font-size:13px;">⫷</button>
-              <button id="canvaAlignCenterBtn" title="Align Center" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; padding:4px 6px; font-size:13px;">☰</button>
-              <button id="canvaAlignRightBtn" title="Align Right" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; padding:4px 6px; font-size:13px;">⫸</button>
+              <button id="canvaAlignLeftBtn" title="Align Left" style="background:transparent; border:none; color:#475569; cursor:pointer; padding:4px 6px; font-size:13px;">⫷</button>
+              <button id="canvaAlignCenterBtn" title="Align Center" style="background:transparent; border:none; color:#475569; cursor:pointer; padding:4px 6px; font-size:13px;">☰</button>
+              <button id="canvaAlignRightBtn" title="Align Right" style="background:transparent; border:none; color:#475569; cursor:pointer; padding:4px 6px; font-size:13px;">⫸</button>
 
-              <div style="width:1px; height:20px; background:#3a3f4d;"></div>
+              <div style="width:1px; height:20px; background:#e2e8f0;"></div>
 
               <!-- Duplicate & Delete -->
-              <button id="canvaDuplicateBtn" title="Duplicate (Ctrl+D)" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; padding:4px 6px; font-size:14px;">📑</button>
+              <button id="canvaDuplicateBtn" title="Duplicate (Ctrl+D)" style="background:transparent; border:none; color:#475569; cursor:pointer; padding:4px 6px; font-size:14px;">📑</button>
               <button id="canvaDeleteBtn" title="Delete selected" style="background:transparent; border:none; color:#ef4444; cursor:pointer; padding:4px 6px; font-size:14px;">🗑️</button>
             </div>
 
@@ -2883,7 +2931,7 @@
             <div style="display:flex; align-items:center; gap:8px;">
               <!-- Direct Upload Image Button in Top Bar -->
               <label id="canvaTopUploadBtn" title="Upload any image or label directly into Canva" 
-                style="background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(2,132,199,0.35);">
+                style="background:#ffffff; border:1.5px solid #7d2ae8; color:#7d2ae8; border-radius:8px; padding:7px 13px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(125,42,232,0.1); transition:all 0.15s;">
                 <span>📤</span>
                 <span>Upload</span>
                 <input type="file" id="canvaTopFileInput" accept="image/*" style="display:none;" />
@@ -2891,47 +2939,47 @@
 
               <!-- Canva Pro Edit Image Button in Top Bar -->
               <button id="canvaTopEditImageBtn" title="Canva Pro AI Image Editing Tools" 
-                style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(125,42,232,0.35);">
+                style="background:linear-gradient(135deg, #7d2ae8 0%, #a855f7 100%); color:#fff; border:none; border-radius:8px; padding:7px 13px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(125,42,232,0.25);">
                 <span>🪄</span>
                 <span>Edit image</span>
-                <span style="background:rgba(255,255,255,0.25); padding:1px 5px; border-radius:8px; font-size:9px; font-weight:800;">PRO</span>
+                <span style="background:rgba(255,255,255,0.3); padding:1px 5px; border-radius:8px; font-size:9px; font-weight:800;">PRO</span>
               </button>
 
               <!-- Background Toggle Button -->
               <button id="canvaBgToggleBtn" title="Toggle Clean Inpainted vs Original Photo" 
-                style="background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:8px; padding:7px 10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
                 <span>✨</span>
                 <span id="canvaBgToggleLabel">Clean BG</span>
               </button>
 
               <!-- Apply / Save button -->
-              <button id="canvaApplyBtn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 10px rgba(16,185,129,0.3);">
+              <button id="canvaApplyBtn" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; border-radius:8px; padding:7px 15px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(16,185,129,0.25);">
                 <span>💾</span> Save
               </button>
 
               <!-- Download Export Menu -->
               <div style="position:relative;">
-                <button id="canvaExportMenuBtn" style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <button id="canvaExportMenuBtn" style="background:#7d2ae8; color:#fff; border:none; border-radius:8px; padding:7px 15px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(125,42,232,0.25);">
                   <span>📥</span> Export ▾
                 </button>
-                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:38px; background:#1e2025; border:1px solid #32363f; border-radius:10px; width:260px; box-shadow:0 12px 30px rgba(0,0,0,0.6); z-index:99; padding:6px; flex-direction:column; gap:4px;">
-                  <button id="canvaExportPngBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                <div id="canvaExportDropdown" style="display:none; position:absolute; right:0; top:38px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; width:265px; box-shadow:0 12px 30px rgba(0,0,0,0.12); z-index:99; padding:6px; flex-direction:column; gap:4px;">
+                  <button id="canvaExportPngBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     🖼️ <div><strong>PNG Master</strong> (300 DPI, ~16 MB)</div>
                   </button>
-                  <button id="canvaExportJpgBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                  <button id="canvaExportJpgBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     📸 <div><strong>JPG Master</strong> (100% Quality, ~15 MB)</div>
                   </button>
-                  <button id="canvaExportPdfBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                  <button id="canvaExportPdfBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     📄 <div><strong>PDF Print Master</strong> (300 DPI, ~16 MB)</div>
                   </button>
-                  <button id="canvaExportSvgBtn" style="background:transparent; border:none; color:#fff; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
+                  <button id="canvaExportSvgBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     📐 <div><strong>SVG Vector</strong> (CorelDRAW / Illustrator)</div>
                   </button>
                 </div>
               </div>
 
               <!-- Close Button -->
-              <button id="canvaCloseBtn" title="Close Editor" style="background:#22252a; border:1px solid #3a3f4d; color:#fff; border-radius:8px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px;">
+              <button id="canvaCloseBtn" title="Close Editor" style="background:#f1f5f9; border:1px solid #e2e8f0; color:#64748b; border-radius:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; transition:all 0.15s;">
                 ✖
               </button>
             </div>
@@ -2940,130 +2988,130 @@
           <!-- Main Canva Studio Workspace: Sidebar Rail + Side Drawer + Canvas -->
           <div style="flex:1; display:flex; overflow:hidden; position:relative;">
             
-            <!-- Canva Left Icon Rail (68px wide) - 7 Full Canva Tabs -->
-            <div style="width:68px; background:#131518; border-right:1px solid #23272f; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px; flex-shrink:0; z-index:5;">
+            <!-- Canva Left Icon Rail (70px wide) - 7 Full Canva Tabs (Pure Clean White) -->
+            <div style="width:70px; background:#ffffff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; align-items:center; padding:12px 0; gap:6px; flex-shrink:0; z-index:5;">
               <!-- Tab 1: Design / Templates -->
-              <button id="canvaRailDesignBtn" class="canva-rail-btn active" style="width:52px; height:50px; border-radius:10px; background:#22252a; border:none; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailDesignBtn" class="canva-rail-btn active" style="width:56px; height:52px; border-radius:10px; background:#f3e8ff; border:none; border-left:3px solid #7d2ae8; color:#7d2ae8; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>🎨</span>
-                <span style="font-size:10px; font-weight:700;">Design</span>
+                <span style="font-size:10px; font-weight:800;">Design</span>
               </button>
 
               <!-- Tab 2: AI Tools (Canva Pro) -->
-              <button id="canvaRailEditImageBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px; position:relative;">
+              <button id="canvaRailEditImageBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px; position:relative;">
                 <span>🪄</span>
                 <span style="font-size:10px; font-weight:700;">AI Tools</span>
                 <span style="position:absolute; top:2px; right:2px; background:linear-gradient(135deg,#f59e0b,#ef4444); color:#fff; font-size:8px; font-weight:800; padding:1px 4px; border-radius:6px;">PRO</span>
               </button>
 
               <!-- Tab 3: Text -->
-              <button id="canvaRailTextBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailTextBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>🅰️</span>
                 <span style="font-size:10px; font-weight:700;">Text</span>
               </button>
 
               <!-- Tab 4: Elements (Shapes, Badges, Barcode, QR) -->
-              <button id="canvaRailElementsBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailElementsBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>🧩</span>
                 <span style="font-size:10px; font-weight:700;">Elements</span>
               </button>
 
               <!-- Tab 5: Uploads -->
-              <button id="canvaRailUploadsBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailUploadsBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>📁</span>
                 <span style="font-size:10px; font-weight:700;">Uploads</span>
               </button>
 
               <!-- Tab 6: Draw -->
-              <button id="canvaRailDrawBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailDrawBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>✏️</span>
                 <span style="font-size:10px; font-weight:700;">Draw</span>
               </button>
 
               <!-- Tab 7: Layers -->
-              <button id="canvaRailLayersBtn" class="canva-rail-btn" style="width:52px; height:50px; border-radius:10px; background:transparent; border:none; color:#a0a6b5; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
+              <button id="canvaRailLayersBtn" class="canva-rail-btn" style="width:56px; height:52px; border-radius:10px; background:transparent; border:none; border-left:3px solid transparent; color:#64748b; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; cursor:pointer; font-size:16px;">
                 <span>📑</span>
                 <span style="font-size:10px; font-weight:700;">Layers</span>
               </button>
             </div>
 
-            <!-- Canva Drawer Panel (285px wide) -->
-            <div id="canvaDrawerPanel" style="width:285px; background:#1c1f24; border-right:1px solid #2a2e39; display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; z-index:4;">
+            <!-- Canva Drawer Panel (310px wide) - Clean White Card Layout -->
+            <div id="canvaDrawerPanel" style="width:310px; background:#ffffff; border-right:1px solid #e2e8f0; display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; z-index:4; color:#0f172a;">
               
               <!-- DRAWER 1: DESIGN & TEMPLATES -->
               <div id="canvaDrawerDesign" style="padding:16px; display:flex; flex-direction:column; gap:14px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-weight:800; color:#fff; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Templates</span>
-                  <span style="background:rgba(125,42,232,0.25); color:#00c4cc; font-size:10px; font-weight:800; padding:2px 7px; border-radius:10px;">PRO PACKAGING</span>
+                  <span style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Templates</span>
+                  <span style="background:#f3e8ff; color:#7d2ae8; border:1px solid #e9d5ff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:10px;">PRO PACKAGING</span>
                 </div>
 
                 <!-- Template Search -->
-                <input id="canvaTemplateSearch" placeholder="🔍 Search templates (e.g. Whey, Serum)..." style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:7px 10px; font-size:12px; outline:none;" />
+                <input id="canvaTemplateSearch" placeholder="🔍 Search templates (e.g. Whey, Serum)..." style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px 10px; font-size:12px; outline:none;" />
 
-                <div style="font-size:11px; font-weight:700; color:#a0a6b5; text-transform:uppercase;">Packaging Layouts (1-Click Load)</div>
+                <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Packaging Layouts (1-Click Load)</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                   <!-- Template 1: Whey Isolate -->
-                  <div class="canva-template-card" data-template="whey_isolate" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="whey_isolate" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #111827 0%, #1f2937 50%, #000 100%); border:1px solid #d4af37; display:flex; align-items:center; justify-content:center; color:#d4af37; font-weight:900; font-size:13px; text-align:center; padding:4px;">
                       ⚡ GOMZI WHEY ISOLATE<br><span style="font-size:10px; color:#fff;">27G PROTEIN · 0G SUGAR</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Gold Luxury Whey</span>
-                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Gold Luxury Whey</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">3:1 Wrap</span>
                     </div>
                   </div>
 
                   <!-- Template 2: Voltage Pre-Workout -->
-                  <div class="canva-template-card" data-template="pre_workout" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="pre_workout" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #09090b 0%, #18181b 100%); border:1px solid #00f0ff; display:flex; align-items:center; justify-content:center; color:#00f0ff; font-weight:900; font-size:13px; text-align:center; padding:4px;">
                       🔥 VOLTAGE PRE-WORKOUT<br><span style="font-size:10px; color:#ff007f;">HIGH INTENSITY ENERGY</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Voltage Extreme</span>
-                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Voltage Extreme</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">3:1 Wrap</span>
                     </div>
                   </div>
 
                   <!-- Template 3: Cosmetic Dropper -->
-                  <div class="canva-template-card" data-template="cosmetic_serum" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="cosmetic_serum" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:#faf7f2; border:1px solid #c5a059; display:flex; align-items:center; justify-content:center; color:#1f2937; font-weight:800; font-size:12px; text-align:center; padding:4px;">
                       🧴 LUMINOUS GLOW SERUM<br><span style="font-size:9px; color:#6b7280;">HYALURONIC ACID 2% · 30ML</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Minimalist Serum</span>
-                      <span style="font-size:10px; color:#a0a6b5;">1:1 Box</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Minimalist Serum</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">1:1 Box</span>
                     </div>
                   </div>
 
                   <!-- Template 4: Sparkling Energy Soda -->
-                  <div class="canva-template-card" data-template="energy_soda" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="energy_soda" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #f97316 0%, #fbbf24 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:13px; text-align:center; padding:4px;">
                       🍊 CITRUS SPARK SODA<br><span style="font-size:10px; color:#000;">ORGANIC SPARKLING CAN</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Citrus Soda Can</span>
-                      <span style="font-size:10px; color:#a0a6b5;">16:9 Banner</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Citrus Soda Can</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">16:9 Banner</span>
                     </div>
                   </div>
 
                   <!-- Template 5: Organic Matcha Green Tea -->
-                  <div class="canva-template-card" data-template="matcha_tea" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="matcha_tea" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:#1b4332; border:1px solid #52b788; display:flex; align-items:center; justify-content:center; color:#d8f3dc; font-weight:800; font-size:12px; text-align:center; padding:4px;">
                       🍵 CEREMONIAL MATCHA<br><span style="font-size:9px; color:#74c69d;">100% ORGANIC JAPANESE TEA</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Organic Matcha Box</span>
-                      <span style="font-size:10px; color:#a0a6b5;">1:1 Box</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Organic Matcha Box</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">1:1 Box</span>
                     </div>
                   </div>
 
                   <!-- Template 6: Multivitamin Capsules -->
-                  <div class="canva-template-card" data-template="multivitamin" style="background:#22252a; border:1px solid #32363f; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s;">
+                  <div class="canva-template-card" data-template="multivitamin" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px; cursor:pointer; transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                     <div style="height:60px; border-radius:6px; background:linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:12px; text-align:center; padding:4px;">
                       💊 DAILY MULTI-VITAMIN<br><span style="font-size:9px; color:#bfdbfe;">120 VEGAN CAPSULES · GMP</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                      <span style="font-size:12px; font-weight:700; color:#fff;">Pharma Capsule Bottle</span>
-                      <span style="font-size:10px; color:#a0a6b5;">3:1 Wrap</span>
+                      <span style="font-size:12px; font-weight:700; color:#0f172a;">Pharma Capsule Bottle</span>
+                      <span style="font-size:10px; color:#64748b; background:#f1f5f9; padding:1px 6px; border-radius:4px;">3:1 Wrap</span>
                     </div>
                   </div>
                 </div>
@@ -3071,161 +3119,161 @@
 
               <!-- DRAWER 2: TEXT DRAWER -->
               <div id="canvaDrawerText" style="display:none; padding:16px; flex-direction:column; gap:12px;">
-                <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Add Text</div>
-                <button id="canvaAddHeadingBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:12px 14px; text-align:left; cursor:pointer; font-weight:800; font-size:18px; font-family:'Montserrat',sans-serif;">
+                <div style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase; letter-spacing:0.5px;">Add Text</div>
+                <button id="canvaAddHeadingBtn" style="background:#f8fafc; border:1.5px solid #cbd5e1; color:#0f172a; border-radius:8px; padding:12px 14px; text-align:left; cursor:pointer; font-weight:800; font-size:18px; font-family:'Montserrat',sans-serif; transition:all 0.15s;">
                   + Add a Heading
                 </button>
-                <button id="canvaAddSubheadingBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:14px; font-family:'Montserrat',sans-serif;">
+                <button id="canvaAddSubheadingBtn" style="background:#f8fafc; border:1.5px solid #cbd5e1; color:#0f172a; border-radius:8px; padding:10px 14px; text-align:left; cursor:pointer; font-weight:700; font-size:14px; font-family:'Montserrat',sans-serif; transition:all 0.15s;">
                   + Add a Subheading
                 </button>
-                <button id="canvaAddBodyBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:8px; padding:8px 14px; text-align:left; cursor:pointer; font-weight:500; font-size:12px;">
+                <button id="canvaAddBodyBtn" style="background:#f8fafc; border:1.5px solid #cbd5e1; color:#334155; border-radius:8px; padding:8px 14px; text-align:left; cursor:pointer; font-weight:500; font-size:12px; transition:all 0.15s;">
                   + Add body text
                 </button>
 
                 <!-- Text Effects Subpanel -->
-                <div style="font-weight:700; color:#a0a6b5; font-size:12px; margin-top:8px; text-transform:uppercase;">Text Effects</div>
+                <div style="font-weight:700; color:#64748b; font-size:12px; margin-top:8px; text-transform:uppercase;">Text Effects</div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                  <button id="canvaEffectNeonBtn" style="background:#22252a; border:1px solid #32363f; color:#00f0ff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">💫 Neon Glow</button>
-                  <button id="canvaEffectShadowBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🌑 Drop Shadow</button>
-                  <button id="canvaEffectHollowBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🔲 Hollow</button>
-                  <button id="canvaEffectCurveBtn" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">⭕ Curved / Arch</button>
+                  <button id="canvaEffectNeonBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#7d2ae8; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">💫 Neon Glow</button>
+                  <button id="canvaEffectShadowBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🌑 Drop Shadow</button>
+                  <button id="canvaEffectHollowBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">🔲 Hollow</button>
+                  <button id="canvaEffectCurveBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#b45309; border-radius:6px; padding:8px; font-size:11px; font-weight:700; cursor:pointer;">⭕ Curved / Arch</button>
                 </div>
 
-                <div style="font-weight:700; color:#a0a6b5; font-size:12px; margin-top:8px; text-transform:uppercase;">Quick Packaging Snippets</div>
-                <button class="canva-snippet-btn" data-text="NET WT. 300 G" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                <div style="font-weight:700; color:#64748b; font-size:12px; margin-top:8px; text-transform:uppercase;">Quick Packaging Snippets</div>
+                <button class="canva-snippet-btn" data-text="NET WT. 300 G" style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   📦 NET WT. 300 G
                 </button>
-                <button class="canva-snippet-btn" data-text="NUTRITION FACTS" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                <button class="canva-snippet-btn" data-text="NUTRITION FACTS" style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   📊 NUTRITION FACTS
                 </button>
-                <button class="canva-snippet-btn" data-text="100% PURE MICRONISED" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                <button class="canva-snippet-btn" data-text="100% PURE MICRONISED" style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   ⚡ 100% PURE MICRONISED
                 </button>
-                <button class="canva-snippet-btn" data-text="DIETARY SUPPLEMENT" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                <button class="canva-snippet-btn" data-text="DIETARY SUPPLEMENT" style="background:#f8fafc; border:1px solid #e2e8f0; color:#334155; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   💊 DIETARY SUPPLEMENT
                 </button>
-                <button class="canva-snippet-btn" data-text="KEEP OUT OF REACH OF CHILDREN" style="background:#22252a; border:1px solid #32363f; color:#ef4444; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
+                <button class="canva-snippet-btn" data-text="KEEP OUT OF REACH OF CHILDREN" style="background:#fef2f2; border:1px solid #fecaca; color:#dc2626; border-radius:6px; padding:8px 10px; font-size:12px; font-weight:800; text-align:left; cursor:pointer;">
                   ⚠️ KEEP OUT OF REACH OF CHILDREN
                 </button>
               </div>
 
               <!-- DRAWER 3: ELEMENTS (SHAPES, BADGES, BARCODE, QR CODE, NUTRITION) -->
               <div id="canvaDrawerElements" style="display:none; padding:16px; flex-direction:column; gap:14px;">
-                <div style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Elements &amp; Badges</div>
+                <div style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase;">Elements &amp; Badges</div>
 
                 <!-- Dynamic Barcode Generator -->
-                <div style="background:#131518; border:1px solid #32363f; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
-                  <span style="font-size:11px; font-weight:800; color:#00c4cc; text-transform:uppercase;">Dynamic Barcode Generator</span>
-                  <input id="canvaBarcodeValInput" value="8901234567890" style="background:#1c1f24; border:1px solid #3a3f4d; color:#fff; border-radius:4px; padding:5px 8px; font-size:11px; outline:none;" placeholder="Enter barcode number..." />
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#0284c7; text-transform:uppercase;">Dynamic Barcode Generator</span>
+                  <input id="canvaBarcodeValInput" value="8901234567890" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:4px; padding:6px 8px; font-size:11px; outline:none;" placeholder="Enter barcode number..." />
                   <button id="canvaAddBarcodeBtn" style="background:#0284c7; border:none; color:#fff; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer;">
                     ➕ Add Barcode to Canvas
                   </button>
                 </div>
 
                 <!-- Dynamic QR Code Generator -->
-                <div style="background:#131518; border:1px solid #32363f; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
-                  <span style="font-size:11px; font-weight:800; color:#ffd700; text-transform:uppercase;">Dynamic QR Code Generator</span>
-                  <input id="canvaQrValInput" value="https://gomzigroup.com" style="background:#1c1f24; border:1px solid #3a3f4d; color:#fff; border-radius:4px; padding:5px 8px; font-size:11px; outline:none;" placeholder="Enter website URL..." />
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                  <span style="font-size:11px; font-weight:800; color:#d97706; text-transform:uppercase;">Dynamic QR Code Generator</span>
+                  <input id="canvaQrValInput" value="https://gomzigroup.com" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:4px; padding:6px 8px; font-size:11px; outline:none;" placeholder="Enter website URL..." />
                   <button id="canvaAddQrBtn" style="background:#d97706; border:none; color:#fff; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer;">
                     ➕ Add QR Code to Canvas
                   </button>
                 </div>
 
                 <!-- FDA Nutrition Facts Table Element -->
-                <button id="canvaAddNutritionTableBtn" style="background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border:1px solid #475569; color:#fff; border-radius:8px; padding:10px 12px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <button id="canvaAddNutritionTableBtn" style="background:#ffffff; border:1.5px solid #cbd5e1; color:#0f172a; border-radius:8px; padding:10px 12px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
                   📊 <span>Add FDA Nutrition Facts Panel</span>
                 </button>
 
                 <!-- Veg / Non-Veg Food Seals -->
                 <div style="display:flex; gap:6px;">
-                  <button id="canvaAddVegBtn" style="flex:1; background:#064e3b; border:1px solid #10b981; color:#a7f3d0; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+                  <button id="canvaAddVegBtn" style="flex:1; background:#f0fdf4; border:1.5px solid #10b981; color:#047857; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
                     🟢 100% Veg Dot
                   </button>
-                  <button id="canvaAddNonVegBtn" style="flex:1; background:#450a0a; border:1px solid #ef4444; color:#fecaca; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
+                  <button id="canvaAddNonVegBtn" style="flex:1; background:#fef2f2; border:1.5px solid #ef4444; color:#b91c1c; border-radius:6px; padding:7px; font-size:11px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px;">
                     🔴 Non-Veg Dot
                   </button>
                 </div>
 
                 <!-- Certification Badges -->
-                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Packaging Seals &amp; Badges</div>
+                <div style="font-weight:700; color:#64748b; font-size:11px; text-transform:uppercase; margin-top:4px;">Packaging Seals &amp; Badges</div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                  <button class="canva-badge-item" data-text="100% ORGANIC" data-color="#059669" style="background:#064e3b; border:1px solid #10b981; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌿 ORGANIC</button>
-                  <button class="canva-badge-item" data-text="GMP CERTIFIED" data-color="#d97706" style="background:#451a03; border:1px solid #f59e0b; color:#ffd700; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🏆 GMP SEAL</button>
-                  <button class="canva-badge-item" data-text="100% VEGAN" data-color="#16a34a" style="background:#14532d; border:1px solid #22c55e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌱 VEGAN</button>
-                  <button class="canva-badge-item" data-text="SUGAR FREE" data-color="#0284c7" style="background:#082f49; border:1px solid #38bdf8; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">⚡ SUGAR FREE</button>
-                  <button class="canva-badge-item" data-text="FDA COMPLIANT" data-color="#7c3aed" style="background:#2e1065; border:1px solid #8b5cf6; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🛡️ FDA READY</button>
-                  <button class="canva-badge-item" data-text="LAB TESTED" data-color="#e11d48" style="background:#4c0519; border:1px solid #f43f5e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🔬 LAB TESTED</button>
+                  <button class="canva-badge-item" data-text="100% ORGANIC" data-color="#059669" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌿 ORGANIC</button>
+                  <button class="canva-badge-item" data-text="GMP CERTIFIED" data-color="#d97706" style="background:#fffbeb; border:1px solid #fde68a; color:#b45309; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🏆 GMP SEAL</button>
+                  <button class="canva-badge-item" data-text="100% VEGAN" data-color="#16a34a" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🌱 VEGAN</button>
+                  <button class="canva-badge-item" data-text="SUGAR FREE" data-color="#0284c7" style="background:#f0f9ff; border:1px solid #bae6fd; color:#0369a1; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">⚡ SUGAR FREE</button>
+                  <button class="canva-badge-item" data-text="FDA COMPLIANT" data-color="#7c3aed" style="background:#faf5ff; border:1px solid #e9d5ff; color:#6d28d9; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🛡️ FDA READY</button>
+                  <button class="canva-badge-item" data-text="LAB TESTED" data-color="#e11d48" style="background:#fff1f2; border:1px solid #fecdd3; color:#be123c; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:800; cursor:pointer;">🔬 LAB TESTED</button>
                 </div>
 
                 <!-- Basic Geometric Shapes -->
-                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Shapes</div>
+                <div style="font-weight:700; color:#64748b; font-size:11px; text-transform:uppercase; margin-top:4px;">Shapes</div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                  <button id="canvaAddRectShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">🔲 Box</button>
-                  <button id="canvaAddPillBadgeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">💊 Pill Banner</button>
-                  <button id="canvaAddCircleShapeBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">⚪ Circle</button>
-                  <button id="canvaAddLineBtn" style="background:#2a2e39; border:1px solid #3a3f4d; color:#fff; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">➖ Divider</button>
+                  <button id="canvaAddRectShapeBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">🔲 Box</button>
+                  <button id="canvaAddPillBadgeBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">💊 Pill Banner</button>
+                  <button id="canvaAddCircleShapeBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">⚪ Circle</button>
+                  <button id="canvaAddLineBtn" style="background:#ffffff; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px; text-align:left; cursor:pointer; font-weight:700; font-size:12px;">➖ Divider</button>
                 </div>
               </div>
 
               <!-- DRAWER 4: UPLOADS DRAWER -->
               <div id="canvaDrawerUploads" style="display:none; padding:16px; flex-direction:column; gap:14px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Upload Media</span>
-                  <span id="canvaUploadCountBadge" style="background:#7d2ae8; color:#fff; font-size:10px; font-weight:800; padding:2px 6px; border-radius:8px;">0</span>
+                  <span style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase;">Upload Media</span>
+                  <span id="canvaUploadCountBadge" style="background:#7d2ae8; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:8px;">0</span>
                 </div>
 
                 <!-- Upload Button -->
-                <label style="background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; border-radius:8px; padding:12px; text-align:center; font-weight:700; font-size:13px; cursor:pointer; display:block; box-shadow:0 4px 14px rgba(125,42,232,0.35);">
+                <label style="background:#7d2ae8; color:#fff; border-radius:8px; padding:12px; text-align:center; font-weight:700; font-size:13px; cursor:pointer; display:block; box-shadow:0 2px 10px rgba(125,42,232,0.3);">
                   📤 Upload from Computer
                   <input type="file" id="canvaDrawerFileInput" accept="image/*" style="display:none;" />
                 </label>
 
                 <!-- Drag and Drop Dropzone -->
-                <div id="canvaDrawerDropzone" style="border:2px dashed #3a3f4d; border-radius:10px; padding:20px 10px; text-align:center; cursor:pointer; background:#18191b;">
+                <div id="canvaDrawerDropzone" style="border:2px dashed #cbd5e1; border-radius:10px; padding:20px 10px; text-align:center; cursor:pointer; background:#f8fafc;">
                   <div style="font-size:24px; margin-bottom:4px;">📥</div>
-                  <div style="font-size:12px; color:#fff; font-weight:700;">Drag &amp; Drop images here</div>
-                  <div style="font-size:10px; color:#a0a6b5; margin-top:2px;">PNG, JPG, SVG, WebP up to 30 MB</div>
+                  <div style="font-size:12px; color:#0f172a; font-weight:700;">Drag &amp; Drop images here</div>
+                  <div style="font-size:10px; color:#64748b; margin-top:2px;">PNG, JPG, SVG, WebP up to 30 MB</div>
                 </div>
 
                 <!-- Uploaded Items Gallery -->
-                <div style="font-weight:700; color:#a0a6b5; font-size:11px; text-transform:uppercase; margin-top:4px;">Recent Uploads</div>
+                <div style="font-weight:700; color:#64748b; font-size:11px; text-transform:uppercase; margin-top:4px;">Recent Uploads</div>
                 <div id="canvaUploadsGallery" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height:280px; overflow-y:auto;">
-                  <div style="grid-column:1/-1; color:#64748b; font-size:11px; text-align:center; padding:12px;">No images uploaded yet. Upload a logo or bottle photo above!</div>
+                  <div style="grid-column:1/-1; color:#94a3b8; font-size:11px; text-align:center; padding:12px;">No images uploaded yet. Upload a logo or bottle photo above!</div>
                 </div>
               </div>
 
               <!-- DRAWER 5: DRAW DRAWER -->
               <div id="canvaDrawerDraw" style="display:none; padding:16px; flex-direction:column; gap:14px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">Freehand Draw</span>
-                  <button id="canvaExitDrawBtn" style="background:#22252a; border:1px solid #3a3f4d; color:#a0a6b5; border-radius:6px; padding:3px 8px; font-size:11px; cursor:pointer;">Exit Draw</button>
+                  <span style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase;">Freehand Draw</span>
+                  <button id="canvaExitDrawBtn" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer;">Exit Draw</button>
                 </div>
 
                 <!-- Mode Toggle -->
                 <div style="display:flex; gap:6px;">
-                  <button id="canvaDrawPenBtn" class="canva-brush-btn active" data-brush="pen" style="flex:1; background:#7d2ae8; border:none; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖊️ Pen</button>
-                  <button id="canvaDrawMarkerBtn" class="canva-brush-btn" data-brush="marker" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖌️ Marker</button>
-                  <button id="canvaDrawHighlighterBtn" class="canva-brush-btn" data-brush="highlighter" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖍️ Glow</button>
-                  <button id="canvaDrawEraserBtn" class="canva-brush-btn" data-brush="eraser" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🧽 Erase</button>
+                  <button id="canvaDrawPenBtn" class="canva-brush-btn active" data-brush="pen" style="flex:1; background:#f3e8ff; border:1.5px solid #7d2ae8; color:#7d2ae8; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖊️ Pen</button>
+                  <button id="canvaDrawMarkerBtn" class="canva-brush-btn" data-brush="marker" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖌️ Marker</button>
+                  <button id="canvaDrawHighlighterBtn" class="canva-brush-btn" data-brush="highlighter" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🖍️ Glow</button>
+                  <button id="canvaDrawEraserBtn" class="canva-brush-btn" data-brush="eraser" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; color:#334155; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">🧽 Erase</button>
                 </div>
 
                 <!-- Stroke Color Picker -->
                 <div>
-                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:4px; font-weight:600;">
                     <span>Stroke Color</span>
                   </div>
-                  <input type="color" id="canvaDrawColorPicker" value="#00f0ff" style="width:100%; height:32px; border:none; border-radius:6px; cursor:pointer; background:transparent;" />
+                  <input type="color" id="canvaDrawColorPicker" value="#7d2ae8" style="width:100%; height:32px; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; background:#ffffff;" />
                 </div>
 
                 <!-- Stroke Width -->
                 <div>
-                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                  <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:4px; font-weight:600;">
                     <span>Stroke Thickness</span><span id="canvaValDrawWidth">4px</span>
                   </div>
                   <input type="range" id="canvaSliderDrawWidth" min="1" max="40" value="4" style="width:100%; accent-color:#7d2ae8;" />
                 </div>
 
-                <button id="canvaClearDrawingsBtn" style="background:#22252a; border:1px solid #ef4444; color:#ef4444; border-radius:8px; padding:9px; font-size:11px; font-weight:700; cursor:pointer;">
+                <button id="canvaClearDrawingsBtn" style="background:#fef2f2; border:1px solid #fecaca; color:#ef4444; border-radius:8px; padding:9px; font-size:11px; font-weight:700; cursor:pointer;">
                   🗑️ Clear All Freehand Drawings
                 </button>
               </div>
@@ -3233,19 +3281,19 @@
               <!-- DRAWER 6: LAYERS DRAWER -->
               <div id="canvaDrawerLayers" style="display:none; padding:16px; flex-direction:column; gap:10px;">
                 <div style="display:flex; align-items:center; justify-content:space-between;">
-                  <span style="font-weight:700; color:#fff; font-size:14px; text-transform:uppercase;">All Layers</span>
+                  <span style="font-weight:800; color:#0f172a; font-size:14px; text-transform:uppercase;">All Layers</span>
                   <span id="canvaLayerCountBadge" style="background:#7d2ae8; color:#fff; font-size:11px; font-weight:700; padding:2px 7px; border-radius:10px;">0</span>
                 </div>
 
                 <!-- Alignment Tools Row -->
-                <div style="display:flex; gap:4px; background:#18191b; border:1px solid #32363f; border-radius:6px; padding:4px; justify-content:space-between;">
-                  <button id="canvaAlignCanvasLeftBtn" title="Align Left" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⇤ Left</button>
-                  <button id="canvaAlignCanvasCenterBtn" title="Align Center" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">☵ Center</button>
-                  <button id="canvaAlignCanvasRightBtn" title="Align Right" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⇥ Right</button>
-                  <button id="canvaAlignCanvasTopBtn" title="Align Top" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-size:11px; padding:2px 5px;">⤒ Top</button>
+                <div style="display:flex; gap:4px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:4px; justify-content:space-between;">
+                  <button id="canvaAlignCanvasLeftBtn" title="Align Left" style="background:none; border:none; color:#475569; cursor:pointer; font-size:11px; padding:3px 5px; font-weight:600;">⇤ Left</button>
+                  <button id="canvaAlignCanvasCenterBtn" title="Align Center" style="background:none; border:none; color:#475569; cursor:pointer; font-size:11px; padding:3px 5px; font-weight:600;">☵ Center</button>
+                  <button id="canvaAlignCanvasRightBtn" title="Align Right" style="background:none; border:none; color:#475569; cursor:pointer; font-size:11px; padding:3px 5px; font-weight:600;">⇥ Right</button>
+                  <button id="canvaAlignCanvasTopBtn" title="Align Top" style="background:none; border:none; color:#475569; cursor:pointer; font-size:11px; padding:3px 5px; font-weight:600;">⤒ Top</button>
                 </div>
 
-                <input id="canvaLayerSearchInput" placeholder="🔍 Search layers..." style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:6px 10px; font-size:12px; outline:none;" />
+                <input id="canvaLayerSearchInput" placeholder="🔍 Search layers..." style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:7px 10px; font-size:12px; outline:none;" />
                 <div id="canvaLayersListContainer" style="display:flex; flex-direction:column; gap:6px; max-height:calc(100vh - 220px); overflow-y:auto;">
                   <!-- Dynamically populated layer items -->
                 </div>
@@ -3256,366 +3304,146 @@
                 <!-- Header -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
                   <div style="display:flex; align-items:center; gap:10px;">
-                    <button id="canvaDrawerBackBtn" type="button" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:16px; padding:2px 4px;" title="Back">←</button>
-                    <span style="font-weight:800; color:#fff; font-size:16px;">Tools</span>
+                    <button id="canvaDrawerBackBtn" type="button" style="background:transparent; border:none; color:#64748b; cursor:pointer; font-size:16px; padding:2px 4px;" title="Back">←</button>
+                    <span style="font-weight:800; color:#0f172a; font-size:16px;">Tools</span>
                     <span style="background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; font-size:9px; font-weight:800; padding:2px 7px; border-radius:12px; letter-spacing:0.5px;">PRO</span>
                   </div>
                   <div style="display:flex; align-items:center; gap:8px;">
-                    <button id="canvaActiveTargetIndicator" type="button" style="background:transparent; border:none; color:#00c4cc; font-size:11px; font-weight:600; cursor:default;">Whole Image</button>
-                    <button id="canvaDrawerCloseBtn" type="button" style="background:transparent; border:none; color:#a0a6b5; cursor:pointer; font-size:16px; padding:2px 4px;" title="Close">✕</button>
+                    <button id="canvaActiveTargetIndicator" type="button" style="background:#f3e8ff; border:1px solid #e9d5ff; color:#7d2ae8; font-size:11px; font-weight:700; border-radius:12px; padding:2px 8px; cursor:default;">Whole Image</button>
+                    <button id="canvaDrawerCloseBtn" type="button" style="background:transparent; border:none; color:#64748b; cursor:pointer; font-size:16px; padding:2px 4px;" title="Close">✕</button>
                   </div>
                 </div>
 
                 <!-- CATEGORY 1: ENHANCE -->
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
-                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Enhance</div>
+                  <div style="font-size:13px; font-weight:800; color:#0f172a;">Enhance</div>
                   <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
                     <!-- 1. Adjust -->
                     <div id="canvaToolAdjustBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:#f1f5f9; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:transform 0.15s;">
                         🎚️
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Adjust</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Adjust</span>
                     </div>
 
                     <!-- 2. Upscale -->
                     <div id="canvaToolUpscaleBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
                       <div style="position:absolute; top:-2px; right:8px; background:#7d2ae8; color:#fff; font-size:8px; font-weight:900; border-radius:6px; padding:1px 5px; z-index:2;">New</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b 0%, #10b981 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b 0%, #10b981 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:transform 0.15s;">
                         🌻
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Upscale</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Upscale</span>
                     </div>
 
                     <!-- 3. BG Remover -->
                     <div id="canvaToolBgRemoverBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
                       <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:repeating-conic-gradient(#334155 0% 25%, #1e293b 0% 50%) 50% / 12px 12px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #475569; transition:transform 0.15s;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:repeating-conic-gradient(#cbd5e1 0% 25%, #f1f5f9 0% 50%) 50% / 12px 12px; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.06); border:2px solid #e2e8f0; transition:transform 0.15s;">
                         🏖️
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">BG Remover</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">BG Remover</span>
                     </div>
 
                     <!-- 4. Magic Eraser -->
                     <div id="canvaToolMagicEraserBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
                       <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🕊️
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #7d2ae8 0%, #00c4cc 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(125,42,232,0.25); transition:transform 0.15s;">
+                        🧹
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Eraser</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Magic Eraser</span>
                     </div>
 
-                    <!-- 5. Blur -->
-                    <div id="canvaToolBlurBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🏃‍♂️
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Blur</span>
-                    </div>
-
-                    <!-- 6. Auto Focus -->
-                    <div id="canvaToolAutoFocusBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🐕
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Auto Focus</span>
-                    </div>
-
-                    <!-- 7. Face Retouch -->
-                    <div id="canvaToolFaceRetouchBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        💆‍♀️
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Face Retouch</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- CATEGORY 2: REIMAGINE -->
-                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Reimagine</div>
-                  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
-                    <!-- 8. Magic Edit -->
-                    <div id="canvaToolMagicEditBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
-                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f97316 0%, #ef4444 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🧁
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Edit</span>
-                    </div>
-
-                    <!-- 9. Image to Video -->
-                    <div id="canvaToolImageToVideoBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🦋
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Image to Video</span>
-                    </div>
-
-                    <!-- 10. BG Generator -->
-                    <div id="canvaToolBgGenBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
-                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #ec4899 0%, #d97706 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🕶️
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">BG Generator</span>
-                    </div>
-
-                    <!-- 11. Magic Expand -->
-                    <div id="canvaToolMagicExpandBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
-                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:repeating-conic-gradient(#15803d 0% 25%, #166534 0% 50%) 50% / 12px 12px; color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid #22c55e; transition:transform 0.15s;">
-                        🐞
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Expand</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- CATEGORY 3: SELECT ELEMENTS -->
-                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                  <div style="font-size:13px; font-weight:800; color:#ffffff;">Select elements</div>
-                  <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px 6px;">
-                    <!-- 12. Magic Layers -->
-                    <div id="canvaToolMagicLayersBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🔮
-                      </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Layers</span>
-                    </div>
-
-                    <!-- 13. Magic Grab -->
+                    <!-- 5. Magic Grab -->
                     <div id="canvaToolMagicGrabBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
                       <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #38bdf8 0%, #6366f1 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        🎈
+                      <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:transform 0.15s;">
+                        ✋
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Magic Grab</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Magic Grab</span>
                     </div>
 
-                    <!-- 14. Grab Text -->
+                    <!-- 6. Grab Text -->
                     <div id="canvaToolGrabTextBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
                       <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
-                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #fbbf24 0%, #ea580c 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:900; font-family:serif; box-shadow:0 2px 6px rgba(0,0,0,0.3); transition:transform 0.15s;">
-                        Aa
+                      <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:transform 0.15s;">
+                        🔤
                       </div>
-                      <span style="font-size:11px; font-weight:600; color:#fff;">Grab Text</span>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Grab Text</span>
+                    </div>
+
+                    <!-- 7. Magic Expand -->
+                    <div id="canvaToolMagicExpandBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center; position:relative;">
+                      <div style="position:absolute; top:-2px; right:8px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center; z-index:2;">👑</div>
+                      <div style="width:52px; height:52px; border-radius:50%; background:linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(2,132,199,0.25); transition:transform 0.15s;">
+                        ↔️
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Expand</span>
+                    </div>
+
+                    <!-- 8. Blur Element -->
+                    <div id="canvaToolBlurBtn" class="canva-circle-tool" style="display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; text-align:center;">
+                      <div style="width:52px; height:52px; border-radius:50%; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; display:flex; align-items:center; justify-content:center; font-size:22px; box-shadow:0 2px 6px rgba(0,0,0,0.06); transition:transform 0.15s;">
+                        💧
+                      </div>
+                      <span style="font-size:11px; font-weight:600; color:#334155;">Blur</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- SUB-PANEL 1: ADJUST SLIDERS -->
-                <div id="canvaSubAdjustPanel" style="display:none; background:#18191c; border:1px solid #32363f; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
+                <!-- SUB-PANEL 1: ADJUSTMENT SLIDERS -->
+                <div id="canvaSubAdjustPanel" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#fff;">⚙️ Image Adjustments</span>
-                    <button id="canvaResetAdjustBtn" style="background:transparent; border:none; color:#00c4cc; font-size:11px; font-weight:700; cursor:pointer;">Reset</button>
+                    <span style="font-size:12px; font-weight:700; color:#0f172a;">Color Adjustments</span>
+                    <button id="canvaResetAdjustBtn" type="button" style="background:transparent; border:none; color:#64748b; font-size:11px; cursor:pointer;">Reset</button>
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:2px;">
                       <span>Brightness</span><span id="canvaValBrightness">0</span>
                     </div>
                     <input type="range" id="canvaSliderBrightness" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:2px;">
                       <span>Contrast</span><span id="canvaValContrast">0</span>
                     </div>
                     <input type="range" id="canvaSliderContrast" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:2px;">
                       <span>Saturation</span><span id="canvaValSaturation">0</span>
                     </div>
                     <input type="range" id="canvaSliderSaturation" min="-100" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Warmth (Hue)</span><span id="canvaValWarmth">0</span>
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:2px;">
+                      <span>Sharpness</span><span id="canvaValClarity">0</span>
                     </div>
-                    <input type="range" id="canvaSliderWarmth" min="-180" max="180" value="0" style="width:100%; accent-color:#7d2ae8;" />
-                  </div>
-                  <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Blur</span><span id="canvaValBlur">0</span>
-                    </div>
-                    <input type="range" id="canvaSliderBlur" min="0" max="10" value="0" step="0.5" style="width:100%; accent-color:#7d2ae8;" />
-                  </div>
-                </div>
-
-                <!-- SUB-PANEL 2: MAGIC ERASER CONTROLS -->
-                <div id="canvaSubEraserPanel" style="display:none; background:#18191c; border:1px solid #ec4899; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#ec4899;">🕊️ Magic Eraser Brush</span>
-                    <button id="canvaCancelEraserBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Cancel</button>
-                  </div>
-                  <div style="font-size:11px; color:#a0a6b5;">
-                    Paint over any unwanted logo, text, or scratch on the canvas to erase it cleanly with AI!
-                  </div>
-                  <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Brush Size</span><span id="canvaValBrushSize">25px</span>
-                    </div>
-                    <input type="range" id="canvaSliderBrushSize" min="5" max="80" value="25" style="width:100%; accent-color:#ec4899;" />
-                  </div>
-                  <button id="canvaApplyEraseBtn" style="background:linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color:#fff; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ✨ Erase Brushed Area
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 3: BG GENERATOR PRESETS -->
-                <div id="canvaSubBgGenPanel" style="display:none; background:#18191c; border:1px solid #00c4cc; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <span style="font-size:12px; font-weight:700; color:#00c4cc;">🕶️ Packaging Background Textures</span>
-                  <div style="display:flex; flex-direction:column; gap:6px;">
-                    <button class="canva-bg-preset-btn" data-preset="carbon_dark" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                      ⚡ Carbon Dark (Matte Black Titanium)
-                    </button>
-                    <button class="canva-bg-preset-btn" data-preset="gold_luxury" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                      🏆 Gold Luxury (Black & Gold Veined Marble)
-                    </button>
-                    <button class="canva-bg-preset-btn" data-preset="neon_gym" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                      🏋️ Neon Gym (Cyberpunk Cyan & Magenta)
-                    </button>
-                    <button class="canva-bg-preset-btn" data-preset="fruit_splash" style="background:#22252a; border:1px solid #32363f; color:#ff8c00; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                      🍇 Fruit Splash (Dynamic Water & Splash)
-                    </button>
-                    <button class="canva-bg-preset-btn" data-preset="clean_studio" style="background:#22252a; border:1px solid #32363f; color:#e2e8f0; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:700; display:flex; align-items:center; gap:8px;">
-                      🧴 Clean Studio (Minimalist White Floor)
-                    </button>
-                  </div>
-                </div>
-
-                <!-- SUB-PANEL 4: MAGIC EDIT PROMPT -->
-                <div id="canvaSubMagicEditPanel" style="display:none; background:#18191c; border:1px solid #f59e0b; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
-                  <span style="font-size:12px; font-weight:700; color:#f59e0b;">🪄 AI Magic Edit</span>
-                  <div style="font-size:11px; color:#a0a6b5;">Type what you want to add or modify on the label:</div>
-                  <input id="canvaMagicEditPrompt" placeholder="e.g. Add metallic gold foil reflection" style="background:#131518; border:1px solid #32363f; color:#fff; border-radius:6px; padding:8px 10px; font-size:12px; outline:none;" />
-                  <button id="canvaExecuteMagicEditBtn" style="background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ⚡ Generate with AI
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 5: BLUR CONTROLS -->
-                <div id="canvaSubBlurPanel" style="display:none; background:#18191c; border:1px solid #0284c7; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#38bdf8;">🏃‍♂️ AI Blur Effect</span>
-                    <button id="canvaCancelBlurBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
-                  </div>
-                  <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Blur Intensity</span><span id="canvaValBlurRadius">15px</span>
-                    </div>
-                    <input type="range" id="canvaSliderBlurRadius" min="2" max="60" value="15" style="width:100%; accent-color:#0284c7;" />
-                  </div>
-                  <div style="display:flex; gap:6px;">
-                    <button id="canvaBlurGaussianBtn" class="canva-blur-type-btn active" data-type="gaussian" style="flex:1; background:#0284c7; border:none; color:#fff; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">Gaussian</button>
-                    <button id="canvaBlurBoxBtn" class="canva-blur-type-btn" data-type="box" style="flex:1; background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:6px; font-size:11px; font-weight:700; cursor:pointer;">Box</button>
-                  </div>
-                  <button id="canvaApplyBlurBtn" style="background:linear-gradient(135deg, #0284c7 0%, #3b82f6 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ✨ Apply Blur
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 6: AUTO FOCUS (PORTRAIT / PRODUCT BOKEH) -->
-                <div id="canvaSubAutoFocusPanel" style="display:none; background:#18191c; border:1px solid #eab308; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#fbbf24;">🐕 Auto Focus (Bokeh Depth-of-Field)</span>
-                    <button id="canvaCancelAutoFocusBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
-                  </div>
-                  <div style="font-size:11px; color:#a0a6b5;">
-                    Automatically isolates the subject, keeping it razor-sharp while blurring surrounding packaging depth.
-                  </div>
-                  <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Bokeh Blur Strength</span><span id="canvaValBokeh">25px</span>
-                    </div>
-                    <input type="range" id="canvaSliderBokeh" min="5" max="65" value="25" style="width:100%; accent-color:#eab308;" />
-                  </div>
-                  <button id="canvaApplyAutoFocusBtn" style="background:linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ⚡ Apply Auto Focus
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 7: FACE RETOUCH -->
-                <div id="canvaSubFaceRetouchPanel" style="display:none; background:#18191c; border:1px solid #f43f5e; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#fb7185;">💆‍♀️ Face & Model Retouch</span>
-                    <button id="canvaCancelFaceRetouchBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
-                  </div>
-                  <div style="font-size:11px; color:#a0a6b5;">
-                    Bilateral skin smoothing that clears blemishes and roughness while preserving eyes, lips, and crisp packaging print details.
-                  </div>
-                  <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:4px;">
-                      <span>Smoothness</span><span id="canvaValSmoothness">60%</span>
-                    </div>
-                    <input type="range" id="canvaSliderSmoothness" min="10" max="100" value="60" style="width:100%; accent-color:#f43f5e;" />
-                  </div>
-                  <button id="canvaApplyFaceRetouchBtn" style="background:linear-gradient(135deg, #f43f5e 0%, #fb7185 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ✨ Smooth & Retouch
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 8: MAGIC EXPAND -->
-                <div id="canvaSubMagicExpandPanel" style="display:none; background:#18191c; border:1px solid #22c55e; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#4ade80;">🐞 Magic Expand (Outpainting)</span>
-                    <button id="canvaCancelExpandBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
-                  </div>
-                  <div style="font-size:11px; color:#a0a6b5;">
-                    Expands your label outward into standard packaging ratios without stretching your art.
-                  </div>
-                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                    <button class="canva-expand-ratio-btn active" data-aspect="3:1" style="background:#15803d; border:1px solid #22c55e; color:#fff; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">3:1 Wrap Label</button>
-                    <button class="canva-expand-ratio-btn" data-aspect="16:9" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">16:9 Banner</button>
-                    <button class="canva-expand-ratio-btn" data-aspect="4:1" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">4:1 Panoramic</button>
-                    <button class="canva-expand-ratio-btn" data-aspect="1:1" style="background:#22252a; border:1px solid #32363f; color:#a0a6b5; border-radius:6px; padding:8px 6px; font-size:11px; font-weight:700; cursor:pointer;">1:1 Square</button>
-                  </div>
-                  <button id="canvaApplyExpandBtn" style="background:linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color:#fff; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:700; cursor:pointer;">
-                    ⚡ Expand Canvas with AI
-                  </button>
-                </div>
-
-                <!-- SUB-PANEL 9: IMAGE TO VIDEO (3D TURNTABLE PREVIEW) -->
-                <div id="canvaSubVideoPanel" style="display:none; background:#18191c; border:1px solid #f59e0b; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:700; color:#fbbf24;">🦋 Image to Video / 3D Turnaround</span>
-                    <button id="canvaCancelVideoBtn" style="background:transparent; border:none; color:#a0a6b5; font-size:11px; cursor:pointer;">Close</button>
-                  </div>
-                  <div id="canvaVideoPreviewContainer" style="width:100%; height:180px; background:#0f172a; border-radius:8px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid #334155;">
-                    <span style="color:#64748b; font-size:12px;">Click below to render 3D turnaround video</span>
-                  </div>
-                  <div style="display:flex; gap:6px;">
-                    <button id="canvaGenerateVideoBtn" style="flex:1; background:linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color:#000; border:none; border-radius:8px; padding:9px; font-size:12px; font-weight:800; cursor:pointer;">
-                      🎬 Render 3D Video
-                    </button>
-                    <button id="canvaLaunch3DMockupBtn" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer;" title="Open 3D Bottle Studio">
-                      🧴 3D Jar
-                    </button>
+                    <input type="range" id="canvaSliderClarity" min="0" max="100" value="0" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                 </div>
 
                 <!-- 1. STYLE MATCH ROW (with horizontal scroll carousel) -->
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Style Match</span>
-                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                    <span style="font-size:12px; font-weight:800; color:#0f172a;">Style Match</span>
+                    <span style="font-size:11px; color:#64748b; cursor:pointer;">See all</span>
                   </div>
                   <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
-                    <div class="canva-style-card active" data-style="none" style="min-width:72px; background:#22252a; border:2px solid #8b3dff; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-style-card active" data-style="none" style="min-width:72px; background:#ffffff; border:2px solid #7d2ae8; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #ef4444 0%, #f97316 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:800;">Original</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">None</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">None</span>
                     </div>
-                    <div class="canva-style-card" data-style="etching" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:48px; border-radius:6px; background:#e2e8f0; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#1e293b; font-size:16px;">🦆</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Etching</span>
+                    <div class="canva-style-card" data-style="etching" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:#f1f5f9; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#1e293b; font-size:16px;">🦆</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Etching</span>
                     </div>
-                    <div class="canva-style-card" data-style="scrapbook" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-style-card" data-style="scrapbook" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:#fef08a; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#854d0e; font-size:16px;">🐥</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Scrapbook</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Scrapbook</span>
                     </div>
-                    <div class="canva-style-card" data-style="line_art" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:48px; border-radius:6px; background:#ffffff; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#000; font-size:16px;">✏️</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Line Art</span>
+                    <div class="canva-style-card" data-style="line_art" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:48px; border-radius:6px; background:#f8fafc; border:1px solid #e2e8f0; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#000; font-size:16px;">✏️</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Line Art</span>
                     </div>
                   </div>
                 </div>
@@ -3623,29 +3451,29 @@
                 <!-- 2. FILTERS ROW (with horizontal scroll carousel) -->
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Filters</span>
-                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                    <span style="font-size:12px; font-weight:800; color:#0f172a;">Filters</span>
+                    <span style="font-size:11px; color:#64748b; cursor:pointer;">See all</span>
                   </div>
                   <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
-                    <div class="canva-filter-btn" data-filter="natural" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-filter-btn" data-filter="natural" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #64748b 0%, #475569 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">🍃</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Natural</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Natural</span>
                     </div>
-                    <div class="canva-filter-btn" data-filter="warm" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-filter-btn" data-filter="warm" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #d97706 0%, #b45309 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">☀️</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Warm</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Warm</span>
                     </div>
-                    <div class="canva-filter-btn" data-filter="cool" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-filter-btn" data-filter="cool" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">❄️</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Cool</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Cool</span>
                     </div>
-                    <div class="canva-filter-btn" data-filter="vivid" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-filter-btn" data-filter="vivid" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">⚡</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Vivid</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Vivid</span>
                     </div>
-                    <div class="canva-filter-btn" data-filter="noir" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div class="canva-filter-btn" data-filter="noir" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #0f172a 0%, #334155 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px;">🎬</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Noir</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Noir</span>
                     </div>
                   </div>
                 </div>
@@ -3653,26 +3481,26 @@
                 <!-- 3. APPS ROW (Vectorify, Texture, Screen) -->
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Apps</span>
-                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                    <span style="font-size:12px; font-weight:800; color:#0f172a;">Apps</span>
+                    <span style="font-size:11px; color:#64748b; cursor:pointer;">See all</span>
                   </div>
                   <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
                     <!-- Vectorify -->
-                    <div id="canvaAppVectorifyBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
+                    <div id="canvaAppVectorifyBtn" style="min-width:76px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
                       <div style="position:absolute; top:4px; right:4px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center;">👑</div>
                       <div style="width:100%; height:48px; border-radius:6px; background:linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">🐕</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Vectorify</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Vectorify</span>
                     </div>
                     <!-- Texture -->
-                    <div id="canvaAppTextureBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
+                    <div id="canvaAppTextureBtn" style="min-width:76px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0; position:relative;">
                       <div style="position:absolute; top:4px; right:4px; background:#f59e0b; color:#000; font-size:8px; font-weight:900; border-radius:50%; width:14px; height:14px; display:flex; align-items:center; justify-content:center;">👑</div>
-                      <div style="width:100%; height:48px; border-radius:6px; background:#cbd5e1; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#334155; font-size:18px;">📄</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Texture</span>
+                      <div style="width:100%; height:48px; border-radius:6px; background:#e2e8f0; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#334155; font-size:18px;">📄</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Texture</span>
                     </div>
                     <!-- Screen / Halftone -->
-                    <div id="canvaAppScreenBtn" style="min-width:76px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                    <div id="canvaAppScreenBtn" style="min-width:76px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
                       <div style="width:100%; height:48px; border-radius:6px; background:repeating-radial-gradient(circle, #000, #000 1px, #fff 1px, #fff 4px); margin-bottom:4px; display:flex; align-items:center; justify-content:center; font-size:16px;">🏁</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Screen</span>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Screen</span>
                     </div>
                   </div>
                 </div>
@@ -3680,69 +3508,69 @@
                 <!-- 4. SHADOWS ROW (None, Glow, Drop, Outline) -->
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:800; color:#ffffff;">Shadows</span>
-                    <span style="font-size:11px; color:#a0a6b5; cursor:pointer;">See all</span>
+                    <span style="font-size:12px; font-weight:800; color:#0f172a;">Shadows</span>
+                    <span style="font-size:11px; color:#64748b; cursor:pointer;">See all</span>
                   </div>
                   <div style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;">
-                    <div class="canva-shadow-btn active" data-shadow="none" style="min-width:72px; background:#22252a; border:2px solid #8b3dff; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Plain</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">None</span>
+                    <div class="canva-shadow-btn active" data-shadow="none" style="min-width:72px; background:#ffffff; border:2px solid #7d2ae8; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#f3e8ff; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Plain</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">None</span>
                     </div>
-                    <div class="canva-shadow-btn" data-shadow="glow" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; box-shadow:0 0 12px #c084fc; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Glow</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Glow</span>
+                    <div class="canva-shadow-btn" data-shadow="glow" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#f3e8ff; box-shadow:0 0 10px #c084fc; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Glow</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Glow</span>
                     </div>
-                    <div class="canva-shadow-btn" data-shadow="drop" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; box-shadow:4px 6px 12px rgba(0,0,0,0.7); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Drop</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Drop</span>
+                    <div class="canva-shadow-btn" data-shadow="drop" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#f3e8ff; box-shadow:3px 5px 10px rgba(0,0,0,0.25); margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Drop</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Drop</span>
                     </div>
-                    <div class="canva-shadow-btn" data-shadow="outline" style="min-width:72px; background:#22252a; border:1px solid #32363f; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
-                      <div style="width:100%; height:46px; border-radius:6px; background:#d8b4fe; border:2px solid #ffffff; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Stroke</div>
-                      <span style="font-size:11px; color:#fff; font-weight:600;">Outline</span>
+                    <div class="canva-shadow-btn" data-shadow="outline" style="min-width:72px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:6px; text-align:center; cursor:pointer; flex-shrink:0;">
+                      <div style="width:100%; height:46px; border-radius:6px; background:#f3e8ff; border:2px solid #7d2ae8; margin-bottom:4px; display:flex; align-items:center; justify-content:center; color:#581c87; font-size:11px; font-weight:700;">Stroke</div>
+                      <span style="font-size:11px; color:#0f172a; font-weight:600;">Outline</span>
                     </div>
                   </div>
                 </div>
 
                 <!-- SUB-PANEL 5: SHADOW / GLOW ADJUSTMENT CONTROLS -->
-                <div id="canvaSubShadowPanel" style="display:none; background:#18191c; border:1px solid #8b3dff; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
-                  <span style="font-size:12px; font-weight:700; color:#8b3dff;">💫 Shadow &amp; Glow Settings</span>
+                <div id="canvaSubShadowPanel" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
+                  <span style="font-size:12px; font-weight:700; color:#7d2ae8;">💫 Shadow &amp; Glow Settings</span>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:3px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:3px;">
                       <span>Blur / Softness</span><span id="canvaValShadowBlur">20</span>
                     </div>
-                    <input type="range" id="canvaSliderShadowBlur" min="0" max="60" value="20" style="width:100%; accent-color:#8b3dff;" />
+                    <input type="range" id="canvaSliderShadowBlur" min="0" max="60" value="20" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-bottom:3px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-bottom:3px;">
                       <span>Distance (Offset)</span><span id="canvaValShadowOffset">10</span>
                     </div>
-                    <input type="range" id="canvaSliderShadowOffset" min="0" max="40" value="10" style="width:100%; accent-color:#8b3dff;" />
+                    <input type="range" id="canvaSliderShadowOffset" min="0" max="40" value="10" style="width:100%; accent-color:#7d2ae8;" />
                   </div>
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
-                    <span style="font-size:11px; color:#a0a6b5;">Glow / Shadow Color:</span>
-                    <input type="color" id="canvaShadowColorPicker" value="#8b3dff" style="border:none; width:28px; height:24px; border-radius:4px; cursor:pointer; background:transparent;" />
+                    <span style="font-size:11px; color:#64748b;">Glow / Shadow Color:</span>
+                    <input type="color" id="canvaShadowColorPicker" value="#7d2ae8" style="border:none; width:28px; height:24px; border-radius:4px; cursor:pointer; background:transparent;" />
                   </div>
                 </div>
 
                 <!-- SUB-PANEL 6: TEXTURE SELECTOR -->
-                <div id="canvaSubTexturePanel" style="display:none; background:#18191c; border:1px solid #3b82f6; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
-                  <span style="font-size:12px; font-weight:700; color:#3b82f6;">📄 Packaging Material Textures</span>
+                <div id="canvaSubTexturePanel" style="display:none; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; flex-direction:column; gap:8px;">
+                  <span style="font-size:12px; font-weight:700; color:#0284c7;">📄 Packaging Material Textures</span>
                   <div style="display:flex; flex-direction:column; gap:6px;">
-                    <button class="canva-tex-apply-btn" data-tex="paper" style="background:#22252a; border:1px solid #32363f; color:#fff; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <button class="canva-tex-apply-btn" data-tex="paper" style="background:#ffffff; border:1px solid #e2e8f0; color:#0f172a; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
                       📦 Crumpled Kraft Paper
                     </button>
-                    <button class="canva-tex-apply-btn" data-tex="foil" style="background:#22252a; border:1px solid #32363f; color:#ffd700; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <button class="canva-tex-apply-btn" data-tex="foil" style="background:#ffffff; border:1px solid #e2e8f0; color:#b45309; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
                       ✨ Brushed Gold / Metallic Foil
                     </button>
-                    <button class="canva-tex-apply-btn" data-tex="screen" style="background:#22252a; border:1px solid #32363f; color:#00c4cc; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
+                    <button class="canva-tex-apply-btn" data-tex="screen" style="background:#ffffff; border:1px solid #e2e8f0; color:#0284c7; border-radius:8px; padding:8px 10px; text-align:left; cursor:pointer; font-size:12px; font-weight:600; display:flex; align-items:center; gap:8px;">
                       🏁 Halftone Pop-Art Dot Matrix
                     </button>
                   </div>
                   <div>
-                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#a0a6b5; margin-top:4px; margin-bottom:2px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-top:4px; margin-bottom:2px;">
                       <span>Texture Opacity</span><span id="canvaValTexOpacity">35%</span>
                     </div>
-                    <input type="range" id="canvaSliderTexOpacity" min="10" max="80" value="35" style="width:100%; accent-color:#3b82f6;" />
+                    <input type="range" id="canvaSliderTexOpacity" min="10" max="80" value="35" style="width:100%; accent-color:#0284c7;" />
                   </div>
                 </div>
 
@@ -3750,17 +3578,17 @@
 
             </div>
 
-            <!-- Canva Center Canvas Stage -->
-            <div id="canvaStageWrapper" style="flex:1; background:#0c0e14; overflow:auto; display:flex; align-items:center; justify-content:center; position:relative; padding:40px;">
+            <!-- Canva Center Canvas Stage (Authentic Canvas Light Grey Backdrop) -->
+            <div id="canvaStageWrapper" style="flex:1; background:#ebedf0; overflow:auto; display:flex; align-items:center; justify-content:center; position:relative; padding:40px;">
               
               <!-- Floating Notification Toast inside Studio -->
-              <div id="canvaStudioToast" style="display:none; position:absolute; top:20px; background:rgba(30,41,59,0.95); backdrop-filter:blur(8px); border:1px solid #3b82f6; color:#fff; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.5); z-index:99; align-items:center; gap:8px;">
+              <div id="canvaStudioToast" style="display:none; position:absolute; top:20px; background:rgba(255,255,255,0.96); backdrop-filter:blur(8px); border:1px solid #e2e8f0; color:#0f172a; border-radius:10px; padding:10px 18px; font-size:13px; font-weight:600; box-shadow:0 10px 25px rgba(0,0,0,0.08); z-index:99; align-items:center; gap:8px;">
                 <span id="canvaToastIcon">ℹ️</span>
                 <span id="canvaToastMsg">Notification</span>
               </div>
 
-              <!-- Artboard Container with subtle Canva shadow -->
-              <div id="canvaArtboardContainer" style="box-shadow:0 15px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1); border-radius:4px; overflow:hidden; background:#ffffff; position:relative;">
+              <!-- Artboard Container with authentic Canva paper drop shadow -->
+              <div id="canvaArtboardContainer" style="box-shadow:0 12px 35px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.05); border:1px solid #cbd5e1; border-radius:4px; overflow:hidden; background:#ffffff; position:relative;">
                 <canvas id="canvaMainCanvas"></canvas>
               </div>
 
@@ -3769,19 +3597,19 @@
           </div>
 
           <!-- Bottom Canva Footer (Zoom & Canvas Information) -->
-          <div style="height:38px; background:#18191b; border-top:1px solid #2e323b; display:flex; align-items:center; justify-content:space-between; padding:0 20px; font-size:12px; color:#a0a6b5; flex-shrink:0;">
+          <div style="height:38px; background:#ffffff; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; padding:0 20px; font-size:12px; color:#64748b; flex-shrink:0;">
             <div style="display:flex; align-items:center; gap:16px;">
               <span>💡 Double-click any text to edit directly · Drag &amp; scale bounding boxes</span>
-              <span id="canvaLabelDimBadge" style="background:#22252a; padding:2px 8px; border-radius:4px; font-weight:600; color:#00c4cc;">1536 × 512 px</span>
+              <span id="canvaLabelDimBadge" style="background:#f1f5f9; padding:2px 8px; border-radius:4px; font-weight:700; color:#334155; border:1px solid #e2e8f0;">1536 × 512 px</span>
             </div>
             
             <!-- Zoom Controls -->
             <div style="display:flex; align-items:center; gap:10px;">
-              <button id="canvaZoomOutBtn" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-weight:800; font-size:14px;" title="Zoom Out">-</button>
-              <input id="canvaZoomSlider" type="range" min="30" max="200" value="100" style="width:90px; cursor:pointer;" />
-              <button id="canvaZoomInBtn" style="background:none; border:none; color:#a0a6b5; cursor:pointer; font-weight:800; font-size:14px;" title="Zoom In">+</button>
-              <span id="canvaZoomVal" style="font-weight:700; width:45px; text-align:right;">100%</span>
-              <button id="canvaZoomFitBtn" style="background:#2a2e39; border:none; color:#fff; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;">
+              <button id="canvaZoomOutBtn" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:800; font-size:14px;" title="Zoom Out">-</button>
+              <input id="canvaZoomSlider" type="range" min="30" max="200" value="100" style="width:90px; cursor:pointer; accent-color:#7d2ae8;" />
+              <button id="canvaZoomInBtn" style="background:none; border:none; color:#64748b; cursor:pointer; font-weight:800; font-size:14px;" title="Zoom In">+</button>
+              <span id="canvaZoomVal" style="font-weight:700; width:45px; text-align:right; color:#0f172a;">100%</span>
+              <button id="canvaZoomFitBtn" style="background:#f8fafc; border:1px solid #cbd5e1; color:#334155; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;">
                 Fit
               </button>
             </div>
@@ -3862,14 +3690,14 @@
         [scopeAllBtn, scopeElementBtn, scopeAreaBtn].forEach(btn => {
           if (btn) {
             btn.style.background = 'transparent';
-            btn.style.color = '#a0a6b5';
+            btn.style.color = '#64748b';
             btn.classList.remove('active');
           }
         });
         const activeBtn = (scope === 'all') ? scopeAllBtn : (scope === 'element' ? scopeElementBtn : scopeAreaBtn);
         if (activeBtn) {
           activeBtn.style.background = '#7d2ae8';
-          activeBtn.style.color = '#fff';
+          activeBtn.style.color = '#ffffff';
           activeBtn.classList.add('active');
         }
         if (activeTargetInd) {
@@ -5013,13 +4841,15 @@
           if (b) {
             b.classList.remove('active');
             b.style.background = 'transparent';
-            b.style.color = '#a0a6b5';
+            b.style.color = '#64748b';
+            b.style.borderLeft = '3px solid transparent';
           }
         });
         if (activeBtn) {
           activeBtn.classList.add('active');
-          activeBtn.style.background = '#22252a';
-          activeBtn.style.color = '#ffffff';
+          activeBtn.style.background = '#f3e8ff';
+          activeBtn.style.color = '#7d2ae8';
+          activeBtn.style.borderLeft = '3px solid #7d2ae8';
         }
 
         [drawerDesign, drawerEditImage, drawerText, drawerElements, drawerUploads, drawerDraw, drawerLayers].forEach(d => {
@@ -5144,9 +4974,9 @@
             colorPreview.style.background = obj.fill || '#ffffff';
             colorPreview.style.color = (obj.fill === '#ffffff' || obj.fill === '#fff') ? '#000' : '#fff';
           }
-          if (boldBtn) boldBtn.style.color = (obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === 900) ? '#00c4cc' : '#ffffff';
-          if (italicBtn) italicBtn.style.color = (obj.fontStyle === 'italic') ? '#00c4cc' : '#ffffff';
-          if (underlineBtn) underlineBtn.style.color = obj.underline ? '#00c4cc' : '#ffffff';
+          if (boldBtn) boldBtn.style.color = (obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === 900) ? '#7d2ae8' : '#334155';
+          if (italicBtn) italicBtn.style.color = (obj.fontStyle === 'italic') ? '#7d2ae8' : '#334155';
+          if (underlineBtn) underlineBtn.style.color = obj.underline ? '#7d2ae8' : '#334155';
         } else if (obj.type === 'rect' || obj.type === 'circle') {
           if (colorPicker) colorPicker.value = obj.fill || '#8b5cf6';
           if (colorPreview) colorPreview.style.background = obj.fill || '#8b5cf6';
@@ -5168,17 +4998,17 @@
           if (filterVal && !textContent.toLowerCase().includes(filterVal)) return;
 
           const item = document.createElement('div');
-          item.style.cssText = "background:#22252a; border:1px solid #32363f; border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:8px; transition:border-color 0.2s;";
+          item.style.cssText = "background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:8px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.03);";
           
           if (canvaCanvas.getActiveObject() === obj) {
-            item.style.borderColor = "#8b3dff";
-            item.style.background = "#2a2838";
+            item.style.borderColor = "#7d2ae8";
+            item.style.background = "#f3e8ff";
           }
 
           item.innerHTML = `
             <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-              <span style="font-size:14px; color:#8b3dff;">🅰️</span>
-              <span style="color:#fff; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">
+              <span style="font-size:14px; color:#7d2ae8;">🅰️</span>
+              <span style="color:#0f172a; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">
                 ${textContent}
               </span>
             </div>
@@ -5289,7 +5119,7 @@
           });
         } else {
           // Blank canvas
-          canvaCanvas.backgroundColor = '#111317';
+          canvaCanvas.backgroundColor = '#ffffff';
           canvaCanvas.renderAll();
           renderLayersList();
           undoStack = [];
@@ -5427,15 +5257,15 @@
         }
 
         const card = document.createElement('div');
-        card.style.cssText = 'background:#131518; border:1px solid #32363f; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:4px; cursor:pointer;';
+        card.style.cssText = 'background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:6px; display:flex; flex-direction:column; gap:4px; cursor:pointer; box-shadow:0 1px 2px rgba(0,0,0,0.04);';
         card.innerHTML = `
-          <div style="width:100%; height:75px; border-radius:6px; overflow:hidden; background:#000; display:flex; align-items:center; justify-content:center;">
+          <div style="width:100%; height:75px; border-radius:6px; overflow:hidden; background:#f8fafc; display:flex; align-items:center; justify-content:center;">
             <img src="${imgUrl}" style="max-width:100%; max-height:100%; object-fit:contain;" />
           </div>
-          <span style="font-size:10px; color:#fff; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${fileName}">${fileName}</span>
+          <span style="font-size:10px; color:#0f172a; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${fileName}">${fileName}</span>
           <div style="display:flex; gap:4px; margin-top:2px;">
             <button class="gallery-add-layer" style="flex:1; background:#7d2ae8; border:none; color:#fff; border-radius:4px; padding:3px; font-size:9px; font-weight:700; cursor:pointer;">+ Layer</button>
-            <button class="gallery-set-bg" style="flex:1; background:#22252a; border:1px solid #3a3f4d; color:#00c4cc; border-radius:4px; padding:3px; font-size:9px; font-weight:700; cursor:pointer;">Set BG</button>
+            <button class="gallery-set-bg" style="flex:1; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; border-radius:4px; padding:3px; font-size:9px; font-weight:700; cursor:pointer;">Set BG</button>
           </div>
         `;
 
@@ -6012,12 +5842,14 @@
         btn.onclick = () => {
           document.querySelectorAll('.canva-brush-btn').forEach(b => {
             b.classList.remove('active');
-            b.style.background = '#22252a';
-            b.style.color = '#a0a6b5';
+            b.style.background = '#f8fafc';
+            b.style.color = '#64748b';
+            b.style.borderColor = '#e2e8f0';
           });
           btn.classList.add('active');
-          btn.style.background = '#7d2ae8';
-          btn.style.color = '#fff';
+          btn.style.background = '#f3e8ff';
+          btn.style.color = '#7d2ae8';
+          btn.style.borderColor = '#7d2ae8';
           currentBrushMode = btn.dataset.brush;
           startDrawMode(currentBrushMode);
         };
@@ -6078,7 +5910,7 @@
           canvaCanvas.freeDrawingBrush.color = color;
           canvaCanvas.freeDrawingBrush.width = w * 2;
         } else if (brushType === 'eraser') {
-          canvaCanvas.freeDrawingBrush.color = canvaCanvas.backgroundColor || '#111317';
+          canvaCanvas.freeDrawingBrush.color = canvaCanvas.backgroundColor || '#ffffff';
           canvaCanvas.freeDrawingBrush.width = w * 3;
         } else {
           // Pen
@@ -6236,7 +6068,7 @@
           fontSize: fSize * scale,
           fontFamily: fontFamilySelect ? fontFamilySelect.value : 'Montserrat',
           fontWeight: fWeight,
-          fill: colorPicker ? colorPicker.value : '#ffffff',
+          fill: (colorPicker && colorPicker.value !== '#ffffff') ? colorPicker.value : '#1e293b',
           textAlign: 'center'
         });
         canvaCanvas.add(tb);
@@ -6298,7 +6130,7 @@
         addLineBtn.onclick = () => {
           if (!canvaCanvas) return;
           const line = new fabric.Line([50, 100, 250, 100], {
-            stroke: '#ffffff', strokeWidth: 3
+            stroke: '#1e293b', strokeWidth: 3
           });
           canvaCanvas.add(line);
           canvaCanvas.setActiveObject(line);
@@ -6373,7 +6205,7 @@
           if (obj) {
             const isBold = obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === 900;
             obj.set('fontWeight', isBold ? 'normal' : 'bold');
-            boldBtn.style.color = isBold ? '#fff' : '#00c4cc';
+            boldBtn.style.color = isBold ? '#334155' : '#7d2ae8';
             canvaCanvas.renderAll();
             saveCanvasState();
           }
@@ -6386,7 +6218,7 @@
           if (obj) {
             const isItalic = obj.fontStyle === 'italic';
             obj.set('fontStyle', isItalic ? 'normal' : 'italic');
-            italicBtn.style.color = isItalic ? '#fff' : '#00c4cc';
+            italicBtn.style.color = isItalic ? '#334155' : '#7d2ae8';
             canvaCanvas.renderAll();
             saveCanvasState();
           }
@@ -6398,7 +6230,7 @@
           const obj = canvaCanvas ? canvaCanvas.getActiveObject() : null;
           if (obj) {
             obj.set('underline', !obj.underline);
-            underlineBtn.style.color = obj.underline ? '#00c4cc' : '#fff';
+            underlineBtn.style.color = obj.underline ? '#7d2ae8' : '#334155';
             canvaCanvas.renderAll();
             saveCanvasState();
           }
