@@ -2945,6 +2945,20 @@
                 <span style="background:rgba(255,255,255,0.3); padding:1px 5px; border-radius:8px; font-size:9px; font-weight:800;">PRO</span>
               </button>
 
+              <!-- Compare Original Photo Button -->
+              <button id="canvaCompareOriginalBtn" title="Compare against untouched original image" 
+                style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <span>👁️</span>
+                <span>Original</span>
+              </button>
+
+              <!-- Print Guides (Bleed & Safe Margin) -->
+              <button id="canvaPrintGuidesBtn" title="Toggle 3mm Print Safe Margins" 
+                style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
+                <span>📐</span>
+                <span>Guides</span>
+              </button>
+
               <!-- Background Toggle Button -->
               <button id="canvaBgToggleBtn" title="Toggle Clean Inpainted vs Original Photo" 
                 style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; border-radius:8px; padding:7px 11px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px;">
@@ -3390,6 +3404,32 @@
                   </div>
                 </div>
 
+                <!-- SUB-PANEL: GRAB TEXT INTERACTIVE PREVIEW & SELECTION -->
+                <div id="canvaSubGrabTextPanel" style="display:none; background:#ffffff; border:1.5px solid #7d2ae8; border-radius:12px; padding:12px; flex-direction:column; gap:10px; box-shadow:0 4px 14px rgba(125,42,232,0.12);">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <span style="font-size:16px;">🔤</span>
+                      <span style="font-size:13px; font-weight:800; color:#0f172a;">Grab Text Selection</span>
+                      <span id="canvaGrabTextCountBadge" style="background:#f3e8ff; color:#7d2ae8; font-size:10px; font-weight:800; padding:1px 6px; border-radius:10px;">0</span>
+                    </div>
+                    <button id="canvaCancelGrabTextBtn" type="button" style="background:transparent; border:none; color:#ef4444; font-size:11px; font-weight:700; cursor:pointer;" title="Cancel without applying">✕ Cancel</button>
+                  </div>
+                  <p style="font-size:11px; color:#64748b; margin:0; line-height:1.4;">
+                    Select text lines to convert into editable text. Unselected areas remain 100% original & untouched!
+                  </p>
+                  <div style="display:flex; gap:6px;">
+                    <button id="canvaSelectAllGrabBtn" type="button" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:11px; font-weight:700; color:#334155; cursor:pointer;">✓ Select All</button>
+                    <button id="canvaDeselectAllGrabBtn" type="button" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:11px; font-weight:700; color:#334155; cursor:pointer;">✕ Deselect All</button>
+                  </div>
+                  <div id="canvaGrabTextList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px; scrollbar-width:thin;">
+                    <!-- Dynamically populated with text blocks -->
+                  </div>
+                  <button id="canvaApplyGrabTextBtn" type="button" style="background:linear-gradient(135deg, #7d2ae8, #9333ea); border:none; color:#ffffff; font-weight:700; font-size:12px; padding:9px 12px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 8px rgba(125,42,232,0.25); transition:transform 0.15s;">
+                    <span>✨</span>
+                    <span id="canvaApplyGrabTextBtnLabel">Convert Selected to Text</span>
+                  </button>
+                </div>
+
                 <!-- SUB-PANEL 1: ADJUSTMENT SLIDERS -->
                 <div id="canvaSubAdjustPanel" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; flex-direction:column; gap:10px;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -3736,9 +3776,18 @@
       const subMagicExpandPanel = document.getElementById('canvaSubMagicExpandPanel');
       const subVideoPanel = document.getElementById('canvaSubVideoPanel');
 
+      const subGrabTextPanel = document.getElementById('canvaSubGrabTextPanel');
+      const grabTextList = document.getElementById('canvaGrabTextList');
+      const grabCountBadge = document.getElementById('canvaGrabTextCountBadge');
+      const cancelGrabBtn = document.getElementById('canvaCancelGrabTextBtn');
+      const selectAllGrabBtn = document.getElementById('canvaSelectAllGrabBtn');
+      const deselectAllGrabBtn = document.getElementById('canvaDeselectAllGrabBtn');
+      const applyGrabBtn = document.getElementById('canvaApplyGrabTextBtn');
+
       const allSubPanels = [
         subAdjustPanel, subEraserPanel, subBgGenPanel, subMagicEditPanel,
-        subBlurPanel, subAutoFocusPanel, subFaceRetouchPanel, subMagicExpandPanel, subVideoPanel
+        subBlurPanel, subAutoFocusPanel, subFaceRetouchPanel, subMagicExpandPanel, subVideoPanel,
+        subGrabTextPanel
       ];
 
       function hideAllSubPanels() {
@@ -4421,52 +4470,248 @@
         };
       }
 
-      // 14. Grab Text Tool (EasyOCR + Inpaint)
+      // 14. Grab Text Tool (Interactive Non-Destructive OCR + Localized Inpainting)
+      let activeGrabDetections = [];
+
+      function getNativeImageBase64() {
+        if (!canvaCanvas || !canvaCanvas.backgroundImage) return null;
+        const bgImg = canvaCanvas.backgroundImage;
+        const imgEl = bgImg.getElement();
+        if (!imgEl) return null;
+        const nativeW = canvaCanvas.nativeWidth || imgEl.naturalWidth || imgEl.width;
+        const nativeH = canvaCanvas.nativeHeight || imgEl.naturalHeight || imgEl.height;
+
+        const offCanvas = document.createElement('canvas');
+        offCanvas.width = nativeW;
+        offCanvas.height = nativeH;
+        const ctx = offCanvas.getContext('2d');
+        ctx.drawImage(imgEl, 0, 0, nativeW, nativeH);
+        return offCanvas.toDataURL('image/png');
+      }
+
+      function clearTempOcrBoxes() {
+        if (!canvaCanvas) return;
+        const tempBoxes = canvaCanvas.getObjects().filter(o => o.isTempOcrBox);
+        tempBoxes.forEach(b => canvaCanvas.remove(b));
+        canvaCanvas.renderAll();
+      }
+
+      if (cancelGrabBtn) {
+        cancelGrabBtn.onclick = () => {
+          clearTempOcrBoxes();
+          if (subGrabTextPanel) subGrabTextPanel.style.display = 'none';
+          showToast("Text extraction cancelled. Canvas unchanged.", "ℹ️", 2000);
+        };
+      }
+
       if (toolGrabTextBtn) {
         toolGrabTextBtn.onclick = async function () {
-          if (!canvaCanvas || !canvaCanvas.backgroundImage) return;
+          if (!canvaCanvas || !canvaCanvas.backgroundImage) {
+            alert("Please upload or open an image first!");
+            return;
+          }
           const origHTML = toolGrabTextBtn.innerHTML;
-          toolGrabTextBtn.innerHTML = '<div style="width:52px; height:52px; border-radius:50%; background:#22252a; display:flex; align-items:center; justify-content:center; font-size:20px;">⏳</div><span style="font-size:11px; font-weight:600; color:#fff;">Extracting...</span>';
+          toolGrabTextBtn.innerHTML = '<div style="width:52px; height:52px; border-radius:50%; background:#f3e8ff; display:flex; align-items:center; justify-content:center; font-size:20px;">⏳</div><span style="font-size:11px; font-weight:700; color:#7d2ae8;">Detecting...</span>';
 
           try {
-            const dataUrl = canvaCanvas.backgroundImage.toDataURL({ format: 'png' });
-            const res = await fetch('/api/canva/grab-text', {
+            const nativeDataUrl = getNativeImageBase64();
+            if (!nativeDataUrl) throw new Error("Could not retrieve source image.");
+
+            const res = await fetch('/api/canva/detect-text', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ image_data: dataUrl })
+              body: JSON.stringify({ image_data: nativeDataUrl })
             });
             const data = await res.json();
             if (data.error) throw new Error(data.error);
 
-            setCanvasBg(data.clean_background_url, () => {
-              if (data.text_elements && data.text_elements.length > 0) {
-                data.text_elements.forEach(item => {
-                  const itext = new fabric.IText(item.text, {
-                    left: item.left,
-                    top: item.top,
-                    fontSize: item.fontSize || 24,
-                    fill: item.color || '#ffffff',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: 'bold',
-                    cornerColor: '#f59e0b',
-                    borderColor: '#f59e0b',
-                    cornerSize: 8,
-                    transparentCorners: false
-                  });
-                  canvaCanvas.add(itext);
+            if (!data.text_elements || data.text_elements.length === 0) {
+              showToast("No clear text detected on the image.", "ℹ️", 3000);
+              return;
+            }
+
+            activeGrabDetections = data.text_elements;
+            clearTempOcrBoxes();
+
+            // Open the Review Sub-Panel in AI Tools drawer
+            hideAllSubPanels();
+            if (subGrabTextPanel) {
+              subGrabTextPanel.style.display = 'flex';
+              if (grabCountBadge) grabCountBadge.textContent = activeGrabDetections.length;
+            }
+
+            // Populate the checklist & canvas preview boxes
+            if (grabTextList) grabTextList.innerHTML = '';
+            const scale = canvaCanvas.originalScale || 1;
+
+            activeGrabDetections.forEach((elem, idx) => {
+              elem.selected = true; // default all selected
+
+              // 1. Temporary canvas visual bounding box
+              const rect = new fabric.Rect({
+                left: elem.left * scale,
+                top: elem.top * scale,
+                width: Math.max(20, elem.width * scale),
+                height: Math.max(12, elem.height * scale),
+                fill: 'rgba(125, 42, 232, 0.15)',
+                stroke: '#7d2ae8',
+                strokeWidth: 1.5,
+                strokeDashArray: [4, 3],
+                rx: 3,
+                ry: 3,
+                selectable: false,
+                evented: true,
+                hoverCursor: 'pointer',
+                isTempOcrBox: true,
+                excludeFromExport: true,
+                ocrId: elem.id
+              });
+
+              canvaCanvas.add(rect);
+
+              // 2. Checklist item in sidebar
+              const row = document.createElement('div');
+              row.id = `grabRow_${elem.id}`;
+              row.style.cssText = 'background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.15s;';
+              row.innerHTML = `
+                <input type="checkbox" id="chk_${elem.id}" checked style="accent-color:#7d2ae8; cursor:pointer;" />
+                <input type="text" id="txt_${elem.id}" value="${elem.text.replace(/"/g, '&quot;')}" style="flex:1; background:transparent; border:none; color:#0f172a; font-size:11px; font-weight:600; outline:none; text-overflow:ellipsis;" />
+                <span style="font-size:10px; color:#64748b; font-weight:700;">${Math.round(elem.conf * 100)}%</span>
+              `;
+
+              const chk = row.querySelector(`#chk_${elem.id}`);
+              const txtInput = row.querySelector(`#txt_${elem.id}`);
+
+              function updateElemState(isSelected) {
+                elem.selected = isSelected;
+                chk.checked = isSelected;
+                row.style.background = isSelected ? '#f3e8ff' : '#ffffff';
+                row.style.borderColor = isSelected ? '#7d2ae8' : '#cbd5e1';
+                rect.set({
+                  fill: isSelected ? 'rgba(125, 42, 232, 0.18)' : 'rgba(148, 163, 184, 0.08)',
+                  stroke: isSelected ? '#7d2ae8' : '#94a3b8',
+                  strokeDashArray: isSelected ? [4, 3] : [2, 2]
                 });
                 canvaCanvas.renderAll();
-                saveCanvasState();
-                showToast(`✨ Extracted ${data.count} editable text elements! Double-click to edit!`, "🔤", 4500);
-              } else {
-                showToast("No clear text detected on the image.", "ℹ️", 3000);
               }
+
+              chk.onchange = () => updateElemState(chk.checked);
+              rect.on('mousedown', () => updateElemState(!elem.selected));
+              txtInput.oninput = () => { elem.text = txtInput.value; };
+
+              if (grabTextList) grabTextList.appendChild(row);
             });
+
+            canvaCanvas.renderAll();
+            showToast(`Found ${activeGrabDetections.length} text lines! Click to select which to convert.`, "🔤", 4000);
+
           } catch (err) {
             console.error(err);
-            alert("Grab Text failed: " + err.message);
+            alert("Text detection failed: " + err.message);
           } finally {
             toolGrabTextBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
+      if (selectAllGrabBtn) {
+        selectAllGrabBtn.onclick = () => {
+          activeGrabDetections.forEach(elem => {
+            elem.selected = true;
+            const chk = document.getElementById(`chk_${elem.id}`);
+            const row = document.getElementById(`grabRow_${elem.id}`);
+            if (chk) chk.checked = true;
+            if (row) { row.style.background = '#f3e8ff'; row.style.borderColor = '#7d2ae8'; }
+          });
+          canvaCanvas.getObjects().filter(o => o.isTempOcrBox).forEach(r => {
+            r.set({ fill: 'rgba(125, 42, 232, 0.18)', stroke: '#7d2ae8' });
+          });
+          canvaCanvas.renderAll();
+        };
+      }
+
+      if (deselectAllGrabBtn) {
+        deselectAllGrabBtn.onclick = () => {
+          activeGrabDetections.forEach(elem => {
+            elem.selected = false;
+            const chk = document.getElementById(`chk_${elem.id}`);
+            const row = document.getElementById(`grabRow_${elem.id}`);
+            if (chk) chk.checked = false;
+            if (row) { row.style.background = '#ffffff'; row.style.borderColor = '#cbd5e1'; }
+          });
+          canvaCanvas.getObjects().filter(o => o.isTempOcrBox).forEach(r => {
+            r.set({ fill: 'rgba(148, 163, 184, 0.08)', stroke: '#94a3b8' });
+          });
+          canvaCanvas.renderAll();
+        };
+      }
+
+      if (applyGrabBtn) {
+        applyGrabBtn.onclick = async function () {
+          const selected = activeGrabDetections.filter(e => e.selected);
+          if (selected.length === 0) {
+            alert("Please select at least one text line to convert!");
+            return;
+          }
+
+          const origBtnHTML = applyGrabBtn.innerHTML;
+          applyGrabBtn.disabled = true;
+          applyGrabBtn.innerHTML = "<span>⏳</span><span>Inpainting Background & Creating Layers...</span>";
+
+          try {
+            const nativeDataUrl = getNativeImageBase64();
+            const res = await fetch('/api/canva/inpaint-text', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: nativeDataUrl,
+                regions: selected
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            // Clean up temporary OCR preview boxes
+            clearTempOcrBoxes();
+            if (subGrabTextPanel) subGrabTextPanel.style.display = 'none';
+
+            // Remove any previous grab-text objects to prevent duplicates
+            const oldGrabObjects = canvaCanvas.getObjects().filter(o => o.isGrabTextObject);
+            oldGrabObjects.forEach(o => canvaCanvas.remove(o));
+
+            // Set the new inpainted background with native dimensions
+            setCanvasBg(data.clean_background_url, () => {
+              const scale = canvaCanvas.originalScale || 1;
+
+              // Add editable Fabric Textbox for each selected element
+              selected.forEach(elem => {
+                const tb = new fabric.Textbox(elem.text, {
+                  left: elem.left * scale,
+                  top: elem.top * scale,
+                  width: Math.max(30, elem.width * scale),
+                  fontSize: Math.max(11, Math.round(elem.fontSize * scale)),
+                  fill: elem.color || '#1e293b',
+                  fontFamily: 'Montserrat',
+                  fontWeight: 'bold',
+                  textAlign: 'left',
+                  name: elem.text.slice(0, 24),
+                  isGrabTextObject: true
+                });
+                canvaCanvas.add(tb);
+              });
+
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              showToast(`✨ Converted ${selected.length} text lines to editable Canva text!`, "🎉", 4000);
+            });
+
+          } catch (err) {
+            console.error(err);
+            alert("Failed to convert text: " + err.message);
+          } finally {
+            applyGrabBtn.disabled = false;
+            applyGrabBtn.innerHTML = origBtnHTML;
           }
         };
       }
@@ -4983,50 +5228,115 @@
         }
       }
 
-      // Render Layers Drawer List
+      // Render Layers Drawer List (Full Layer Management: Visibility, Lock, Reorder, Delete)
       function renderLayersList() {
         if (!canvaCanvas || !layersContainer) return;
         layersContainer.innerHTML = "";
-        const objects = canvaCanvas.getObjects();
-        const textObjects = objects.filter(o => o.type === 'textbox' || o.type === 'i-text' || o.type === 'text');
+
+        // Filter out internal guides and temporary OCR preview boxes
+        const allObjects = canvaCanvas.getObjects().filter(o => !o.isTempOcrBox && !o.isPrintGuide);
         
-        if (layerCountBadge) layerCountBadge.textContent = textObjects.length;
+        if (layerCountBadge) layerCountBadge.textContent = allObjects.length;
         const filterVal = (layerSearchInput ? layerSearchInput.value.toLowerCase().trim() : "");
 
-        textObjects.forEach((obj, idx) => {
-          const textContent = obj.text || `Text Layer ${idx + 1}`;
-          if (filterVal && !textContent.toLowerCase().includes(filterVal)) return;
+        allObjects.slice().reverse().forEach((obj, idx) => {
+          let layerName = obj.name || "";
+          let icon = "🅰️";
+
+          if (obj.type === 'textbox' || obj.type === 'i-text' || obj.type === 'text') {
+            layerName = layerName || obj.text || `Text Layer ${idx + 1}`;
+            icon = "🅰️";
+          } else if (obj.type === 'image') {
+            layerName = layerName || `Image / Logo Layer`;
+            icon = "🖼️";
+          } else if (obj.type === 'rect' || obj.type === 'circle' || obj.type === 'line') {
+            layerName = layerName || `Shape Layer`;
+            icon = "🔷";
+          } else if (obj.type === 'group') {
+            layerName = layerName || `Component Group`;
+            icon = "📦";
+          } else {
+            layerName = layerName || `Element ${idx + 1}`;
+            icon = "✨";
+          }
+
+          if (filterVal && !layerName.toLowerCase().includes(filterVal)) return;
 
           const item = document.createElement('div');
-          item.style.cssText = "background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:8px; transition:all 0.2s; box-shadow:0 1px 2px rgba(0,0,0,0.03);";
+          item.style.cssText = "background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:7px 9px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; gap:6px; transition:all 0.15s; box-shadow:0 1px 2px rgba(0,0,0,0.03);";
           
           if (canvaCanvas.getActiveObject() === obj) {
             item.style.borderColor = "#7d2ae8";
             item.style.background = "#f3e8ff";
           }
 
+          const isLocked = !obj.selectable;
+          const isVisible = (obj.visible !== false);
+
           item.innerHTML = `
-            <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-              <span style="font-size:14px; color:#7d2ae8;">🅰️</span>
-              <span style="color:#0f172a; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;">
-                ${textContent}
+            <div style="display:flex; align-items:center; gap:6px; overflow:hidden; flex:1;">
+              <span style="font-size:13px; color:#7d2ae8;">${icon}</span>
+              <span style="color:#0f172a; font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:130px;" title="${layerName}">
+                ${layerName}
               </span>
             </div>
-            <button class="layer-del-btn" title="Delete" style="background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:12px; padding:2px;">🗑️</button>
+            <div style="display:flex; align-items:center; gap:3px;">
+              <button class="layer-vis-btn" title="${isVisible ? 'Hide Layer' : 'Show Layer'}" style="background:none; border:none; color:${isVisible ? '#64748b' : '#ef4444'}; cursor:pointer; font-size:11px; padding:2px;">
+                ${isVisible ? '👁️' : '🚫'}
+              </button>
+              <button class="layer-lock-btn" title="${isLocked ? 'Unlock Layer' : 'Lock Layer'}" style="background:none; border:none; color:${isLocked ? '#f59e0b' : '#64748b'}; cursor:pointer; font-size:11px; padding:2px;">
+                ${isLocked ? '🔒' : '🔓'}
+              </button>
+              <button class="layer-up-btn" title="Bring Forward" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:10px; padding:2px;">🔼</button>
+              <button class="layer-down-btn" title="Send Backward" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:10px; padding:2px;">🔽</button>
+              <button class="layer-del-btn" title="Delete" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:11px; padding:2px;">🗑️</button>
+            </div>
           `;
 
           item.onclick = function (e) {
-            if (e.target.classList.contains('layer-del-btn')) {
+            if (e.target.closest('.layer-vis-btn')) {
+              obj.visible = (obj.visible === false);
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              return;
+            }
+            if (e.target.closest('.layer-lock-btn')) {
+              obj.selectable = !obj.selectable;
+              obj.evented = !obj.evented;
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              return;
+            }
+            if (e.target.closest('.layer-up-btn')) {
+              canvaCanvas.bringForward(obj);
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              return;
+            }
+            if (e.target.closest('.layer-down-btn')) {
+              canvaCanvas.sendBackwards(obj);
+              canvaCanvas.renderAll();
+              renderLayersList();
+              saveCanvasState();
+              return;
+            }
+            if (e.target.closest('.layer-del-btn')) {
               canvaCanvas.remove(obj);
               canvaCanvas.renderAll();
               renderLayersList();
               saveCanvasState();
               return;
             }
-            canvaCanvas.setActiveObject(obj);
-            canvaCanvas.renderAll();
-            syncToolbarWithActive(obj);
-            renderLayersList();
+
+            if (obj.selectable) {
+              canvaCanvas.setActiveObject(obj);
+              canvaCanvas.renderAll();
+              syncToolbarWithActive(obj);
+              renderLayersList();
+            }
           };
 
           layersContainer.appendChild(item);
@@ -5128,11 +5438,140 @@
           showToast(`Blank Canva Canvas Ready (${imgW}×${imgH})!`, '🎨', 3000);
         }
 
+        // Snapping Guidelines on Move
+        let snapLineV = null;
+        let snapLineH = null;
+
+        canvaCanvas.on('object:moving', function(e) {
+          const obj = e.target;
+          if (!obj || obj.isTempOcrBox || obj.isPrintGuide) return;
+
+          const centerX = canvaCanvas.width / 2;
+          const centerY = canvaCanvas.height / 2;
+          const objCenterX = obj.left + (obj.getScaledWidth() / 2);
+          const objCenterY = obj.top + (obj.getScaledHeight() / 2);
+          const snapDist = 6;
+
+          // Snap to Canvas Center X
+          if (Math.abs(objCenterX - centerX) < snapDist) {
+            obj.set({ left: centerX - (obj.getScaledWidth() / 2) });
+            if (!snapLineV) {
+              snapLineV = new fabric.Line([centerX, 0, centerX, canvaCanvas.height], {
+                stroke: '#7d2ae8', strokeWidth: 1, strokeDashArray: [4, 4], selectable: false, evented: false, isPrintGuide: true
+              });
+              canvaCanvas.add(snapLineV);
+            }
+          } else if (snapLineV) {
+            canvaCanvas.remove(snapLineV);
+            snapLineV = null;
+          }
+
+          // Snap to Canvas Center Y
+          if (Math.abs(objCenterY - centerY) < snapDist) {
+            obj.set({ top: centerY - (obj.getScaledHeight() / 2) });
+            if (!snapLineH) {
+              snapLineH = new fabric.Line([0, centerY, canvaCanvas.width, centerY], {
+                stroke: '#7d2ae8', strokeWidth: 1, strokeDashArray: [4, 4], selectable: false, evented: false, isPrintGuide: true
+              });
+              canvaCanvas.add(snapLineH);
+            }
+          } else if (snapLineH) {
+            canvaCanvas.remove(snapLineH);
+            snapLineH = null;
+          }
+        });
+
+        const clearSnapLines = () => {
+          if (snapLineV) { canvaCanvas.remove(snapLineV); snapLineV = null; }
+          if (snapLineH) { canvaCanvas.remove(snapLineH); snapLineH = null; }
+        };
+
+        canvaCanvas.on('object:modified', clearSnapLines);
+        canvaCanvas.on('selection:cleared', clearSnapLines);
+
         // Event hooks
         canvaCanvas.on('selection:created', (e) => { syncToolbarWithActive(e.selected[0]); renderLayersList(); });
         canvaCanvas.on('selection:updated', (e) => { syncToolbarWithActive(e.selected[0]); renderLayersList(); });
         canvaCanvas.on('selection:cleared', () => { renderLayersList(); });
         canvaCanvas.on('object:modified', () => { saveCanvasState(); renderLayersList(); });
+      }
+
+      // Before / After Comparison Button Handler
+      const compareBtn = document.getElementById('canvaCompareOriginalBtn');
+      let isComparing = false;
+      let preCompareBg = '';
+
+      if (compareBtn) {
+        compareBtn.onclick = () => {
+          if (!canvaCanvas || !originalBgUrl) {
+            showToast("No original photo available to compare.", "ℹ️");
+            return;
+          }
+          isComparing = !isComparing;
+          if (isComparing) {
+            preCompareBg = canvaCanvas.backgroundImage ? canvaCanvas.backgroundImage.getSrc() : '';
+            setCanvasBg(originalBgUrl);
+            canvaCanvas.getObjects().forEach(o => { if (!o.isPrintGuide) { o._preOpacity = o.opacity; o.opacity = 0; } });
+            compareBtn.style.background = '#fef3c7';
+            compareBtn.style.color = '#b45309';
+            showToast("Showing Original Photo (Comparison)", "👁️", 2000);
+          } else {
+            setCanvasBg(preCompareBg || cleanBgUrl);
+            canvaCanvas.getObjects().forEach(o => { if (o._preOpacity !== undefined) { o.opacity = o._preOpacity; } });
+            compareBtn.style.background = '#ffffff';
+            compareBtn.style.color = '#334155';
+            showToast("Restored Edited Canva Design", "✨", 1500);
+          }
+          canvaCanvas.renderAll();
+        };
+      }
+
+      // Print Guidelines Toggle (Bleed & Safe Margins)
+      const printGuidesBtn = document.getElementById('canvaPrintGuidesBtn');
+      let isPrintGuidesOn = false;
+
+      if (printGuidesBtn) {
+        printGuidesBtn.onclick = () => {
+          if (!canvaCanvas) return;
+          isPrintGuidesOn = !isPrintGuidesOn;
+
+          // Remove existing guides
+          canvaCanvas.getObjects().filter(o => o.isPrintSafeGuide).forEach(g => canvaCanvas.remove(g));
+
+          if (isPrintGuidesOn) {
+            printGuidesBtn.style.background = '#dcfce7';
+            printGuidesBtn.style.color = '#15803d';
+
+            const w = canvaCanvas.width;
+            const h = canvaCanvas.height;
+            const margin = Math.round(Math.min(w, h) * 0.05);
+
+            const safeRect = new fabric.Rect({
+              left: margin,
+              top: margin,
+              width: w - (margin * 2),
+              height: h - (margin * 2),
+              fill: 'transparent',
+              stroke: '#10b981',
+              strokeWidth: 1.5,
+              strokeDashArray: [6, 4],
+              selectable: false,
+              evented: false,
+              isPrintGuide: true,
+              isPrintSafeGuide: true,
+              excludeFromExport: true
+            });
+
+            canvaCanvas.add(safeRect);
+            canvaCanvas.renderAll();
+            showToast("Print Safe Margin overlay enabled (Green dashed line)", "📐", 3000);
+          } else {
+            printGuidesBtn.style.background = '#ffffff';
+            printGuidesBtn.style.color = '#334155';
+            canvaCanvas.renderAll();
+            showToast("Print Safe Margin overlay hidden", "ℹ️", 1500);
+          }
+        };
       }
 
       // Public Launch Function — opens either blank or with image
@@ -6333,6 +6772,8 @@
           applyBtn.disabled = true;
 
           try {
+            const guidesAndBoxes = canvaCanvas.getObjects().filter(o => o.isTempOcrBox || o.isPrintGuide);
+            guidesAndBoxes.forEach(o => { o._origVisible = o.visible; o.visible = false; });
             canvaCanvas.discardActiveObject();
             canvaCanvas.renderAll();
 
@@ -6342,6 +6783,9 @@
               quality: 1,
               multiplier: 1 / scale
             });
+
+            guidesAndBoxes.forEach(o => { o.visible = o._origVisible !== undefined ? o._origVisible : true; });
+            canvaCanvas.renderAll();
 
             const res = await fetch('/save-editor-result', {
               method: 'POST',
@@ -6376,6 +6820,10 @@
       // Export Actions — Ultra-HD 300 DPI Master Generator (~15-18 MB)
       async function exportMasterFile(format) {
         if (!canvaCanvas) return;
+
+        // Strictly hide any temporary OCR boxes or print guides before exporting
+        const guidesAndBoxes = canvaCanvas.getObjects().filter(o => o.isTempOcrBox || o.isPrintGuide);
+        guidesAndBoxes.forEach(o => { o._origVisible = o.visible; o.visible = false; });
         canvaCanvas.discardActiveObject();
         canvaCanvas.renderAll();
 
@@ -6425,6 +6873,9 @@
           a.download = `${currentDocFilename.replace(/\.png$/, '') || 'edited_label'}.${format}`;
           a.click();
           showToast(`Exported ${extLabel} (${format})`, "📥", 2000);
+        } finally {
+          guidesAndBoxes.forEach(o => { o.visible = o._origVisible !== undefined ? o._origVisible : true; });
+          canvaCanvas.renderAll();
         }
       }
 

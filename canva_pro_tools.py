@@ -653,73 +653,271 @@ def get_easyocr_reader():
     return _EASYOCR_READER
 
 
-def grab_text(image_bytes: bytes) -> dict:
+def extract_robust_text_color(img_bgr, bx, by, bw, bh):
     """
-    Detects text bounding boxes and content using EasyOCR,
-    erases the raster text from the background image,
-    and returns editable text element descriptors with coordinates.
+    Extracts dominant foreground text color from bounding box using Otsu thresholding.
+    Handles dark-on-light, light-on-dark, colored text (red, gold, neon).
     """
-    nparr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    if img is None:
-        raise ValueError("Invalid image for grab text")
-    h, w = img.shape[:2]
+    try:
+        h, w = img_bgr.shape[:2]
+        bx = max(0, min(w - 1, bx))
+        by = max(0, min(h - 1, by))
+        bw = max(1, min(w - bx, bw))
+        bh = max(1, min(h - by, bh))
+        roi = img_bgr[by:by+bh, bx:bx+bw]
+        if roi.size < 9:
+            return "#1e293b"
 
-    reader = get_easyocr_reader()
-    ocr_results = reader.readtext(img)
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    text_elements = []
-    text_mask = np.zeros((h, w), dtype=np.uint8)
+        if np.sum(thresh == 255) < np.sum(thresh == 0):
+            text_mask = (thresh == 255)
+        else:
+            text_mask = (thresh == 0)
 
-    for bbox, text, conf in ocr_results:
-        if conf < 0.25 or not text.strip():
+        text_pixels = roi[text_mask]
+        if len(text_pixels) > 0:
+            b, g, r = np.median(text_pixels, axis=0)
+            return "#{:02x}{:02x}{:02x}".format(int(r), int(g), int(b))
+    except Exception:
+        pass
+    return "#1e293b"
+
+
+def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
+    """
+    Groups fragmented OCR word detections into coherent line blocks.
+    Prevents scattered word fragments and misaligned bounding boxes.
+    """
+    raw_boxes = []
+    for idx, (bbox, text, conf) in enumerate(ocr_results):
+        text = str(text).strip()
+        if conf < conf_threshold or not text:
             continue
 
         pts = np.array(bbox, dtype=np.int32)
         bx, by, bw, bh = cv2.boundingRect(pts)
         bx = max(0, bx)
         by = max(0, by)
-        bw = min(w - bx, bw)
-        bh = min(h - by, bh)
+        bw = min(img_w - bx, bw)
+        bh = min(img_h - by, bh)
 
-        if bw < 5 or bh < 5:
+        if bw < 4 or bh < 4:
             continue
 
-        cv2.fillPoly(text_mask, [pts], 255)
-
-        roi = img[by:by+bh, bx:bx+bw]
-        med = np.median(roi, axis=(0, 1))
-        diff = np.linalg.norm(roi - med, axis=2)
-        text_pixels = roi[diff > 30]
-        if len(text_pixels) > 0:
-            avg_bgr = np.mean(text_pixels, axis=0)
-        else:
-            avg_bgr = [30, 30, 30]
-
-        hex_color = "#{:02x}{:02x}{:02x}".format(int(avg_bgr[2]), int(avg_bgr[1]), int(avg_bgr[0]))
-        font_size = max(12, int(bh * 0.85))
-
-        text_elements.append({
+        raw_boxes.append({
+            "id": f"raw_{idx}",
             "text": text,
+            "bbox": pts.tolist(),
             "left": int(bx),
             "top": int(by),
             "width": int(bw),
             "height": int(bh),
-            "fontSize": font_size,
-            "color": hex_color
+            "conf": float(conf)
         })
 
-    if np.any(text_mask > 0):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-        dilated_mask = cv2.dilate(text_mask, kernel, iterations=2)
-        clean_bg = cv2.inpaint(img, dilated_mask, inpaintRadius=7, flags=cv2.INPAINT_TELEA)
-    else:
-        clean_bg = img
+    if not raw_boxes:
+        return []
 
-    _, bg_buf = cv2.imencode(".png", clean_bg)
+    # Sort boxes top to bottom, then left to right
+    raw_boxes.sort(key=lambda b: (b["top"], b["left"]))
+
+    # Group into lines
+    lines = []
+    used = set()
+
+    for i, box in enumerate(raw_boxes):
+        if i in used:
+            continue
+        current_line = [box]
+        used.add(i)
+
+        line_top = box["top"]
+        line_bottom = box["top"] + box["height"]
+        line_height = box["height"]
+
+        for j in range(i + 1, len(raw_boxes)):
+            if j in used:
+                continue
+            cand = raw_boxes[j]
+            overlap = max(0, min(line_bottom, cand["top"] + cand["height"]) - max(line_top, cand["top"]))
+            min_h = min(line_height, cand["height"])
+            if min_h == 0:
+                continue
+
+            # Significant vertical overlap and height ratio compatibility
+            if (overlap / min_h >= 0.45) and (0.45 <= line_height / cand["height"] <= 2.2):
+                current_line.append(cand)
+                used.add(j)
+                line_top = min(line_top, cand["top"])
+                line_bottom = max(line_bottom, cand["top"] + cand["height"])
+                line_height = line_bottom - line_top
+
+        current_line.sort(key=lambda b: b["left"])
+        lines.append(current_line)
+
+    lines.sort(key=lambda l: min(b["top"] for b in l))
+
+    grouped_elements = []
+    for line_idx, line in enumerate(lines):
+        blocks = []
+        cur = [line[0]]
+        for k in range(1, len(line)):
+            prev_b = line[k - 1]
+            curr_b = line[k]
+            gap = curr_b["left"] - (prev_b["left"] + prev_b["width"])
+            avg_h = (prev_b["height"] + curr_b["height"]) / 2.0
+            if gap > avg_h * 3.5:
+                blocks.append(cur)
+                cur = [curr_b]
+            else:
+                cur.append(curr_b)
+        blocks.append(cur)
+
+        for blk_idx, blk in enumerate(blocks):
+            merged_text = " ".join(b["text"] for b in blk)
+            min_x = min(b["left"] for b in blk)
+            min_y = min(b["top"] for b in blk)
+            max_x = max(b["left"] + b["width"] for b in blk)
+            max_y = max(b["top"] + b["height"] for b in blk)
+            w = max_x - min_x
+            h = max_y - min_y
+            avg_conf = float(np.mean([b["conf"] for b in blk]))
+            font_size = max(11, int(h * 0.85))
+
+            all_pts = []
+            for b in blk:
+                all_pts.extend(b["bbox"])
+
+            grouped_elements.append({
+                "id": f"text_block_{line_idx}_{blk_idx}",
+                "text": merged_text,
+                "left": int(min_x),
+                "top": int(min_y),
+                "width": int(w),
+                "height": int(h),
+                "fontSize": font_size,
+                "conf": round(avg_conf, 3),
+                "polygon_pts": all_pts
+            })
+
+    return grouped_elements
+
+
+def detect_text(image_bytes: bytes, conf_threshold: float = 0.25) -> dict:
+    """
+    Detects text elements on the image and returns structured line blocks with coordinates.
+    CRITICAL: Does NOT modify, erase or inpaint the image!
+    The source image remains 100% untouched.
+    """
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError("Invalid image for text detection")
+    h, w = img.shape[:2]
+
+    reader = get_easyocr_reader()
+    ocr_results = reader.readtext(img)
+
+    grouped_elements = group_ocr_detections(ocr_results, w, h, conf_threshold=conf_threshold)
+
+    # Attach text color to each grouped block
+    for elem in grouped_elements:
+        elem["color"] = extract_robust_text_color(img, elem["left"], elem["top"], elem["width"], elem["height"])
+
     return {
-        "clean_background_bytes": bg_buf.tobytes(),
-        "text_elements": text_elements
+        "text_elements": grouped_elements,
+        "count": len(grouped_elements),
+        "image_width": w,
+        "image_height": h,
+        "success": True
+    }
+
+
+def inpaint_text_regions(image_bytes: bytes, regions: list) -> bytes:
+    """
+    Selectively inpaints only specified text regions/bounding boxes.
+    Preserves all unselected pixels with 100% pixel-perfect fidelity.
+    Preserves alpha transparency if present.
+    """
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
+    if img is None:
+        raise ValueError("Invalid image for inpainting")
+
+    h, w = img.shape[:2]
+    has_alpha = (len(img.shape) == 3 and img.shape[2] == 4)
+
+    if has_alpha:
+        bgr = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
+        alpha = img[:, :, 3]
+    elif len(img.shape) == 2:
+        bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        alpha = None
+    else:
+        bgr = img.copy()
+        alpha = None
+
+    mask = np.zeros((h, w), dtype=np.uint8)
+
+    for reg in regions:
+        if "polygon_pts" in reg and reg["polygon_pts"]:
+            pts = np.array(reg["polygon_pts"], dtype=np.int32)
+            cv2.fillPoly(mask, [pts], 255)
+        elif "left" in reg and "top" in reg and "width" in reg and "height" in reg:
+            bx = max(0, int(reg["left"]))
+            by = max(0, int(reg["top"]))
+            bw = min(w - bx, int(reg["width"]))
+            bh = min(h - by, int(reg["height"]))
+            if bw > 0 and bh > 0:
+                cv2.rectangle(mask, (bx, by), (bx + bw, by + bh), 255, -1)
+
+    if np.any(mask > 0):
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        dilated_mask = cv2.dilate(mask, kernel, iterations=2)
+
+        # Inpaint only masked pixels
+        clean_bgr = cv2.inpaint(bgr, dilated_mask, inpaintRadius=5, flags=cv2.INPAINT_TELEA)
+
+        # Strictly composite only over masked area
+        result_bgr = bgr.copy()
+        result_bgr[dilated_mask > 0] = clean_bgr[dilated_mask > 0]
+    else:
+        result_bgr = bgr
+
+    if has_alpha:
+        b, g, r = cv2.split(result_bgr)
+        result = cv2.merge([b, g, r, alpha])
+    else:
+        result = result_bgr
+
+    is_success, out_buf = cv2.imencode(".png", result)
+    if not is_success:
+        raise ValueError("Failed to encode clean background PNG")
+    return out_buf.tobytes()
+
+
+def grab_text(image_bytes: bytes) -> dict:
+    """
+    Backwards-compatible Grab Text API:
+    Detects text, groups lines, inpaints text from background,
+    and returns clean background + structured text elements.
+    """
+    det = detect_text(image_bytes)
+    text_elements = det["text_elements"]
+    if text_elements:
+        clean_bg_bytes = inpaint_text_regions(image_bytes, text_elements)
+    else:
+        clean_bg_bytes = image_bytes
+
+    return {
+        "clean_background_bytes": clean_bg_bytes,
+        "text_elements": text_elements,
+        "count": len(text_elements),
+        "image_width": det["image_width"],
+        "image_height": det["image_height"],
+        "success": True
     }
 
 

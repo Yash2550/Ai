@@ -2747,6 +2747,54 @@ def canva_magic_grab():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/canva/detect-text", methods=["POST"])
+def canva_detect_text():
+    """Detects text elements on canvas image without modifying or inpainting the image."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        result = canva_pro_tools.detect_text(raw_bytes)
+        return jsonify(result)
+    except Exception as e:
+        app.logger.error("Canva Detect Text error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/inpaint-text", methods=["POST"])
+def canva_inpaint_text():
+    """Selectively inpaints only specified text regions, leaving all other pixels 100% intact."""
+    try:
+        import canva_pro_tools
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        regions = data.get("regions", [])
+
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        clean_bytes = canva_pro_tools.inpaint_text_regions(raw_bytes, regions)
+        bg_b64 = "data:image/png;base64," + base64.b64encode(clean_bytes).decode("ascii")
+
+        return jsonify({
+            "clean_background_url": bg_b64,
+            "success": True
+        })
+    except Exception as e:
+        app.logger.error("Canva Inpaint Text error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/canva/grab-text", methods=["POST"])
 def canva_grab_text():
     """Detects text boxes, erases raster text, and returns editable text elements."""
@@ -2768,6 +2816,8 @@ def canva_grab_text():
             "clean_background_url": bg_b64,
             "text_elements": result["text_elements"],
             "count": len(result["text_elements"]),
+            "image_width": result.get("image_width"),
+            "image_height": result.get("image_height"),
             "success": True
         })
     except Exception as e:
