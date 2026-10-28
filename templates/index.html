@@ -4685,15 +4685,23 @@
 
               // Add editable Fabric Textbox for each selected element
               selected.forEach(elem => {
+                // Generous width buffer so words do not wrap prematurely
+                const safeWidth = Math.max(40, Math.ceil((elem.width + 16) * scale));
+                const isHeading = elem.fontSize > 16 || (elem.text === elem.text.toUpperCase() && elem.text.length > 3);
                 const tb = new fabric.Textbox(elem.text, {
                   left: elem.left * scale,
                   top: elem.top * scale,
-                  width: Math.max(30, elem.width * scale),
-                  fontSize: Math.max(11, Math.round(elem.fontSize * scale)),
+                  width: safeWidth,
+                  fontSize: Math.max(10, Math.round(elem.fontSize * scale)),
+                  lineHeight: 1.15,
+                  splitByGrapheme: false,
                   fill: elem.color || '#1e293b',
                   fontFamily: 'Montserrat',
-                  fontWeight: 'bold',
+                  fontWeight: isHeading ? '700' : '600',
                   textAlign: 'left',
+                  originX: 'left',
+                  originY: 'top',
+                  padding: 2,
                   name: elem.text.slice(0, 24),
                   isGrabTextObject: true
                 });

@@ -714,6 +714,8 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
             "top": int(by),
             "width": int(bw),
             "height": int(bh),
+            "center_y": float(by + bh / 2.0),
+            "center_x": float(bx + bw / 2.0),
             "conf": float(conf)
         })
 
@@ -723,7 +725,7 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
     # Sort boxes top to bottom, then left to right
     raw_boxes.sort(key=lambda b: (b["top"], b["left"]))
 
-    # Group into lines
+    # Group into lines strictly by baseline center_y
     lines = []
     used = set()
 
@@ -733,26 +735,21 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
         current_line = [box]
         used.add(i)
 
-        line_top = box["top"]
-        line_bottom = box["top"] + box["height"]
-        line_height = box["height"]
+        anchor_cy = box["center_y"]
+        anchor_h = box["height"]
 
         for j in range(i + 1, len(raw_boxes)):
             if j in used:
                 continue
             cand = raw_boxes[j]
-            overlap = max(0, min(line_bottom, cand["top"] + cand["height"]) - max(line_top, cand["top"]))
-            min_h = min(line_height, cand["height"])
-            if min_h == 0:
-                continue
+            cy_diff = abs(cand["center_y"] - anchor_cy)
+            min_h = min(anchor_h, cand["height"])
+            h_ratio = cand["height"] / float(anchor_h) if anchor_h > 0 else 1.0
 
-            # Significant vertical overlap and height ratio compatibility
-            if (overlap / min_h >= 0.45) and (0.45 <= line_height / cand["height"] <= 2.2):
+            # Line baseline condition: center difference <= 38% of height, height ratio within 0.55 .. 1.8
+            if cy_diff <= (min_h * 0.38) and (0.55 <= h_ratio <= 1.8):
                 current_line.append(cand)
                 used.add(j)
-                line_top = min(line_top, cand["top"])
-                line_bottom = max(line_bottom, cand["top"] + cand["height"])
-                line_height = line_bottom - line_top
 
         current_line.sort(key=lambda b: b["left"])
         lines.append(current_line)
@@ -761,6 +758,7 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
 
     grouped_elements = []
     for line_idx, line in enumerate(lines):
+        # Column / phrase splitting
         blocks = []
         cur = [line[0]]
         for k in range(1, len(line)):
@@ -768,7 +766,8 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
             curr_b = line[k]
             gap = curr_b["left"] - (prev_b["left"] + prev_b["width"])
             avg_h = (prev_b["height"] + curr_b["height"]) / 2.0
-            if gap > avg_h * 3.5:
+            # If gap between words is larger than 1.8x font height, it's a separate column / cell
+            if gap > avg_h * 1.8:
                 blocks.append(cur)
                 cur = [curr_b]
             else:
@@ -776,7 +775,9 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
         blocks.append(cur)
 
         for blk_idx, blk in enumerate(blocks):
-            merged_text = " ".join(b["text"] for b in blk)
+            merged_text = " ".join(b["text"] for b in blk if b["text"])
+            if not merged_text.strip():
+                continue
             min_x = min(b["left"] for b in blk)
             min_y = min(b["top"] for b in blk)
             max_x = max(b["left"] + b["width"] for b in blk)
@@ -784,11 +785,11 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
             w = max_x - min_x
             h = max_y - min_y
             avg_conf = float(np.mean([b["conf"] for b in blk]))
-            font_size = max(11, int(h * 0.85))
+            median_h = float(np.median([b["height"] for b in blk]))
+            font_size = max(10, int(round(median_h * 0.85)))
 
-            all_pts = []
-            for b in blk:
-                all_pts.extend(b["bbox"])
+            word_polys = [b["bbox"] for b in blk]
+            word_boxes = [[b["left"], b["top"], b["width"], b["height"]] for b in blk]
 
             grouped_elements.append({
                 "id": f"text_block_{line_idx}_{blk_idx}",
@@ -799,7 +800,9 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
                 "height": int(h),
                 "fontSize": font_size,
                 "conf": round(avg_conf, 3),
-                "polygon_pts": all_pts
+                "word_polygons": word_polys,
+                "word_boxes": word_boxes,
+                "polygon_pts": [[int(min_x), int(min_y)], [int(max_x), int(min_y)], [int(max_x), int(max_y)], [int(min_x), int(max_y)]]
             })
 
     return grouped_elements
@@ -862,10 +865,21 @@ def inpaint_text_regions(image_bytes: bytes, regions: list) -> bytes:
     mask = np.zeros((h, w), dtype=np.uint8)
 
     for reg in regions:
-        if "polygon_pts" in reg and reg["polygon_pts"]:
-            pts = np.array(reg["polygon_pts"], dtype=np.int32)
-            cv2.fillPoly(mask, [pts], 255)
-        elif "left" in reg and "top" in reg and "width" in reg and "height" in reg:
+        # 1. Fill individual word polygons (each polygon separately to avoid self-intersecting inversion)
+        if "word_polygons" in reg and reg["word_polygons"]:
+            for poly in reg["word_polygons"]:
+                p = np.array(poly, dtype=np.int32)
+                cv2.fillPoly(mask, [p], 255)
+
+        # 2. Fill individual word bounding boxes
+        if "word_boxes" in reg and reg["word_boxes"]:
+            for wb in reg["word_boxes"]:
+                if len(wb) == 4:
+                    wbx, wby, wbw, wbh = wb
+                    cv2.rectangle(mask, (int(wbx), int(wby)), (int(wbx + wbw), int(wby + wbh)), 255, -1)
+
+        # 3. Fill overall block bounding box
+        if "left" in reg and "top" in reg and "width" in reg and "height" in reg:
             bx = max(0, int(reg["left"]))
             by = max(0, int(reg["top"]))
             bw = min(w - bx, int(reg["width"]))
