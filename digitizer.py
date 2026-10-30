@@ -38,7 +38,8 @@ def extract_text_color(crop):
 def digitize_image(image_path: str, output_path: str):
     """
     Extracts all text from the image using EasyOCR, detects text colors,
-    and cleanly inpaints (erases) text from the background.
+    and cleanly inpaints only the text strokes (preserving background graphics,
+    gradients, and artwork with zero smudging).
     Returns a tuple of (list of detected text elements, svg content, (width, height)).
     """
     reader = get_reader()
@@ -56,18 +57,14 @@ def digitize_image(image_path: str, output_path: str):
     # 1. Detect text
     results = reader.readtext(rgb_img)
     
-    # Create an empty mask for inpainting
-    mask = np.zeros((h, w), dtype=np.uint8)
     text_elements = []
+    clean_bg = img.copy()
     
     for (bbox, text, prob) in results:
         text = text.strip()
         if not text:
             continue
             
-        pts = np.array(bbox, np.int32)
-        cv2.fillPoly(mask, [pts], 255)
-        
         x_coords = [p[0] for p in bbox]
         y_coords = [p[1] for p in bbox]
         box_x = max(0, int(min(x_coords)))
@@ -75,7 +72,7 @@ def digitize_image(image_path: str, output_path: str):
         box_w = min(w - box_x, int(max(x_coords) - box_x))
         box_h = min(h - box_y, int(max(y_coords) - box_y))
         
-        if box_w <= 0 or box_h <= 0:
+        if box_w <= 3 or box_h <= 3:
             continue
             
         crop = img[box_y:box_y + box_h, box_x:box_x + box_w]
@@ -95,14 +92,42 @@ def digitize_image(image_path: str, output_path: str):
             "prob": round(float(prob), 3)
         })
         
-    # Dilate mask to ensure text boundaries are completely erased
-    kernel = np.ones((7, 7), np.uint8)
-    dilated_mask = cv2.dilate(mask, kernel, iterations=2)
-    
-    # 2. Inpaint the background to remove text cleanly
-    clean_bg = cv2.inpaint(img, dilated_mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
-    
-    # Save the clean background
+        # Precision stroke-level inpainting on each text box so background graphics never smudge
+        try:
+            pad_x = 2
+            pad_y = 2
+            x1 = max(0, box_x - pad_x)
+            y1 = max(0, box_y - pad_y)
+            x2 = min(w, box_x + box_w + pad_x)
+            y2 = min(h, box_y + box_h + pad_y)
+            
+            roi = img[y1:y2, x1:x2]
+            if roi.shape[0] >= 4 and roi.shape[1] >= 4:
+                border_pixels = np.concatenate([
+                    roi[:2, :].reshape(-1, 3),
+                    roi[-2:, :].reshape(-1, 3),
+                    roi[:, :2].reshape(-1, 3),
+                    roi[:, -2:].reshape(-1, 3)
+                ], axis=0)
+                bg_color = np.median(border_pixels, axis=0)
+                
+                gray_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+                bg_gray = int(cv2.cvtColor(np.array([[bg_color]], dtype=np.uint8), cv2.COLOR_BGR2GRAY)[0, 0])
+                
+                _, th1 = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+                diff1 = abs(np.mean(gray_roi[th1 == 255]) - bg_gray) if np.any(th1 == 255) else 0
+                diff0 = abs(np.mean(gray_roi[th1 == 0]) - bg_gray) if np.any(th1 == 0) else 0
+                
+                text_mask_roi = (th1 == 255) if diff1 > diff0 else (th1 == 0)
+                k = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+                text_mask_dil = cv2.dilate(text_mask_roi.astype(np.uint8) * 255, k, iterations=1)
+                
+                inpainted_roi = cv2.inpaint(roi, text_mask_dil, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+                clean_bg[y1:y2, x1:x2] = inpainted_roi
+        except Exception:
+            pass
+            
+    # Save the clean background with preserved graphics
     cv2.imwrite(output_path, clean_bg)
     
     svg_content = None

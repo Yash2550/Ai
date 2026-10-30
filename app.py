@@ -480,7 +480,8 @@ def run_recraft_inpainting(
         return data_list[0]["url"]
 
 
-def composite_image_addition(image_path: str, mask_path: str, overlay_path: str, output_path: str):
+def composite_image_addition(image_path: str, mask_path: str, overlay_path
+: str, output_path: str):
     """
     Composite the overlay image onto the original image inside the masked region.
     """
@@ -3166,4 +3167,69 @@ def digitize_label_reve():
         })
     except Exception as e:
         app.logger.error("Reve API Digitizer failed: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+
+# ---------------------------------------------------------------------------
+# Canva Official REST API Routes
+# ---------------------------------------------------------------------------
+@app.route("/api/canva/official/import-design", methods=["POST"])
+def canva_official_import_design():
+    """
+    Connects to the official Canva REST API to import the current label image 
+    into a native, editable Canva Design.
+    Uses: POST /v1/assets and POST /v1/image-to-design-imports
+    """
+    try:
+        import canva_api
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        title = data.get("title", "Label Design")
+        
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+            
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+            
+        raw_bytes = base64.b64decode(img_b64)
+        
+        # Save temp file for upload
+        temp_filename = f"canva_import_{uuid.uuid4().hex[:8]}.png"
+        temp_path = os.path.join(app.config["UPLOAD_FOLDER"], temp_filename)
+        with open(temp_path, "wb") as f:
+            f.write(raw_bytes)
+            
+        # 1. Upload asset to Canva
+        asset_res = canva_api.upload_asset_to_canva(temp_path, name=title)
+        asset_id = asset_res.get("asset", {}).get("id") or asset_res.get("id")
+        
+        if not asset_id:
+            raise RuntimeError(f"Could not retrieve asset ID from Canva response: {asset_res}")
+            
+        # 2. Start image-to-design import job
+        job_res = canva_api.create_image_to_design_job(asset_id=asset_id, title=title)
+        job_id = job_res.get("job", {}).get("id") or job_res.get("id")
+        
+        return jsonify({
+            "status": "success",
+            "job_id": job_id,
+            "asset_id": asset_id,
+            "job_data": job_res
+        })
+    except Exception as e:
+        app.logger.error("Canva Official Import error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/canva/official/job-status/<job_id>", methods=["GET"])
+def canva_official_job_status(job_id):
+    """Polls the status of an image-to-design import job."""
+    try:
+        import canva_api
+        status_res = canva_api.get_image_to_design_job_status(job_id)
+        return jsonify(status_res)
+    except Exception as e:
+        app.logger.error("Canva Official Job Status error: %s", e)
         return jsonify({"error": str(e)}), 500

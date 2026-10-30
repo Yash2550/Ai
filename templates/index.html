@@ -2987,6 +2987,9 @@
                   <button id="canvaExportPdfBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     📄 <div><strong>PDF Print Master</strong> (300 DPI, ~16 MB)</div>
                   </button>
+                  <button id="canvaExportOfficialCanvaBtn" style="background:#f3e8ff; border:1px solid #d8b4fe; color:#7d2ae8; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px; font-weight:700;">
+                    <span>✨</span> <div><strong>Send to Official Canva</strong> (Editable Design)</div>
+                  </button>
                   <button id="canvaExportSvgBtn" style="background:transparent; border:none; color:#0f172a; text-align:left; padding:8px 12px; border-radius:6px; cursor:pointer; font-size:12px; display:flex; align-items:center; gap:8px;">
                     📐 <div><strong>SVG Vector</strong> (CorelDRAW / Illustrator)</div>
                   </button>
@@ -4619,7 +4622,7 @@
             const scale = canvaCanvas.originalScale || 1;
 
             activeGrabDetections.forEach((elem, idx) => {
-              elem.selected = true; // default all selected
+              elem.selected = false; // default unselected for safety
 
               // 1. Temporary canvas visual bounding box
               const rect = new fabric.Rect({
@@ -4627,8 +4630,8 @@
                 top: elem.top * scale,
                 width: Math.max(20, elem.width * scale),
                 height: Math.max(12, elem.height * scale),
-                fill: 'rgba(125, 42, 232, 0.15)',
-                stroke: '#7d2ae8',
+                fill: 'rgba(148, 163, 184, 0.08)',
+                stroke: '#94a3b8',
                 strokeWidth: 1.5,
                 strokeDashArray: [4, 3],
                 rx: 3,
@@ -4648,7 +4651,7 @@
               row.id = `grabRow_${elem.id}`;
               row.style.cssText = 'background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.15s;';
               row.innerHTML = `
-                <input type="checkbox" id="chk_${elem.id}" checked style="accent-color:#7d2ae8; cursor:pointer;" />
+                <input type="checkbox" id="chk_${elem.id}" style="accent-color:#7d2ae8; cursor:pointer;" />
                 <input type="text" id="txt_${elem.id}" value="${elem.text.replace(/"/g, '&quot;')}" style="flex:1; background:transparent; border:none; color:#0f172a; font-size:11px; font-weight:600; outline:none; text-overflow:ellipsis;" />
                 <span style="font-size:10px; color:#64748b; font-weight:700;">${Math.round(elem.conf * 100)}%</span>
               `;
@@ -4753,25 +4756,36 @@
             const oldGrabObjects = canvaCanvas.getObjects().filter(o => o.isGrabTextObject);
             oldGrabObjects.forEach(o => canvaCanvas.remove(o));
 
+            // Update current active clean background URL
+            cleanBgUrl = data.clean_background_url;
+            isCleanBgActive = true;
+            if (bgToggleLabel) bgToggleLabel.textContent = "Clean BG";
+
             // Set the new inpainted background with native dimensions
             setCanvasBg(data.clean_background_url, () => {
               const scale = canvaCanvas.originalScale || 1;
 
               // Add editable Fabric Textbox for each selected element
               selected.forEach(elem => {
-                // Generous width buffer so words do not wrap prematurely
-                const safeWidth = Math.max(40, Math.ceil((elem.width + 16) * scale));
-                const isHeading = elem.fontSize > 16 || (elem.text === elem.text.toUpperCase() && elem.text.length > 3);
+                // Generous width: +120px buffer so text NEVER wraps or distorts into multiline vertical blobs
+                const safeWidth = Math.max(80, Math.ceil((elem.width + 120) * scale));
+                // Font size calibrated precisely to line box height
+                const calculatedFontSize = Math.max(9, Math.round((elem.height || elem.fontSize || 16) * scale * 0.82));
+                const isHeading = (elem.height > 40) || (elem.text === elem.text.toUpperCase() && elem.text.length > 3);
+                
+                // Use exact detected text color from OCR
+                const chosenColor = elem.color || '#1e293b';
+
                 const tb = new fabric.Textbox(elem.text, {
                   left: elem.left * scale,
                   top: elem.top * scale,
                   width: safeWidth,
-                  fontSize: Math.max(10, Math.round(elem.fontSize * scale)),
-                  lineHeight: 1.15,
+                  fontSize: calculatedFontSize,
+                  lineHeight: 1.1,
                   splitByGrapheme: false,
-                  fill: elem.color || '#1e293b',
+                  fill: chosenColor,
                   fontFamily: 'Montserrat',
-                  fontWeight: isHeading ? '700' : '600',
+                  fontWeight: isHeading ? '800' : '600',
                   textAlign: 'left',
                   originX: 'left',
                   originY: 'top',
@@ -5240,6 +5254,80 @@
       const exportPngBtn = document.getElementById('canvaExportPngBtn');
       const exportJpgBtn = document.getElementById('canvaExportJpgBtn');
       const exportPdfBtn = document.getElementById('canvaExportPdfBtn');
+      const officialCanvaExportBtn = document.getElementById('canvaExportOfficialCanvaBtn');
+      if (officialCanvaExportBtn) {
+        officialCanvaExportBtn.onclick = async function () {
+          if (!canvaCanvas) return;
+          if (exportDropdown) exportDropdown.style.display = 'none';
+
+          const guidesAndBoxes = canvaCanvas.getObjects().filter(o => o.isTempOcrBox || o.isPrintGuide);
+          guidesAndBoxes.forEach(o => { o._origVisible = o.visible; o.visible = false; });
+          canvaCanvas.discardActiveObject();
+          canvaCanvas.renderAll();
+
+          const scale = canvaCanvas.originalScale || 1;
+          const fullResDataURL = canvaCanvas.toDataURL({
+            format: 'png',
+            quality: 1,
+            multiplier: 1 / scale
+          });
+
+          guidesAndBoxes.forEach(o => { o.visible = o._origVisible !== undefined ? o._origVisible : true; });
+          canvaCanvas.renderAll();
+
+          const origHTML = officialCanvaExportBtn.innerHTML;
+          officialCanvaExportBtn.innerHTML = "<span>⏳</span> Uploading to Canva API...";
+          showToast("Sending label to Official Canva REST API...", "✨", 4000);
+
+          try {
+            const title = (document.getElementById('canvaDocTitleInput') ? document.getElementById('canvaDocTitleInput').value : 'Label Design');
+            const res = await fetch('/api/canva/official/import-design', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_data: fullResDataURL,
+                title: title
+              })
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+
+            showToast("Design sent to Canva! Opening Canva Design...", "🎉", 4000);
+            if (data.job_id) {
+              // Poll job status
+              let checkCount = 0;
+              const pollInterval = setInterval(async () => {
+                checkCount++;
+                try {
+                  const sRes = await fetch(`/api/canva/official/job-status/${data.job_id}`);
+                  const sData = await sRes.json();
+                  if (sData.job && sData.job.status === 'success') {
+                    clearInterval(pollInterval);
+                    const editUrl = sData.job.result ? (sData.job.result.design ? sData.job.result.design.urls.edit_url : null) : null;
+                    if (editUrl) {
+                      window.open(editUrl, '_blank');
+                    }
+                  } else if (sData.job && sData.job.status === 'failed') {
+                    clearInterval(pollInterval);
+                    alert("Canva Import failed: " + (sData.job.error ? sData.job.error.message : "Unknown error"));
+                  }
+                } catch(e) {}
+                if (checkCount > 15) clearInterval(pollInterval);
+              }, 2000);
+            }
+          } catch (err) {
+            console.error(err);
+            if (err.message && err.message.includes("Token")) {
+              alert("Canva REST API Token not set yet.\n\nPlease add your CANVA_ACCESS_TOKEN in .env to use Official Canva synchronization.");
+            } else {
+              alert("Canva API Import: " + err.message);
+            }
+          } finally {
+            officialCanvaExportBtn.innerHTML = origHTML;
+          }
+        };
+      }
+
       const exportSvgBtn = document.getElementById('canvaExportSvgBtn');
 
       // Toast helper
@@ -5781,20 +5869,30 @@
             titleInput.value = filename.replace(/^result_/, '').replace(/\.png$/, '') + ' - Canva Design';
           }
 
-          const res = await fetch('/digitize-label', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename: filename })
-          });
-          const data = await res.json();
-          if (data.error) throw new Error(data.error);
-
-          cleanBgUrl = data.clean_image_url;
-          originalBgUrl = data.original_image_url || imageSrc;
+          // Open Canva Studio with the 100% pristine original image
+          // Text can then be edited directly via Grab Text without smudging or ruining the background!
+          const imgUrl = imageSrc || `/static/results/${filename}`;
+          cleanBgUrl = imgUrl;
+          originalBgUrl = imgUrl;
           isCleanBgActive = true;
 
-          initCanvaCanvas(data);
-          if (railTextBtn) switchDrawerTab(railTextBtn, drawerText);
+          // Load natural dimensions of the image
+          const probeImg = new Image();
+          probeImg.crossOrigin = 'anonymous';
+          probeImg.onload = function() {
+            initCanvaCanvas({
+              image_width: probeImg.naturalWidth || 1536,
+              image_height: probeImg.naturalHeight || 512,
+              image_url: imgUrl,
+              text_elements: []
+            });
+            if (railEditImageBtn) switchDrawerTab(railEditImageBtn, drawerEditImage);
+          };
+          probeImg.onerror = function() {
+            initCanvaCanvas({ image_width: 1536, image_height: 512, image_url: imgUrl, text_elements: [] });
+            if (railEditImageBtn) switchDrawerTab(railEditImageBtn, drawerEditImage);
+          };
+          probeImg.src = imgUrl;
 
         } catch (err) {
           console.error(err);

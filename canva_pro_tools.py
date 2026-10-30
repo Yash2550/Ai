@@ -767,7 +767,7 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
             gap = curr_b["left"] - (prev_b["left"] + prev_b["width"])
             avg_h = (prev_b["height"] + curr_b["height"]) / 2.0
             # If gap between words is larger than 1.8x font height, it's a separate column / cell
-            if gap > avg_h * 1.8:
+            if gap > avg_h * 0.9 or gap > 28:
                 blocks.append(cur)
                 cur = [curr_b]
             else:
@@ -864,41 +864,74 @@ def inpaint_text_regions(image_bytes: bytes, regions: list) -> bytes:
 
     mask = np.zeros((h, w), dtype=np.uint8)
 
+    # Precision Text Inpainting:
+    # Instead of wiping out whole rectangular chunks and destroying artwork/chocolate splashes/gradients,
+    # isolate exact text strokes via adaptive foreground extraction so only letters are removed!
+    clean_bgr = bgr.copy()
+
     for reg in regions:
-        # 1. Fill individual word polygons (each polygon separately to avoid self-intersecting inversion)
-        if "word_polygons" in reg and reg["word_polygons"]:
-            for poly in reg["word_polygons"]:
-                p = np.array(poly, dtype=np.int32)
-                cv2.fillPoly(mask, [p], 255)
-
-        # 2. Fill individual word bounding boxes
-        if "word_boxes" in reg and reg["word_boxes"]:
-            for wb in reg["word_boxes"]:
-                if len(wb) == 4:
-                    wbx, wby, wbw, wbh = wb
-                    cv2.rectangle(mask, (int(wbx), int(wby)), (int(wbx + wbw), int(wby + wbh)), 255, -1)
-
-        # 3. Fill overall block bounding box
         if "left" in reg and "top" in reg and "width" in reg and "height" in reg:
             bx = max(0, int(reg["left"]))
             by = max(0, int(reg["top"]))
             bw = min(w - bx, int(reg["width"]))
             bh = min(h - by, int(reg["height"]))
-            if bw > 0 and bh > 0:
-                cv2.rectangle(mask, (bx, by), (bx + bw, by + bh), 255, -1)
+            if bw <= 3 or bh <= 3:
+                continue
 
-    if np.any(mask > 0):
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-        dilated_mask = cv2.dilate(mask, kernel, iterations=2)
+            pad_x = 2
+            pad_y = 2
+            x1 = max(0, bx - pad_x)
+            y1 = max(0, by - pad_y)
+            x2 = min(w, bx + bw + pad_x)
+            y2 = min(h, by + bh + pad_y)
 
-        # Inpaint only masked pixels
-        clean_bgr = cv2.inpaint(bgr, dilated_mask, inpaintRadius=5, flags=cv2.INPAINT_TELEA)
+            roi = bgr[y1:y2, x1:x2]
+            if roi.shape[0] < 4 or roi.shape[1] < 4:
+                continue
 
-        # Strictly composite only over masked area
-        result_bgr = bgr.copy()
-        result_bgr[dilated_mask > 0] = clean_bgr[dilated_mask > 0]
-    else:
-        result_bgr = bgr
+            # Sample border pixels to detect true background color
+            border_pixels = np.concatenate([
+                roi[:2, :].reshape(-1, 3),
+                roi[-2:, :].reshape(-1, 3),
+                roi[:, :2].reshape(-1, 3),
+                roi[:, -2:].reshape(-1, 3)
+            ], axis=0)
+            bg_color = np.median(border_pixels, axis=0)
+
+            # Multi-layer Precision Stroke Segmentation:
+            # 1. Color distance from background: text pixels have significant color delta from local bg
+            diff_from_bg = np.sqrt(np.sum((roi.astype(float) - bg_color.astype(float))**2, axis=2))
+            
+            # 2. Otsu thresholding for luminance contrast
+            gray_roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+            bg_gray = int(cv2.cvtColor(np.array([[bg_color]], dtype=np.uint8), cv2.COLOR_BGR2GRAY)[0, 0])
+            _, th1 = cv2.threshold(gray_roi, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            diff1 = abs(np.mean(gray_roi[th1 == 255]) - bg_gray) if np.any(th1 == 255) else 0
+            diff0 = abs(np.mean(gray_roi[th1 == 0]) - bg_gray) if np.any(th1 == 0) else 0
+            otsu_text = (th1 == 255) if diff1 > diff0 else (th1 == 0)
+            
+            # Combine: pixel must have significant color/brightness difference from bg
+            color_thresh = max(24.0, np.percentile(diff_from_bg, 50) * 0.8)
+            text_mask_roi = otsu_text & (diff_from_bg > color_thresh)
+            
+            # Fallback if too sparse or too dense
+            mask_ratio = np.sum(text_mask_roi) / text_mask_roi.size
+            if mask_ratio > 0.45 or mask_ratio < 0.05:
+                # Use adaptive thresholding to isolate only letter outlines
+                adapt = cv2.adaptiveThreshold(gray_roi, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                                             cv2.THRESH_BINARY_INV if bg_gray > 128 else cv2.THRESH_BINARY, 
+                                             max(3, (min(roi.shape[:2]) // 4) | 1), 7)
+                text_mask_roi = (adapt == 255) & (diff_from_bg > 20)
+
+            # Dilate slightly (1px) to capture antialiasing edges without engulfing background
+            k = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+            text_mask_dil = cv2.dilate(text_mask_roi.astype(np.uint8) * 255, k, iterations=1)
+
+            # Inpaint specifically only the letter strokes, preserving underlying gradients & graphics
+            inpainted_roi = cv2.inpaint(roi, text_mask_dil, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
+            clean_bgr[y1:y2, x1:x2] = inpainted_roi
+
+    result_bgr = clean_bgr
 
     if has_alpha:
         b, g, r = cv2.split(result_bgr)
