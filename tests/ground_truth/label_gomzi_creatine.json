@@ -1,0 +1,26 @@
+[
+  {
+    "text": "GOMZI",
+    "bbox": [465, 45, 100, 32],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "RECOMMENDED US",
+    "bbox": [25, 45, 140, 20],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NET WT: 300 G",
+    "bbox": [550, 680, 100, 30],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NUTRITION FACTS",
+    "bbox": [715, 45, 140, 20],
+    "is_title": false,
+    "uncertain": false
+  }
+]

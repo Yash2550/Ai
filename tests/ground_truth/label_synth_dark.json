@@ -1,0 +1,39 @@
+[
+  {
+    "text": "NITRO SURGE",
+    "bbox": [660, 110, 480, 84],
+    "is_title": true,
+    "uncertain": false
+  },
+  {
+    "text": "EXTREME FORMULA",
+    "bbox": [720, 220, 360, 40],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "WATERMELON SLAM",
+    "bbox": [760, 290, 280, 32],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "DIRECTIONS",
+    "bbox": [100, 100, 160, 28],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NET WEIGHT 300G",
+    "bbox": [100, 220, 220, 26],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "MADE IN INDIA",
+    "bbox": [1350, 200, 180, 24],
+    "is_title": false,
+    "uncertain": false
+  }
+]
+

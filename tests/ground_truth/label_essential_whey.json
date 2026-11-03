@@ -1,0 +1,32 @@
+[
+  {
+    "text": "N GOMZI",
+    "bbox": [415, 65, 150, 40],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "ESSENIIA",
+    "bbox": [340, 280, 360, 95],
+    "is_title": true,
+    "uncertain": false
+  },
+  {
+    "text": "RECOMMENDED USE:",
+    "bbox": [25, 45, 150, 25],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NUTRITION FACTS",
+    "bbox": [700, 45, 150, 25],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NET WT:",
+    "bbox": [550, 680, 100, 30],
+    "is_title": false,
+    "uncertain": false
+  }
+]

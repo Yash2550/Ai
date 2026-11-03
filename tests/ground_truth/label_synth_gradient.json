@@ -1,0 +1,39 @@
+[
+  {
+    "text": "TITAN ENERGY",
+    "bbox": [650, 120, 500, 80],
+    "is_title": true,
+    "uncertain": false
+  },
+  {
+    "text": "ULTRA PERFORMANCE",
+    "bbox": [690, 230, 420, 42],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "BLUE RASPBERRY",
+    "bbox": [780, 310, 240, 32],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "SUGGESTED USE",
+    "bbox": [80, 80, 200, 28],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "WARNINGS",
+    "bbox": [80, 260, 150, 28],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "SUPPLEMENT FACTS",
+    "bbox": [1300, 80, 280, 30],
+    "is_title": false,
+    "uncertain": false
+  }
+]
+

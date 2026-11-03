@@ -1,0 +1,32 @@
+[
+  {
+    "text": "NUTRITION",
+    "bbox": [155, 230, 140, 30],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "PRE-WORKOUT",
+    "bbox": [90, 445, 330, 45],
+    "is_title": true,
+    "uncertain": false
+  },
+  {
+    "text": "FRUIT PUNCH",
+    "bbox": [170, 550, 150, 25],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "SUPPLEMENT INFORMATION",
+    "bbox": [565, 115, 260, 25],
+    "is_title": false,
+    "uncertain": false
+  },
+  {
+    "text": "NET WEIGHT: 10 g",
+    "bbox": [200, 700, 160, 25],
+    "is_title": false,
+    "uncertain": false
+  }
+]
