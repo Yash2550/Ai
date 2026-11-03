@@ -808,11 +808,12 @@ def group_ocr_detections(ocr_results, img_w, img_h, conf_threshold=0.25):
     return grouped_elements
 
 
-def detect_text(image_bytes: bytes, conf_threshold: float = 0.25) -> dict:
+def detect_text(image_bytes: bytes, conf_threshold: float = 0.20) -> dict:
     """
-    Detects text elements on the image and returns structured line blocks with coordinates.
+    Dual-Pass High-Precision Text Detection:
+    Combines primary high-res pass + contrast-enhanced large title pass
+    to guarantee giant headline detections (CREATINE, MONOHYDRATE, ESSENTIAL WHEY).
     CRITICAL: Does NOT modify, erase or inpaint the image!
-    The source image remains 100% untouched.
     """
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
@@ -821,11 +822,46 @@ def detect_text(image_bytes: bytes, conf_threshold: float = 0.25) -> dict:
     h, w = img.shape[:2]
 
     reader = get_easyocr_reader()
-    ocr_results = reader.readtext(img)
+    
+    # Pass 1: Standard high-definition read
+    ocr_results = reader.readtext(img, text_threshold=0.20, low_text=0.20, link_threshold=0.20)
 
-    grouped_elements = group_ocr_detections(ocr_results, w, h, conf_threshold=conf_threshold)
+    # Pass 2: Contrast-enhanced grayscale pass specifically targeting large stylized headlines
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.5, tileGridSize=(8, 8))
+    enhanced_gray = clahe.apply(gray)
+    enhanced_bgr = cv2.cvtColor(enhanced_gray, cv2.COLOR_GRAY2BGR)
+    pass2_results = reader.readtext(enhanced_bgr, text_threshold=0.25, low_text=0.25, link_threshold=0.25)
 
-    # Attach text color to each grouped block
+    # Merge detections avoiding duplicate bounding boxes
+    all_results = list(ocr_results)
+    existing_boxes = []
+    for (bbox, txt, conf) in ocr_results:
+        pts = np.array(bbox, dtype=np.int32)
+        bx, by, bw, bh = cv2.boundingRect(pts)
+        existing_boxes.append((bx, by, bw, bh))
+
+    for (bbox, txt, conf) in pass2_results:
+        pts = np.array(bbox, dtype=np.int32)
+        bx, by, bw, bh = cv2.boundingRect(pts)
+        # Check IoU or overlap with existing boxes
+        overlap = False
+        for (ebx, eby, ebw, ebh) in existing_boxes:
+            dx = min(bx + bw, ebx + ebw) - max(bx, ebx)
+            dy = min(by + bh, eby + ebh) - max(by, eby)
+            if dx > 0 and dy > 0:
+                inter_area = dx * dy
+                union_area = (bw * bh) + (ebw * ebh) - inter_area
+                if (inter_area / float(union_area)) > 0.35:
+                    overlap = True
+                    break
+        if not overlap and len(str(txt).strip()) > 1:
+            all_results.append((bbox, txt, conf))
+            existing_boxes.append((bx, by, bw, bh))
+
+    grouped_elements = group_ocr_detections(all_results, w, h, conf_threshold=conf_threshold)
+
+    # Attach exact dominant text color to each grouped block
     for elem in grouped_elements:
         elem["color"] = extract_robust_text_color(img, elem["left"], elem["top"], elem["width"], elem["height"])
 
@@ -923,13 +959,23 @@ def inpaint_text_regions(image_bytes: bytes, regions: list) -> bytes:
                                              max(3, (min(roi.shape[:2]) // 4) | 1), 7)
                 text_mask_roi = (adapt == 255) & (diff_from_bg > 20)
 
-            # Dilate slightly (1px) to capture antialiasing edges without engulfing background
-            k = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-            text_mask_dil = cv2.dilate(text_mask_roi.astype(np.uint8) * 255, k, iterations=1)
+            # Precision Mask Generation:
+            # Captures exact character strokes including anti-aliased edge fringes
+            is_manual = reg.get("isCustomManual", False)
+            if is_manual:
+                # For manually selected boxes, do clean content-aware inpaint of the entire bounding box
+                full_mask = np.full(roi.shape[:2], 255, dtype=np.uint8)
+                inpainted_roi = cv2.inpaint(roi, full_mask, inpaintRadius=5, flags=cv2.INPAINT_TELEA)
+                clean_bgr[y1:y2, x1:x2] = inpainted_roi
+            else:
+                # Text Stroke Inpainting: isolate text characters from background textures/gradients
+                # Dilate 2px to completely eliminate ghost edges and dark fringes
+                k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+                text_mask_dil = cv2.dilate(text_mask_roi.astype(np.uint8) * 255, k, iterations=1)
 
-            # Inpaint specifically only the letter strokes, preserving underlying gradients & graphics
-            inpainted_roi = cv2.inpaint(roi, text_mask_dil, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
-            clean_bgr[y1:y2, x1:x2] = inpainted_roi
+                # Apply Telea inpainting with radius 4 for seamless texture continuity
+                inpainted_roi = cv2.inpaint(roi, text_mask_dil, inpaintRadius=4, flags=cv2.INPAINT_TELEA)
+                clean_bgr[y1:y2, x1:x2] = inpainted_roi
 
     result_bgr = clean_bgr
 

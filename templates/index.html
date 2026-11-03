@@ -3489,6 +3489,10 @@
                     <button id="canvaSelectAllGrabBtn" type="button" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:11px; font-weight:700; color:#334155; cursor:pointer;">✓ Select All</button>
                     <button id="canvaDeselectAllGrabBtn" type="button" style="flex:1; background:#f8fafc; border:1px solid #cbd5e1; border-radius:6px; padding:6px; font-size:11px; font-weight:700; color:#334155; cursor:pointer;">✕ Deselect All</button>
                   </div>
+                  <button id="canvaManualBoxGrabBtn" type="button" style="width:100%; background:#f5f3ff; border:1.5px dashed #7d2ae8; border-radius:8px; padding:8px; font-size:11px; font-weight:700; color:#7d2ae8; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s;">
+                    <span>➕</span>
+                    <span id="canvaManualBoxGrabLabel">Draw Box on Any Unmatched Text</span>
+                  </button>
                   <div id="canvaGrabTextList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px; scrollbar-width:thin;">
                     <!-- Dynamically populated with text blocks -->
                   </div>
@@ -3850,6 +3854,8 @@
       const cancelGrabBtn = document.getElementById('canvaCancelGrabTextBtn');
       const selectAllGrabBtn = document.getElementById('canvaSelectAllGrabBtn');
       const deselectAllGrabBtn = document.getElementById('canvaDeselectAllGrabBtn');
+      const manualBoxGrabBtn = document.getElementById('canvaManualBoxGrabBtn');
+      const manualBoxGrabLabel = document.getElementById('canvaManualBoxGrabLabel');
       const applyGrabBtn = document.getElementById('canvaApplyGrabTextBtn');
 
       const toolGoogleFlowBtn = document.getElementById('canvaToolGoogleFlowBtn');
@@ -4723,6 +4729,167 @@
         };
       }
 
+      // Manual Box Selection: Click & drag to define bounding box for any unmatched or large title text
+      let isManualBoxMode = false;
+      let manualBoxStartPt = null;
+      let activeManualRect = null;
+
+      function stopManualBoxMode() {
+        isManualBoxMode = false;
+        manualBoxStartPt = null;
+        activeManualRect = null;
+        if (canvaCanvas) {
+          canvaCanvas.defaultCursor = 'default';
+          canvaCanvas.selection = true;
+        }
+        if (manualBoxGrabBtn) {
+          manualBoxGrabBtn.style.background = '#f5f3ff';
+          manualBoxGrabBtn.style.borderColor = '#7d2ae8';
+          if (manualBoxGrabLabel) manualBoxGrabLabel.textContent = 'Draw Box on Any Unmatched Text';
+        }
+      }
+
+      if (manualBoxGrabBtn) {
+        manualBoxGrabBtn.onclick = () => {
+          if (!canvaCanvas) return;
+          isManualBoxMode = !isManualBoxMode;
+          if (isManualBoxMode) {
+            canvaCanvas.defaultCursor = 'crosshair';
+            canvaCanvas.selection = false;
+            canvaCanvas.discardActiveObject();
+            canvaCanvas.renderAll();
+            manualBoxGrabBtn.style.background = '#ede9fe';
+            manualBoxGrabBtn.style.borderColor = '#6d28d9';
+            if (manualBoxGrabLabel) manualBoxGrabLabel.textContent = 'Drag on Canvas to Draw Box (Click to Cancel)';
+            showToast('Drag on canvas across any text to add custom editable box!', '📐', 4000);
+          } else {
+            stopManualBoxMode();
+          }
+        };
+      }
+
+      // Canvas Mouse Handlers for Manual Box Dragging
+      if (canvaCanvas) {
+        canvaCanvas.on('mouse:down', function(opt) {
+          if (!isManualBoxMode) return;
+          const pointer = canvaCanvas.getPointer(opt.e);
+          manualBoxStartPt = { x: pointer.x, y: pointer.y };
+          activeManualRect = new fabric.Rect({
+            left: pointer.x,
+            top: pointer.y,
+            width: 1,
+            height: 1,
+            fill: 'rgba(125, 42, 232, 0.22)',
+            stroke: '#7d2ae8',
+            strokeWidth: 2,
+            strokeDashArray: [4, 3],
+            selectable: false,
+            evented: false,
+            isTempOcrBox: true,
+            excludeFromExport: true
+          });
+          canvaCanvas.add(activeManualRect);
+        });
+
+        canvaCanvas.on('mouse:move', function(opt) {
+          if (!isManualBoxMode || !manualBoxStartPt || !activeManualRect) return;
+          const pointer = canvaCanvas.getPointer(opt.e);
+          const left = Math.min(manualBoxStartPt.x, pointer.x);
+          const top = Math.min(manualBoxStartPt.y, pointer.y);
+          const width = Math.abs(pointer.x - manualBoxStartPt.x);
+          const height = Math.abs(pointer.y - manualBoxStartPt.y);
+          activeManualRect.set({ left, top, width, height });
+          canvaCanvas.renderAll();
+        });
+
+        canvaCanvas.on('mouse:up', function(opt) {
+          if (!isManualBoxMode || !manualBoxStartPt || !activeManualRect) return;
+          const scale = canvaCanvas.originalScale || 1;
+          const boxW = activeManualRect.width;
+          const boxH = activeManualRect.height;
+
+          if (boxW < 15 || boxH < 10) {
+            canvaCanvas.remove(activeManualRect);
+            canvaCanvas.renderAll();
+            stopManualBoxMode();
+            return;
+          }
+
+          const nativeLeft = Math.round(activeManualRect.left / scale);
+          const nativeTop = Math.round(activeManualRect.top / scale);
+          const nativeW = Math.round(boxW / scale);
+          const nativeH = Math.round(boxH / scale);
+
+          const customId = 'custom_box_' + Date.now();
+          const newElem = {
+            id: customId,
+            text: 'EDIT TITLE',
+            left: nativeLeft,
+            top: nativeTop,
+            width: nativeW,
+            height: nativeH,
+            fontSize: Math.max(12, Math.round(nativeH * 0.85)),
+            conf: 1.0,
+            color: '#1e293b',
+            selected: true,
+            isCustomManual: true
+          };
+
+          activeGrabDetections.push(newElem);
+          activeManualRect.set({
+            fill: 'rgba(125, 42, 232, 0.22)',
+            stroke: '#7d2ae8',
+            strokeWidth: 2,
+            selectable: false,
+            evented: true,
+            hoverCursor: 'pointer',
+            ocrId: customId
+          });
+
+          // Add checklist row
+          const row = document.createElement('div');
+          row.id = `grabRow_${customId}`;
+          row.style.cssText = 'background:#f3e8ff; border:1px solid #7d2ae8; border-radius:6px; padding:6px 8px; display:flex; align-items:center; gap:8px; cursor:pointer; transition:all 0.15s;';
+          row.innerHTML = `
+            <input type="checkbox" id="chk_${customId}" checked style="accent-color:#7d2ae8; cursor:pointer;" />
+            <input type="text" id="txt_${customId}" value="EDIT TITLE" style="flex:1; background:transparent; border:none; color:#0f172a; font-size:11px; font-weight:700; outline:none;" />
+            <span style="font-size:10px; color:#7d2ae8; font-weight:700;">Manual Box</span>
+          `;
+
+          const chk = row.querySelector(`#chk_${customId}`);
+          const txtInput = row.querySelector(`#txt_${customId}`);
+
+          function updateCustomState(isSelected) {
+            newElem.selected = isSelected;
+            chk.checked = isSelected;
+            row.style.background = isSelected ? '#f3e8ff' : '#ffffff';
+            row.style.borderColor = isSelected ? '#7d2ae8' : '#cbd5e1';
+            activeManualRect.set({
+              fill: isSelected ? 'rgba(125, 42, 232, 0.22)' : 'rgba(148, 163, 184, 0.08)',
+              stroke: isSelected ? '#7d2ae8' : '#94a3b8'
+            });
+            canvaCanvas.renderAll();
+          }
+
+          chk.onchange = () => updateCustomState(chk.checked);
+          activeManualRect.on('mousedown', () => updateCustomState(!newElem.selected));
+          txtInput.oninput = () => { newElem.text = txtInput.value; };
+
+          if (grabTextList) {
+            grabTextList.insertBefore(row, grabTextList.firstChild);
+          }
+          if (grabCountBadge) {
+            grabCountBadge.textContent = activeGrabDetections.length;
+          }
+
+          canvaCanvas.renderAll();
+          stopManualBoxMode();
+          showToast('Custom box added! Background inside this box will be 100% cleanly erased and converted to editable text.', '✨', 4000);
+          txtInput.focus();
+          txtInput.select();
+        });
+      }
+
       if (applyGrabBtn) {
         applyGrabBtn.onclick = async function () {
           const selected = activeGrabDetections.filter(e => e.selected);
@@ -4776,20 +4943,23 @@
                 // Use exact detected text color from OCR
                 const chosenColor = elem.color || '#1e293b';
 
+                // Width calibration: generous safe buffer + measured width
+                // lockScalingFlip and lockUniScaling to keep text crisp and clean
                 const tb = new fabric.Textbox(elem.text, {
                   left: elem.left * scale,
                   top: elem.top * scale,
                   width: safeWidth,
                   fontSize: calculatedFontSize,
-                  lineHeight: 1.1,
+                  lineHeight: 1.0,
                   splitByGrapheme: false,
+                  lockScalingFlip: true,
                   fill: chosenColor,
                   fontFamily: 'Montserrat',
                   fontWeight: isHeading ? '800' : '600',
                   textAlign: 'left',
                   originX: 'left',
                   originY: 'top',
-                  padding: 2,
+                  padding: 4,
                   name: elem.text.slice(0, 24),
                   isGrabTextObject: true
                 });
@@ -5399,6 +5569,11 @@
             originY: 'top',
             selectable: false,
             evented: false,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockRotation: true,
+            lockScalingX: true,
+            lockScalingY: true
           });
           canvaCanvas.setBackgroundImage(img, function () {
             canvaCanvas.renderAll();

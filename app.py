@@ -419,7 +419,6 @@ def professional_text_replace(
         font=font,
         fill=(*shadow_color, 120),
     )
-
     # Main text
     draw.text((text_x, text_y), display_text, font=font, fill=text_color)
 
@@ -745,7 +744,7 @@ def _run_atlascloud_prediction(payload: dict, max_wait: int = 180) -> str:
 
     raise RuntimeError(f"Atlas Cloud task {prediction_id} timed out after {max_wait}s")
 
-
+    
 def run_nanobanana_inpainting(
     image_data_uri: str,
     mask_data_uri: str,
