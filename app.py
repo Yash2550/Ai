@@ -477,7 +477,7 @@ def composite_image_addition(image_path: str, mask_path: str, overlay_path
     else:
         new_h = box_height
         new_w = int(box_height * aspect)
-        
+    
     # Ensure dimensions are at least 1px
     new_w = max(1, new_w)
     new_h = max(1, new_h)
