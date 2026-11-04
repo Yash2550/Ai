@@ -306,71 +306,49 @@ def professional_text_replace(
     padding_ratio: float = 0.12,
 ) -> None:
     """
-    Replace the masked region with a clean background fill and render new_text
-    in a bold professional font perfectly centred in the bounding box.
-
-    Steps:
-      1. Decode mask, find bounding box of the brand/logo region.
-      2. Sample background color from pixels just outside the masked area.
-      3. Fill the mask area with that background (seamless erase).
-      4. Auto-size a bold font to fill ~80% of the box height.
-      5. Render the new brand text centred, with a subtle drop-shadow for depth.
-      6. Save result.
+    High-Precision Studio Inpainting & Professional Label Typography.
+    NO FLAT RECTANGLE BLOBS: Uses cv2.inpaint Telea to seamlessly erase only text
+    strokes, preserving underlying textures, lightning, gradients, and artwork!
     """
-    from PIL import ImageDraw, ImageFilter
+    import cv2
     import numpy as np
+    from PIL import ImageDraw, ImageFilter
 
-    # Load images
-    base = Image.open(image_path).convert("RGB")
-    w_img, h_img = base.size
+    with open(image_path, "rb") as f:
+        img_bytes = f.read()
 
-    # Decode mask
+    orig_bgr = cv2.imdecode(np.frombuffer(img_bytes, np.uint8), cv2.IMREAD_COLOR)
+    h_img, w_img = orig_bgr.shape[:2]
+
+    # Decode mask to binary
     _, b64data = mask_data_uri.split(",", 1)
     mask_bytes = base64.b64decode(b64data)
-    mask_l = Image.open(io.BytesIO(mask_bytes)).convert("L")
-    mask_l = mask_l.resize((w_img, h_img), Image.Resampling.LANCZOS)
+    mask_np = cv2.imdecode(np.frombuffer(mask_bytes, np.uint8), cv2.IMREAD_GRAYSCALE)
+    if mask_np.shape[:2] != (h_img, w_img):
+        mask_np = cv2.resize(mask_np, (w_img, h_img), interpolation=cv2.INTER_NEAREST)
 
-    bbox = mask_l.getbbox()
-    if not bbox:
-        # Nothing to mask — just save original
-        base.save(output_path, "PNG")
+    _, mask_bin = cv2.threshold(mask_np, 127, 255, cv2.THRESH_BINARY)
+    # Bounding box of mask
+    coords = cv2.findNonZero(mask_bin)
+    if coords is None:
+        cv2.imwrite(output_path, orig_bgr)
         return
 
-    left, top, right, bottom = bbox
-    box_w = right - left
-    box_h = bottom - top
+    bx, by, bw, bh = cv2.boundingRect(coords)
 
-    # ── 1. Sample background color ──────────────────────────────────────────
-    bg_color = _sample_bg_color(base, mask_l)
+    # Clean inpaint: remove character pixels using Telea inpainting instead of flat rectangle fill!
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    dilated_mask = cv2.dilate(mask_bin, kernel, iterations=1)
+    clean_bgr = cv2.inpaint(orig_bgr, dilated_mask, inpaintRadius=4, flags=cv2.INPAINT_TELEA)
 
-    # ── 2. Fill masked region with background (feathered edges) ────────────
-    result = base.copy()
-    draw_fill = ImageDraw.Draw(result)
+    # Convert to PIL for crisp typography
+    clean_rgb = cv2.cvtColor(clean_bgr, cv2.COLOR_BGR2RGB)
+    result = Image.fromarray(clean_rgb)
 
-    # Slightly expand fill to cover anti-aliased edges
-    pad = max(2, int(min(box_w, box_h) * 0.03))
-    fill_box = (
-        max(0, left - pad),
-        max(0, top - pad),
-        min(w_img, right + pad),
-        min(h_img, bottom + pad),
-    )
-    draw_fill.rectangle(fill_box, fill=bg_color)
-
-    # Soft feather: blend the sharp fill edges into the original
-    mask_blur = mask_l.filter(ImageFilter.GaussianBlur(radius=max(2, pad)))
-    result = Image.composite(result, base, mask_blur)
-
-    # ── 3. Prepare text ──────────────────────────────────────────────────────
     display_text = new_text.upper().strip() if uppercase else new_text.strip()
-
-    # Remove common instruction words that aren't the brand name
-    # e.g. "Remove Gomzi Nutrition and add Maxlife" → extract "Maxlife"
-    # Only do this if text contains common instruction words
     instruction_words = {"remove", "delete", "erase", "replace", "add", "put", "insert", "change", "with"}
     words = display_text.lower().split()
     if any(w in instruction_words for w in words):
-        # Heuristic: take the last word/words after "add", "with", "insert", "replace"
         triggers = ["add", "with", "insert", "replace", "put"]
         best_idx = -1
         for trigger in triggers:
@@ -383,51 +361,40 @@ def professional_text_replace(
             if remainder:
                 display_text = remainder
 
-    # ── 4. Auto-size font to fill ~80 % of box height (max width clamp) ────
-    target_h = int(box_h * 0.70)
-    font_size = max(12, target_h)
-
+    # Auto-fit typography
+    target_h = int(bh * 0.75)
+    font_size = max(14, target_h)
     font = _get_font(font_size)
+
     draw_tmp = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     bbox_text = draw_tmp.textbbox((0, 0), display_text, font=font)
     text_w = bbox_text[2] - bbox_text[0]
     text_h = bbox_text[3] - bbox_text[1]
 
-    # Shrink if text overflows box width (with padding)
-    max_text_w = int(box_w * (1 - 2 * padding_ratio))
+    max_text_w = int(bw * (1 - 2 * padding_ratio))
     if text_w > max_text_w and text_w > 0:
         font_size = int(font_size * max_text_w / text_w)
-        font_size = max(8, font_size)
+        font_size = max(10, font_size)
         font = _get_font(font_size)
         bbox_text = draw_tmp.textbbox((0, 0), display_text, font=font)
         text_w = bbox_text[2] - bbox_text[0]
         text_h = bbox_text[3] - bbox_text[1]
 
-    # ── 5. Render text centred in bounding box ───────────────────────────────
-    text_x = left + (box_w - text_w) // 2 - bbox_text[0]
-    text_y = top  + (box_h - text_h) // 2 - bbox_text[1]
+    text_x = bx + (bw - text_w) // 2 - bbox_text[0]
+    text_y = by + (bh - text_h) // 2 - bbox_text[1]
 
-    text_color = _pick_text_color(bg_color)
+    # Sample local background color to determine text color
+    bg_roi = clean_bgr[by:by+bh, bx:bx+bw]
+    mean_val = np.mean(bg_roi)
+    text_color = (255, 255, 255) if mean_val < 128 else (20, 20, 24)
+
     draw = ImageDraw.Draw(result)
-
-    # Drop shadow for depth (2–4 px offset)
-    shadow_offset = max(1, font_size // 30)
-    shadow_color = (0, 0, 0) if text_color != (10, 10, 10) else (200, 200, 200)
-    draw.text(
-        (text_x + shadow_offset, text_y + shadow_offset),
-        display_text,
-        font=font,
-        fill=(*shadow_color, 120),
-    )
-    # Main text
+    # Subtle drop shadow for depth
+    draw.text((text_x + 1, text_y + 1), display_text, font=font, fill=(0, 0, 0, 140))
     draw.text((text_x, text_y), display_text, font=font, fill=text_color)
 
-    # ── 6. Save ─────────────────────────────────────────────────────────────
     result.save(output_path, "PNG")
-    app.logger.info(
-        "PIL text replace: '%s' → rendered at font_size=%d in box %s bg=%s",
-        display_text, font_size, bbox, bg_color,
-    )
+    app.logger.info("Precision inpaint text replace: '%s' saved at %s", display_text, output_path)
 
 
 # Recraft.ai In-Painting API Call
