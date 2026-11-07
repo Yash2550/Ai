@@ -477,7 +477,7 @@ def composite_image_addition(image_path: str, mask_path: str, overlay_path
     else:
         new_h = box_height
         new_w = int(box_height * aspect)
-    
+        
     # Ensure dimensions are at least 1px
     new_w = max(1, new_w)
     new_h = max(1, new_h)
@@ -1295,7 +1295,7 @@ def process_image():
                 app.logger.info("Running OpenAI DALL-E 3 Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_openai_generations(enhanced_prompt, image_size)
             elif api_provider == "gemini":
-                app.logger.info("Running Google Gemini Text-to-Image Generation (size=%s)...", image_size)
+                app.logger.info("Running Google Gem ini Text-to-Image Generation (size=%s)...", image_size)
                 final_image_url = run_gemini_generations(enhanced_prompt, image_size)
             elif api_provider == "edenai":
                 app.logger.info("Running Eden AI Text-to-Image Generation (size=%s)...", image_size)
@@ -2468,6 +2468,7 @@ def canva_upload_image():
             aspect_name = f"{round(ratio, 2)}:1 Custom Label"
 
         app.logger.info("Canva direct image uploaded: %s (%dx%d, %s)", save_name, w, h, aspect_name)
+        
 
         return jsonify({
             "success": True,
