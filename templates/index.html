@@ -4569,7 +4569,8 @@
         offCanvas.height = nativeH;
         const ctx = offCanvas.getContext('2d');
         ctx.drawImage(imgEl, 0, 0, nativeW, nativeH);
-        return offCanvas.toDataURL('image/png');
+        // Use JPEG format with 0.92 quality for OCR/detection payload to avoid 413 Payload Too Large on ultra-high res images
+        return offCanvas.toDataURL('image/jpeg', 0.92);
       }
 
       function clearTempOcrBoxes() {
@@ -7276,7 +7277,11 @@
 
         try {
           const scale = canvaCanvas.originalScale || 1;
-          const dataURL = canvaCanvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 / scale });
+          // Calculate high-DPI export multiplier to render vector text/graphics at ultra-crisp print resolution (~7200px)
+          const targetExportWidth = 7200;
+          const nativeW = canvaCanvas.width / scale;
+          const exportMultiplier = Math.min(6, Math.max(1, (targetExportWidth / nativeW) / scale));
+          const dataURL = canvaCanvas.toDataURL({ format: 'png', quality: 1, multiplier: exportMultiplier });
           const stem = (currentDocFilename.replace(/\.png$/, '') || 'edited_label');
 
           const response = await fetch('/api/canva/export-master', {
@@ -7309,9 +7314,12 @@
           showToast(`✅ Master ${extLabel} Ready (${sizeMb} MB, 300 DPI Crisp Print Quality)!`, "🎉", 4500);
         } catch (err) {
           console.error(err);
-          // Fallback to local canvas export
+          // Fallback to local canvas export with high-DPI multiplier
           const scale = canvaCanvas.originalScale || 1;
-          const dataURL = canvaCanvas.toDataURL({ format: (format === 'jpg' ? 'jpeg' : 'png'), quality: 1, multiplier: 1 / scale });
+          const targetW = 7200;
+          const natW = canvaCanvas.width / scale;
+          const localMult = Math.min(6, Math.max(1, (targetW / natW) / scale));
+          const dataURL = canvaCanvas.toDataURL({ format: (format === 'jpg' ? 'jpeg' : 'png'), quality: 1, multiplier: localMult });
           const a = document.createElement('a');
           a.href = dataURL;
           a.download = `${currentDocFilename.replace(/\.png$/, '') || 'edited_label'}.${format}`;

@@ -44,7 +44,7 @@ init_db(app)
 UPLOAD_FOLDER = os.path.join("static", "uploads")
 RESULTS_FOLDER = os.path.join("static", "results")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
-MAX_CONTENT_LENGTH = 20 * 1024 * 1024  # 20 MB upload limit
+MAX_CONTENT_LENGTH = 100 * 1024 * 1024  # 100 MB upload limit
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(RESULTS_FOLDER, exist_ok=True)
@@ -2104,9 +2104,10 @@ def _build_svg_from_image(filepath: str) -> bytes:
 def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 7600) -> str:
     """
     Returns path to cached Ultra-HD version of the image at 300 DPI.
-    Produces a master image around 15-18 MB (PNG) with Lanczos resampling,
-    edge unsharp-masking, and contrast micro-tuning so text, fine details,
-    and barcodes remain crystal clear when zoomed in to 1000%.
+    Produces a master image around 15-20 MB (PNG) with multi-stage
+    bilateral filtering, Lanczos resampling, edge unsharp-masking,
+    and high-contrast text enhancement so text, fine details,
+    and barcodes remain crystal clear without pixel blur when zoomed in.
     """
     stem, _ = os.path.splitext(filepath)
     cache_path = f"{stem}_ultrahd_{target_max_dim}.png"
@@ -2119,20 +2120,83 @@ def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 7600) -> str:
         except OSError:
             pass
 
-    # Generate the Ultra-HD version
+    # Generate the Ultra-HD version using advanced multi-stage pipeline
     with Image.open(filepath) as img:
-        im = img.convert("RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB")
+        mode = "RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB"
+        im = img.convert(mode)
         w, h = im.size
         scale = max(1.0, target_max_dim / float(max(w, h)))
-        if scale > 1.0:
+        if scale > 1.05:
+            # Stage 1: bilateral edge-preserving smoothing on low-res raster artifacts
+            if max(w, h) < 3000:
+                try:
+                    import cv2
+                    import numpy as np
+                    np_im = np.array(im)
+                    if mode == "RGBA":
+                        bgr = cv2.cvtColor(np_im[:, :, :3], cv2.COLOR_RGB2BGR)
+                        alpha = np_im[:, :, 3]
+                        bi = cv2.bilateralFilter(bgr, d=5, sigmaColor=35, sigmaSpace=35)
+                        rgb = cv2.cvtColor(bi, cv2.COLOR_BGR2RGB)
+                        im = Image.fromarray(np.dstack([rgb, alpha]))
+                    else:
+                        bgr = cv2.cvtColor(np_im, cv2.COLOR_RGB2BGR)
+                        bi = cv2.bilateralFilter(bgr, d=5, sigmaColor=35, sigmaSpace=35)
+                        im = Image.fromarray(cv2.cvtColor(bi, cv2.COLOR_BGR2RGB))
+                except Exception as e:
+                    app.logger.warning("Bilateral filter skipped: %s", e)
+
+            # Stage 2: 2-step Lanczos interpolation for crisp character edges
+            mid_scale = min(scale, 2.5)
+            mid_w = int(round(w * mid_scale))
+            mid_h = int(round(h * mid_scale))
+            im_mid = im.resize((mid_w, mid_h), Image.Resampling.LANCZOS)
+            im_mid = im_mid.filter(ImageFilter.UnsharpMask(radius=1.4, percent=140, threshold=1))
+
             new_w = int(round(w * scale))
             new_h = int(round(h * scale))
-            im = im.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            # Edge typography unsharp-masking
-            im = im.filter(ImageFilter.UnsharpMask(radius=2.2, percent=160, threshold=2))
-            enh = ImageEnhance.Contrast(im)
-            im = enh.enhance(1.03)
-        # compress_level=1 preserves lossless raw pixel master at ~15-18 MB
+            im = im_mid.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+            # Stage 3: Morphological Edge Shock Filter on Luminance (removes fuzzy blur borders around letters)
+            try:
+                import cv2
+                import numpy as np
+                arr = np.array(im)
+                if mode == "RGBA":
+                    rgb = arr[:, :, :3]
+                    alpha = arr[:, :, 3]
+                else:
+                    rgb = arr
+                    alpha = None
+
+                ycrcb = cv2.cvtColor(rgb, cv2.COLOR_RGB2YCrCb)
+                y = ycrcb[:, :, 0].astype(np.float32)
+
+                gaussian = cv2.GaussianBlur(y, (0, 0), sigmaX=1.6)
+                unsharp = y + 1.6 * (y - gaussian)
+
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+                dil = cv2.dilate(unsharp, kernel)
+                ero = cv2.erode(unsharp, kernel)
+                dist_dil = np.abs(dil - unsharp)
+                dist_ero = np.abs(unsharp - ero)
+                shock = np.where(dist_dil < dist_ero, dil, ero)
+
+                refined_y = np.clip(0.35 * shock + 0.65 * unsharp, 0, 255).astype(np.uint8)
+                ycrcb[:, :, 0] = refined_y
+                crisp_rgb = cv2.cvtColor(ycrcb, cv2.COLOR_YCrCb2RGB)
+
+                if alpha is not None:
+                    im = Image.fromarray(np.dstack([crisp_rgb, alpha]))
+                else:
+                    im = Image.fromarray(crisp_rgb)
+            except Exception as e:
+                app.logger.warning("Shock filter fallback to UnsharpMask: %s", e)
+                im = im.filter(ImageFilter.UnsharpMask(radius=1.8, percent=190, threshold=2))
+                enh = ImageEnhance.Contrast(im)
+                im = enh.enhance(1.04)
+
+        # compress_level=1 preserves lossless raw pixel master at ~15-20 MB
         im.save(cache_path, format="PNG", dpi=(300, 300), compress_level=1)
 
     return cache_path
