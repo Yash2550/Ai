@@ -1908,9 +1908,8 @@
             <select id="apiProviderSelect" name="api_provider"
               style="width:100%; padding:10px; border:1px solid var(--clr-border); border-radius:var(--radius-sm); background:var(--clr-bg); color:var(--clr-text); font-family:inherit; font-size:13px; outline:none; cursor:pointer;">
               <option value="recraft">Recraft.ai</option>
-              <option value="nanobanana" selected>Nano Banana (PixAPI)</option>
-              <option value="googleflow">Google Flow (Nano Banana 2 / Pro)</option>
-              <option value="openai">OpenAI (DALL-E 3)</option>
+              <option value="openai">ChatGPT / OpenAI (GPT-Image 2.5 Sunburst)</option>
+              <option value="nanobanana" selected>Nano Banana (PixAPI / AtlasCloud)</option>
               <option value="gemini">Google Gemini</option>
               <option value="edenai">Eden AI (DALL-E 3)</option>
             </select>
@@ -3063,7 +3062,24 @@
                 </div>
 
                 <!-- Template Search -->
-                <input id="canvaTemplateSearch" placeholder="🔍 Search templates (e.g. Whey, Serum)..." style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px 10px; font-size:12px; outline:none;" />
+                <input id="canvaTemplateSearch" placeholder="🔍 Search templates (e.g. Whey, Creatine)..." style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:8px 10px; font-size:12px; outline:none;" />
+
+                <!-- Standard Press Dimensions Bar -->
+                <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Standard Press Sizes</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                  <button class="canva-size-preset-btn" data-ratio="3:1" data-w="1536" data-h="512" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; text-align:center;">
+                    🏷️ 31.5 × 11 cm (3:1)
+                  </button>
+                  <button class="canva-size-preset-btn" data-ratio="4:1" data-w="1536" data-h="384" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; text-align:center;">
+                    📏 40 × 10 cm (4:1)
+                  </button>
+                  <button class="canva-size-preset-btn" data-ratio="1:1" data-w="1024" data-h="1024" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; text-align:center;">
+                    📦 Box (1:1 Square)
+                  </button>
+                  <button class="canva-size-preset-btn" data-ratio="9:16" data-w="576" data-h="1024" style="background:#f8fafc; border:1px solid #cbd5e1; color:#0f172a; border-radius:6px; padding:6px; font-size:10px; font-weight:700; cursor:pointer; text-align:center;">
+                    ✉️ Sachet (70×110 mm)
+                  </button>
+                </div>
 
                 <div style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Packaging Layouts (1-Click Load)</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -4933,30 +4949,47 @@
             setCanvasBg(data.clean_background_url, () => {
               const scale = canvaCanvas.originalScale || 1;
 
-              // Add editable Fabric Textbox for each selected element
+              // Add editable Fabric Textbox for each selected element with intelligent typography styling
               selected.forEach(elem => {
                 // Generous width: +120px buffer so text NEVER wraps or distorts into multiline vertical blobs
-                const safeWidth = Math.max(80, Math.ceil((elem.width + 120) * scale));
+                const safeWidth = Math.max(90, Math.ceil((elem.width + 120) * scale));
                 // Font size calibrated precisely to line box height
-                const calculatedFontSize = Math.max(9, Math.round((elem.height || elem.fontSize || 16) * scale * 0.82));
-                const isHeading = (elem.height > 40) || (elem.text === elem.text.toUpperCase() && elem.text.length > 3);
+                const calculatedFontSize = Math.max(10, Math.round((elem.height || elem.fontSize || 16) * scale * 0.85));
                 
-                // Use exact detected text color from OCR
-                const chosenColor = elem.color || '#1e293b';
+                // Smart Typography Hierarchy Detection:
+                // Headings, Product Names, Badges vs Small Ingredient / Warning text
+                const textUpper = (elem.text || "").toUpperCase();
+                const isHeading = (elem.height > 35) || (textUpper.length > 3 && elem.text === textUpper);
+                const isWarningOrStorage = /WARNING|STORAGE|DIRECTIONS|INGREDIENTS|NUTRITION|BATCH|EXPIRY|FSSAI/i.test(elem.text);
+                
+                // Intelligently select best font family: Bahnschrift / Montserrat for headings, Arial/Segoe for dense tables
+                let chosenFont = 'Montserrat';
+                let chosenWeight = isHeading ? '800' : '600';
+                let charSpacing = 0;
 
-                // Width calibration: generous safe buffer + measured width
-                // lockScalingFlip and lockUniScaling to keep text crisp and clean
+                if (isWarningOrStorage) {
+                  chosenWeight = '800';
+                  charSpacing = 40; // Clean tracked out technical header
+                } else if (elem.height < 18) {
+                  chosenFont = 'Arial'; // High legibility for fine-print microcopy
+                  chosenWeight = '600';
+                }
+                
+                // Use exact detected text color from OCR (or default high contrast)
+                const chosenColor = elem.color || (isWarningOrStorage ? '#dc2626' : '#1e293b');
+
                 const tb = new fabric.Textbox(elem.text, {
                   left: elem.left * scale,
                   top: elem.top * scale,
                   width: safeWidth,
                   fontSize: calculatedFontSize,
-                  lineHeight: 1.0,
+                  lineHeight: 1.05,
+                  charSpacing: charSpacing,
                   splitByGrapheme: false,
                   lockScalingFlip: true,
                   fill: chosenColor,
-                  fontFamily: 'Montserrat',
-                  fontWeight: isHeading ? '800' : '600',
+                  fontFamily: chosenFont,
+                  fontWeight: chosenWeight,
                   textAlign: 'left',
                   originX: 'left',
                   originY: 'top',
@@ -7277,10 +7310,10 @@
 
         try {
           const scale = canvaCanvas.originalScale || 1;
-          // Calculate high-DPI export multiplier to render vector text/graphics at ultra-crisp print resolution (~7200px)
-          const targetExportWidth = 7200;
+          // Calculate ultra-DPI export multiplier to render vector text/graphics at max press print resolution (~9600px)
+          const targetExportWidth = 9600;
           const nativeW = canvaCanvas.width / scale;
-          const exportMultiplier = Math.min(6, Math.max(1, (targetExportWidth / nativeW) / scale));
+          const exportMultiplier = Math.min(8, Math.max(1, (targetExportWidth / nativeW) / scale));
           const dataURL = canvaCanvas.toDataURL({ format: 'png', quality: 1, multiplier: exportMultiplier });
           const stem = (currentDocFilename.replace(/\.png$/, '') || 'edited_label');
 
@@ -7314,11 +7347,11 @@
           showToast(`✅ Master ${extLabel} Ready (${sizeMb} MB, 300 DPI Crisp Print Quality)!`, "🎉", 4500);
         } catch (err) {
           console.error(err);
-          // Fallback to local canvas export with high-DPI multiplier
+          // Fallback to local canvas export with ultra-DPI multiplier
           const scale = canvaCanvas.originalScale || 1;
-          const targetW = 7200;
+          const targetW = 9600;
           const natW = canvaCanvas.width / scale;
-          const localMult = Math.min(6, Math.max(1, (targetW / natW) / scale));
+          const localMult = Math.min(8, Math.max(1, (targetW / natW) / scale));
           const dataURL = canvaCanvas.toDataURL({ format: (format === 'jpg' ? 'jpeg' : 'png'), quality: 1, multiplier: localMult });
           const a = document.createElement('a');
           a.href = dataURL;
