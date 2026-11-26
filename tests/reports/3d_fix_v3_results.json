@@ -1,0 +1,47 @@
+[
+  {
+    "test": "Strict UI Preservation",
+    "status": "PASS",
+    "detail": "thumbs=5, angles=6, lighting=4"
+  },
+  {
+    "test": "Internal UV Diagnostic Grid Orientation Check",
+    "status": "PASS",
+    "detail": "Verified Box 6-face & Pouch UVs"
+  },
+  {
+    "test": "Protein Jar & Bottle Cylindrical Preservation",
+    "status": "PASS",
+    "detail": "Cylindrical 360 preserved"
+  },
+  {
+    "test": "D3+K2 Sachet Full-Width Back Coverage (>=85%)",
+    "status": "PASS",
+    "detail": "{'w': 916, 'h': 1440, 'minX': 0, 'maxX': 912, 'covPct': 99.7}, export=export_d3k2_sachet_back_2k.png"
+  },
+  {
+    "test": "D3+K2 Pouch Full-Width Back (>=85%) & Capacity Recalc",
+    "status": "PASS",
+    "detail": "100g={'w': 932, 'h': 1440, 'minX': 0, 'maxX': 928, 'covPct': 99.7}, 1kg={'w': 1174, 'h': 1792, 'minX': 0, 'maxX': 1172, 'covPct': 99.9}, export=export_d3k2_pouch_back_2k_transparent.png"
+  },
+  {
+    "test": "D3+K2 Box Distinct Faces (Zero Nutrition Duplication) + Full-Width Back",
+    "status": "PASS",
+    "detail": "hashes={'front': 1264813979, 'back': 4172728590, 'left': 332628486, 'right': 1853096604, 'top': 3174703907, 'bottom': 4145575759}, backCov={'w': 960, 'h': 1440, 'minX': 0, 'maxX': 956, 'covPct': 99.7}, export=export_d3k2_box_2k.png"
+  },
+  {
+    "test": "Calcium Black&Gold Full-Width Back & Zero Box Duplication",
+    "status": "PASS",
+    "detail": "sachetBackCov={'w': 916, 'h': 1440, 'minX': 0, 'maxX': 912, 'covPct': 99.7}, pouchBackCov={'w': 932, 'h': 1440, 'minX': 0, 'maxX': 928, 'covPct': 99.7}, boxHashes={'front': 335690928, 'back': 50250844, 'left': 1496802484, 'right': 833003988, 'top': 406090462, 'bottom': 1392435710}"
+  },
+  {
+    "test": "4K Mockup PNG Export + Smooth Analytical Shadow",
+    "status": "PASS",
+    "detail": "bytes=2749038"
+  },
+  {
+    "test": "Zero Uncaught Page JS Exceptions",
+    "status": "PASS",
+    "detail": "errors=[]"
+  }
+]

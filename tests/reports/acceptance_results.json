@@ -1,0 +1,152 @@
+[
+  {
+    "test": "Reference UI & Studio Load (1440x900)",
+    "status": "PASS",
+    "detail": "Title: GOMZI BOB \u2014 AI Packaging Design Studio"
+  },
+  {
+    "test": "Sidebar Dark Forest Palette (#25372A)",
+    "status": "PASS",
+    "detail": "Computed: rgb(37, 55, 42)"
+  },
+  {
+    "test": "Default GOMZI Whey Artwork Loaded",
+    "status": "PASS",
+    "detail": "Objects: 18"
+  },
+  {
+    "test": "3D Protein Jar GLB Loaded",
+    "status": "PASS",
+    "detail": "3D scene children: 2"
+  },
+  {
+    "test": "AI Provider -> OpenAI Model Catalog",
+    "status": "PASS",
+    "detail": "['gpt-image-2.5-sunburst', 'gpt-image-2', 'dall-e-3']"
+  },
+  {
+    "test": "AI Provider -> Gemini Model Catalog",
+    "status": "PASS",
+    "detail": "['gemini-2.5-flash-image', 'gemini-3-pro-image']"
+  },
+  {
+    "test": "Gujarati Voice/Prompt -> Enhance Prompt",
+    "status": "PASS",
+    "detail": "Length: 666 chars"
+  },
+  {
+    "test": "AI Mode Switcher (Remove Target Controls)",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "3D Category Switch -> pouch",
+    "status": "PASS",
+    "detail": "100 g \u00b7 110\u00d7170\u00d760mm"
+  },
+  {
+    "test": "3D Category Switch -> sachet",
+    "status": "PASS",
+    "detail": "30 g Serve \u00b7 70\u00d7110\u00d716mm"
+  },
+  {
+    "test": "3D Category Switch -> bottle",
+    "status": "PASS",
+    "detail": "30 caps \u00b7 Dia 46mm \u00d7 H 82mm (Label 144\u00d748mm)"
+  },
+  {
+    "test": "3D Category Switch -> box",
+    "status": "PASS",
+    "detail": "Standard \u00b7 120\u00d7180\u00d7100mm"
+  },
+  {
+    "test": "3D Category Switch -> jar",
+    "status": "PASS",
+    "detail": "1 kg (1000 g) \u00b7 Dia 144mm \u00d7 H 215mm (Label 452\u00d7142mm)"
+  },
+  {
+    "test": "3D Material, Lighting & Camera Controls",
+    "status": "PASS",
+    "detail": "Glossy, Dramatic/Studio lighting, Front/Back angle verified"
+  },
+  {
+    "test": "Undo / Redo Editor History",
+    "status": "PASS",
+    "detail": "19 -> undo 18 -> redo 19"
+  },
+  {
+    "test": "Full Label Upload Replaces Template",
+    "status": "PASS",
+    "detail": "Title=biotin sample label, Objects=1"
+  },
+  {
+    "test": "Save Project & Real Status Update",
+    "status": "PASS",
+    "detail": "Saved at 09:49"
+  },
+  {
+    "test": "Navigation -> viewDashboard",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewMyDesigns",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewTemplates",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewBrandKit",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewAssetLibrary",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewPromptLibrary",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewNutritionFacts",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewApiManagement",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewSettings",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "Navigation -> viewHelp",
+    "status": "PASS",
+    "detail": ""
+  },
+  {
+    "test": "API Management Live Connection Test",
+    "status": "PASS",
+    "detail": "Connected (1574ms): Connected (50 models available)."
+  },
+  {
+    "test": "Export SVG Download",
+    "status": "PASS",
+    "detail": "biotin_sample_label.svg"
+  },
+  {
+    "test": "Zero Uncaught Page JS Exceptions",
+    "status": "PASS",
+    "detail": "Count=0 []"
+  }
+]

@@ -1,0 +1,47 @@
+[
+  {
+    "test": "Strict UI Preservation",
+    "status": "PASS",
+    "detail": "thumbs=5, angles=6, lighting=4"
+  },
+  {
+    "test": "Protein Jar & Bottle Non-Regression",
+    "status": "PASS",
+    "detail": "Cylindrical wrapping preserved"
+  },
+  {
+    "test": "Calcium Sachet Black&Gold Full-Bleed + Foil + Back Coverage",
+    "status": "PASS",
+    "detail": "{'slots': ['front', 'back'], 'topEdgeRGB': [214, 173, 82], 'blackBodyRGB': [14, 15, 17], 'frontSize': [815, 1280], 'backSize': [815, 1280]}"
+  },
+  {
+    "test": "Calcium Pouch Stand-up Doypack Full-Bleed Black&Gold + Front Branding + Back Info",
+    "status": "PASS",
+    "detail": "{'slots': ['front', 'back', 'gusset'], 'topEdgeRGB': [214, 173, 82], 'blackBodyRGB': [14, 15, 17], 'gusset': True}"
+  },
+  {
+    "test": "Calcium Box 6-Surface Black&Gold Mapping",
+    "status": "PASS",
+    "detail": "['front', 'back', 'left', 'right', 'top', 'bottom']"
+  },
+  {
+    "test": "Real 2.54:1 D3+K2 Tablet Label Across Sachet, Pouch & Box",
+    "status": "PASS",
+    "detail": "Verified real workspace upload"
+  },
+  {
+    "test": "Live Sync Rebuilds Textures on Canvas Edit",
+    "status": "PASS",
+    "detail": "BCDE5EC7-43CE-46B4-BF1A-274DF3B94592 -> CAE3FBAB-951E-4560-BEE6-5275F2C5D839"
+  },
+  {
+    "test": "Export 3D Mockup Download",
+    "status": "PASS",
+    "detail": "D3_K2_Tablet_Wrap_3D_2048px.png"
+  },
+  {
+    "test": "Zero Uncaught Page JS Exceptions",
+    "status": "PASS",
+    "detail": "errors=[]"
+  }
+]

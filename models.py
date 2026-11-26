@@ -137,3 +137,101 @@ class JobHistory(db.Model):
             "original_url":    f"/static/uploads/{self.image.filename}" if self.image else None,
             "original_name":   self.image.original_name if self.image else "Text-to-Image",
         }
+
+
+class SavedProject(db.Model):
+    """
+    Stores complete editable design projects for GOMZI BOB AI Studio.
+    """
+    __tablename__ = "saved_projects"
+
+    id              = db.Column(db.String(128), primary_key=True)
+    title           = db.Column(db.String(256), nullable=False, default="Untitled Project")
+    product         = db.Column(db.String(128), default="Whey Protein Standard")
+    container       = db.Column(db.String(128), default="1 kg Muscle Tub · 45.2 × 14.2 cm")
+    brand_name      = db.Column(db.String(128), default="GOMZI NUTRITION")
+    container_color = db.Column(db.String(32), default="#18181b")
+    canvas_json     = db.Column(db.Text, default="{}")
+    thumbnail       = db.Column(db.Text, default="")
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at      = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def to_dict(self, include_canvas=False):
+        import json
+        data = {
+            "id":              self.id,
+            "title":           self.title,
+            "product":         self.product,
+            "container":       self.container,
+            "brand_name":      self.brand_name,
+            "container_color": self.container_color,
+            "thumbnail":       self.thumbnail or "",
+            "created_at":      self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else "",
+            "updated_at":      self.updated_at.strftime("%Y-%m-%d %H:%M:%S") if self.updated_at else "",
+        }
+        if include_canvas:
+            try:
+                data["canvas_json"] = json.loads(self.canvas_json) if self.canvas_json else {}
+            except Exception:
+                data["canvas_json"] = {}
+        return data
+
+
+class ApiUsageLog(db.Model):
+    """
+    Tracks real AI API calls, provider/model usage, latency, status, and estimated cost.
+    Never fabricates usage metrics.
+    """
+    __tablename__ = "api_usage_logs"
+
+    id            = db.Column(db.Integer, primary_key=True)
+    provider      = db.Column(db.String(64), nullable=False)
+    model         = db.Column(db.String(128), default="")
+    mode          = db.Column(db.String(64), default="generate")
+    status        = db.Column(db.String(32), default="success")  # success | failed
+    latency_ms    = db.Column(db.Integer, default=0)
+    estimated_usd = db.Column(db.Float, default=0.0)
+    error_message = db.Column(db.Text, default="")
+    prompt_preview = db.Column(db.String(256), default="")
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id":             self.id,
+            "provider":       self.provider,
+            "model":          self.model,
+            "mode":           self.mode,
+            "status":         self.status,
+            "latency_ms":     self.latency_ms,
+            "estimated_usd":  round(float(self.estimated_usd or 0.0), 4),
+            "error_message":  self.error_message or "",
+            "prompt_preview": self.prompt_preview or "",
+            "created_at":     self.created_at.strftime("%Y-%m-%d %H:%M:%S") if self.created_at else "",
+        }
+
+
+class BrandKitProfile(db.Model):
+    """Stores merchant brand kits (Brand name, colors, fonts, logo path)."""
+    __tablename__ = "brand_kits"
+
+    id         = db.Column(db.Integer, primary_key=True)
+    name       = db.Column(db.String(128), nullable=False, default="GOMZI NUTRITION")
+    primary_color = db.Column(db.String(32), default="#74883D")
+    secondary_color = db.Column(db.String(32), default="#25372A")
+    font_family = db.Column(db.String(64), default="Montserrat")
+    logo_url   = db.Column(db.String(512), default="/static/assets/gomzi_logo.svg")
+    is_default = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id":              self.id,
+            "name":            self.name,
+            "primary_color":   self.primary_color,
+            "secondary_color": self.secondary_color,
+            "font_family":     self.font_family,
+            "logo_url":        self.logo_url,
+            "is_default":      bool(self.is_default),
+        }
+
+

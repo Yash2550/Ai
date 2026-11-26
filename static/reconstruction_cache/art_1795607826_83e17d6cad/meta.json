@@ -1,0 +1,14 @@
+{
+  "artifact_id": "art_1795607826_83e17d6cad",
+  "original_filename": "grad.jpg",
+  "format": "jpg",
+  "sha256": "83e17d6cad240bb949314e94458814429145a3f39db0f7b0df0ef3a416740a83",
+  "byte_size": 179868,
+  "original_rel_path": "/static/reconstruction_cache/art_1795607826_83e17d6cad/original.jpg",
+  "created_at": 1795607826,
+  "safe_filename": "grad.jpg",
+  "pixel_width": 1800,
+  "pixel_height": 600,
+  "color_mode": "RGB",
+  "icc_profile": false
+}

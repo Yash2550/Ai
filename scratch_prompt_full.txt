@@ -1,0 +1,373 @@
+<USER_REQUEST>
+# GOMZI BOB — ADVANCED AI API SELECTOR, PROMPT COMPOSER AND MULTILINGUAL VOICE-TO-PROMPT ENGINE
+
+## 1. PROFESSIONAL ROLE
+
+Act as a Senior Full-Stack Software Engineer, Python Flask Developer, AI/ML Engineer, Generative AI Specialist, Prompt Engineer, Speech Recognition Engineer, and Software Architect with 10+ years of professional development experience.
+
+Upgrade the existing GOMZI BOB application with a complete professional AI generation control system.
+
+Implement actual functionality directly in the existing repository.
+
+Preserve the existing Dashboard, Design Studio, Fabric.js editor, CDR import, Grab Text, Grab Object, realistic 3D packaging, and all existing working AI functionality.
+
+Do not create a separate application.
+
+## 2. AI PROVIDER SELECTION
+
+Add a fully functional AI API Provider dropdown.
+
+Inspect the existing repository and identify all configured AI providers.
+
+Potential providers include:
+
+- Google Gemini
+- OpenAI
+- REVE
+- Existing SDXL integration
+- Other already configured providers
+- Auto Select
+
+Only expose providers that are actually implemented.
+
+Read API configuration from existing backend services and environment variables.
+
+Never invent provider endpoints or model identifiers.
+
+When the user selects a provider, the backend must execute the request through that selected provider.
+
+Do not silently switch to another API.
+
+If automatic fallback is enabled, inform the user before incurring additional API costs.
+
+## 3. DYNAMIC AI MODEL SELECTION
+
+Add a dependent AI Model dropdown.
+
+When the selected provider changes:
+
+- Load its actual configured models.
+- Update supported generation modes.
+- Update supported aspect ratios.
+- Update supported quality settings.
+- Update supported image editing capabilities.
+- Update available output counts.
+- Update estimated cost where reliable pricing is configured.
+
+Existing model display names may include Gemini 2.5 Flash Image, GPT Image 2 Medium, and REVE.
+
+Resolve actual model identifiers from the existing provider configuration.
+
+Do not use display names as API identifiers unless verified.
+
+Maintain a centralized provider capability registry.
+
+## 4. API STATUS AND MANAGEMENT
+
+Create an AI Provider Settings section inside the existing Settings module.
+
+Display:
+
+- Provider name.
+- Configured or not configured.
+- Available models.
+- Enabled capabilities.
+- Last connection test.
+- Request status.
+- Usage statistics.
+- Available credits or balance, only where supported.
+- Estimated generation cost, where reliable pricing is available.
+
+Provide functional controls for:
+
+- Configure API.
+- Update API key.
+- Test Connection.
+- Enable Provider.
+- Disable Provider.
+- Set Default Provider.
+
+Keep API keys securely on the backend.
+
+Never expose complete API keys in browser JavaScript, frontend HTML, logs, or network responses.
+
+Restrict credential management to authorized administrators.
+
+## 5. PROFESSIONAL AI PROMPT COMPOSER
+
+Create a modern ChatGPT-style prompt composer inside GOMZI BOB.
+
+Include:
+
+- Multiline prompt input.
+- Reference image attachment.
+- Multiple image attachments where supported.
+- Voice input microphone.
+- Language selector.
+- AI provider selector.
+- AI model selector.
+- Enhance Prompt button.
+- Clear Prompt button.
+- Copy Prompt button.
+- Prompt history.
+- Saved prompt templates.
+- Aspect ratio selector.
+- Custom artwork dimensions.
+- Quality selector.
+- Output count selector.
+- Generate button.
+
+Support multiline prompts without losing formatting.
+
+Allow users to edit the prompt before generation.
+
+Support Enter and Shift+Enter behavior appropriately.
+
+Do not submit empty prompts.
+
+## 6. MULTILINGUAL VOICE INPUT
+
+Implement functional voice-to-text input.
+
+Support:
+
+- Gujarati: gu-IN
+- Hindi: hi-IN
+- English: en-IN
+- English: en-US
+
+Evaluate the existing voice implementation first.
+
+Use the browser Web Speech API where supported.
+
+Implement a configurable speech-to-text service fallback where required.
+
+Do not require a heavy local speech recognition model on the existing CPU-only server.
+
+## 7. MICROPHONE FUNCTIONALITY
+
+When the user clicks the microphone:
+
+1. Request microphone permission.
+2. Start speech recognition.
+3. Display a visible listening indicator.
+4. Display interim transcription.
+5. Convert speech into final text.
+6. Insert the final transcript into the prompt composer.
+7. Allow the user to continue speaking or stop recording.
+8. Allow manual transcript correction.
+9. Preserve any existing prompt text.
+10. Release microphone resources after recording.
+
+Provide:
+
+- Start Listening.
+- Stop Listening.
+- Cancel Recording.
+- Clear Transcript.
+- Retry Recording.
+- Language Selection.
+
+Handle:
+
+- Microphone permission denied.
+- Unsupported browser.
+- No speech detected.
+- Recognition failure.
+- Network failure.
+- Microphone unavailable.
+
+Never activate the microphone automatically.
+
+Do not automatically submit a paid generation request when speech recognition finishes.
+
+Inform users when speech recognition is processed by an external service.
+
+## 8. VOICE-TO-PROFESSIONAL-PROMPT CONVERSION
+
+Implement an AI Prompt Enhancement service.
+
+The user should be able to speak naturally in Gujarati, Hindi, English, or mixed-language instructions.
+
+Example voice input:
+
+"મારે ગોમઝીનું એક કિલો વે પ્રોટીનનું લેબલ બનાવવું છે, બ્લેક અને ગોલ્ડ કલરમાં, ચોકલેટ ફ્લેવર રાખવાનું છે અને જાર નથી જોઈતો."
+
+Convert this into a professional English image generation prompt.
+
+Preserve:
+
+- Brand name.
+- Product name.
+- Product category.
+- Net weight.
+- Flavour.
+- Color requirements.
+- Design style.
+- Packaging type.
+- Physical dimensions.
+- Aspect ratio.
+- Explicit exclusions.
+- User-supplied product information.
+
+Do not invent nutrition facts, ingredients, certifications, or medical claims.
+
+Do not change user intent.
+
+Display both the original transcript and enhanced prompt.
+
+Allow the user to edit, accept, reject, or regenerate the enhanced prompt.
+
+## 9. AI PROMPT ENHANCEMENT
+
+Add a working Enhance Prompt button.
+
+Use an existing configured text-capable AI model where available.
+
+Do not send prompt enhancement requests to an image-only endpoint.
+
+Maintain separate configuration for:
+
+- Text generation model.
+- Image generation model.
+- Image editing model.
+- Speech recognition provider.
+
+The enhancement service should improve:
+
+- Visual composition.
+- Typography instructions.
+- Color palette.
+- Label hierarchy.
+- Packaging layout.
+- Artwork dimensions.
+- Background description.
+- Product graphic instructions.
+- Print-safe layout.
+- Negative prompt instructions.
+
+Preserve all user-provided constraints.
+
+For flat label generation, include appropriate instructions such as:
+
+- Flat artwork only.
+- No jar.
+- No bottle.
+- No packaging mockup.
+- No perspective distortion.
+- No unnecessary branding.
+- Preserve readable text.
+- Maintain the selected aspect ratio.
+
+Only apply these constraints when appropriate to the selected generation mode.
+
+## 10. PROMPT INPUT MODES
+
+Support three prompt creation methods:
+
+### Manual Prompt
+
+The user writes a prompt directly.
+
+### Voice Prompt
+
+The user speaks and receives an editable transcription.
+
+### AI Enhanced Prompt
+
+The user provides a short description or voice transcript and receives a professionally structured prompt.
+
+All three methods must use the same prompt composer.
+
+The final reviewed prompt must be sent to the selected AI generation provider.
+
+## 11. AI GENERATION AND EDITING MODES
+
+Preserve and integrate the original Label Editor AI modes:
+
+- Generate New Design.
+- Remove Element.
+- Add Element.
+- Replace Element.
+- Perfect Text.
+- AI Image Editing.
+- Grab Text.
+- Grab Object.
+- Grab Logo.
+- Background Repair.
+
+Each mode must display its appropriate controls.
+
+For Remove mode, display the target removal instructions.
+
+For Add mode, display the new element instructions.
+
+For Replace mode, display the existing element and replacement instructions.
+
+For Perfect Text mode, display the original text and replacement text.
+
+For Generate mode, display the complete prompt composer.
+
+Use deterministic editable object operations when appropriate instead of unnecessary AI image regeneration.
+
+## 12. REFERENCE IMAGE ATTACHMENTS
+
+Add an attachment button inside the prompt composer.
+
+Support:
+
+- Upload Reference Image.
+- Use Current Canvas.
+- Select Uploaded Asset.
+- Select Previously Generated Image.
+- Select Brand Logo.
+- Select Saved Design.
+
+Show attachment thumbnails.
+
+Allow individual attachment removal.
+
+Validate provider-specific image count and file size limits.
+
+When a complete label is generated or imported, open it as full artwork rather than a small sticker.
+
+## 13. ASPECT RATIO AND DIMENSIONS
+
+Provide artwork presets:
+
+- 1:1
+- 3:1
+- 4:1
+- 16:9
+- 9:16
+- 7:11
+- 2:3
+- Custom Dimensions
+
+Support physical dimensions in millimeters, centimeters, and inches.
+
+Include configurable presets:
+
+- 70 × 110 mm sachet.
+- 160 × 240 mm pouch.
+- 452 × 142 mm wrap label.
+
+Validate the selected ratio against the selected model's actual capabilities.
+
+Do not send unsupported aspect ratios to providers.
+
+Never silently stretch
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-11-24T16:53:57+05:30.
+
+The user's current state is as follows:
+Active Document: d:\NEWWWW - Copy - Copy\.env (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 23
+Other open documents:
+- d:\NEWWWW - Copy - Copy\app.py (LANGUAGE_UNSPECIFIED)
+- d:\NEWWWW - Copy - Copy\tests\test_google_flow.py (LANGUAGE_UNSPECIFIED)
+- d:\NEWWWW - Copy - Copy\google_flow_api.py (LANGUAGE_UNSPECIFIED)
+- d:\NEWWWW - Copy - Copy\scratch_ocr_test.py (LANGUAGE_UNSPECIFIED)
+- d:\NEWWWW - Copy - Copy\scratch\test_user_case.py (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>

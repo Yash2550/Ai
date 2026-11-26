@@ -1,0 +1,52 @@
+[
+  {
+    "test": "Strict UI Preservation (No Extra Controls)",
+    "status": "PASS",
+    "detail": "thumbs=5, angles=6, lighting=4"
+  },
+  {
+    "test": "Protein Jar 360 Cylindrical Wrapping",
+    "status": "PASS",
+    "detail": "slots=['cylinder']"
+  },
+  {
+    "test": "Bottle 360 Cylindrical Wrapping",
+    "status": "PASS",
+    "detail": "slots=['cylinder']"
+  },
+  {
+    "test": "Sachet Realistic Foil + Front & Back UV Textures",
+    "status": "PASS",
+    "detail": "{'slots': ['front', 'back'], 'frontNotBack': True, 'finish': 'metallic_foil', 'bodyHex': '#D9B664', 'meshes': [{'name': 'FrontSurface', 'slot': 'front', 'hasMap': True}, {'name': 'BackSurface', 'slot': 'back', 'hasMap': True}]}"
+  },
+  {
+    "test": "Pouch Stand-up Doypack + Backside + Bottom Gusset + Capacity Switch",
+    "status": "PASS",
+    "detail": "{'slots': ['front', 'back', 'gusset'], 'frontNotBack': True, 'hasGusset': True, 'finish': 'matte', 'meshes': [{'name': 'FrontSurface', 'slot': 'front', 'hasMap': True}, {'name': 'BackSurface', 'slot': 'back', 'hasMap': True}, {'name': 'BottomGusset', 'slot': 'gusset', 'hasMap': True}]} | 1kg=1 kg \u00b7 190\u00d7290\u00d790mm"
+  },
+  {
+    "test": "Box Complete 6-Surface UV Mapping",
+    "status": "PASS",
+    "detail": "slots=['front', 'back', 'left', 'right', 'top', 'bottom'], meshes=6"
+  },
+  {
+    "test": "Dual-Panel Front+Back Automatic Split",
+    "status": "PASS",
+    "detail": "Verified distinct dark Front vs white Back panels"
+  },
+  {
+    "test": "Front-Only Artwork Preserves Clean Back & Notifies User",
+    "status": "PASS",
+    "detail": "Front-only design detected: back/side surfaces use packaging substrate (no back artwork supplied)."
+  },
+  {
+    "test": "Material Finish, Dramatic Lighting, 360 Spin & Mockup Export",
+    "status": "PASS",
+    "detail": "spin=True, file=Whey_Protein_1kg_3D_2048px.png"
+  },
+  {
+    "test": "Zero Uncaught Page JS Exceptions",
+    "status": "PASS",
+    "detail": "errors=[]"
+  }
+]

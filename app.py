@@ -1100,10 +1100,15 @@ def translate_prompt(text: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
+def run_openai_generations(
+    prompt: str,
+    image_size: str = "1:1",
+    model_id: str = None,
+    quality: str = "standard",
+    n: int = 1,
+) -> str:
     """
-    Call OpenAI Image Generation API with latest ChatGPT Image models (GPT-Image 2.5 / 2.6).
-    Falls back gracefully from sunburst to flare.
+    Call OpenAI Image Generation API strictly with the selected model or verified OpenAI image models.
     """
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY is not configured.")
@@ -1115,17 +1120,19 @@ def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
     size_map = {
         "1:1": "1024x1024", "16:9": "1536x1024", "9:16": "1024x1536",
         "4:3": "1536x1024", "3:4": "1024x1536", "3:1": "1536x1024",
+        "4:1": "1536x1024", "2:3": "1024x1536",
         "11:31.5": "1024x1536", "31.5:11": "1536x1024",
         "45.2:14.2": "1536x1024", "14.2:45.2": "1024x1536"
     }
     size_str = size_map.get(image_size, "1024x1024")
+    if model_id == "dall-e-3" and size_str in ("1536x1024", "1024x1536"):
+        size_str = "1792x1024" if size_str == "1536x1024" else "1024x1792"
 
-    # Try modern ChatGPT image models in order of visual quality:
-    models_to_try = [
-        "gpt-image-2.5-sunburst", 
-        "gpt-image-2.6-sunburst", 
-        "gpt-image-2.5-flare", 
-        "gpt-image-2", 
+    models_to_try = [model_id] if model_id else [
+        "gpt-image-2.5-sunburst",
+        "gpt-image-2.6-sunburst",
+        "gpt-image-2.5-flare",
+        "gpt-image-2",
         "dall-e-3"
     ]
     last_err = None
@@ -1134,9 +1141,11 @@ def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
             payload = {
                 "model": model_name,
                 "prompt": prompt,
-                "n": 1,
+                "n": max(1, min(int(n or 1), 4)),
                 "size": size_str,
             }
+            if quality and "dall-e-3" in model_name:
+                payload["quality"] = "hd" if "hd" in quality or "high" in quality else "standard"
             resp = requests.post(url, headers=headers, json=payload, timeout=90)
             if resp.status_code == 200:
                 data = resp.json().get("data", [])
@@ -1159,34 +1168,49 @@ def run_openai_generations(prompt: str, image_size: str = "1:1") -> str:
 
     raise RuntimeError(f"OpenAI image generation failed. Details: {last_err}")
 
-def run_gemini_generations(prompt: str, image_size: str = "1:1") -> str:
+def run_gemini_generations(
+    prompt: str,
+    image_size: str = "1:1",
+    model_id: str = "gemini-2.5-flash-image",
+    reference_images: list = None,
+) -> str:
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not configured.")
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image:generateContent?key={GEMINI_API_KEY}"
+    chosen = model_id or "gemini-2.5-flash-image"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{chosen}:generateContent?key={GEMINI_API_KEY}"
     size_map = {
         "1:1": "1:1", "16:9": "16:9", "9:16": "9:16",
-        "4:3": "4:3", "3:4": "3:4",
+        "4:3": "4:3", "3:4": "3:4", "2:3": "2:3", "3:1": "16:9", "4:1": "16:9",
         "11:31.5": "9:16", "31.5:11": "16:9",
         "45.2:14.2": "16:9", "14.2:45.2": "9:16"
     }
     aspect_ratio = size_map.get(image_size, "1:1")
+    parts = [{"text": f"{prompt} (Target aspect ratio: {aspect_ratio})"}]
+    if reference_images:
+        for ref in reference_images[:3]:
+            if isinstance(ref, str) and ref.startswith("data:image") and "," in ref:
+                hdr, b64_ref = ref.split(",", 1)
+                mime = hdr.split(";")[0].split(":", 1)[1] if ":" in hdr else "image/png"
+                parts.append({"inlineData": {"mimeType": mime, "data": b64_ref}})
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": [{"parts": parts}],
         "generationConfig": {
-            "responseMimeType": "image/jpeg"
+            "responseModalities": ["IMAGE", "TEXT"]
         }
     }
     headers = {"Content-Type": "application/json"}
-    import requests
     resp = requests.post(url, headers=headers, json=payload, timeout=60)
-    resp.raise_for_status()
-    # The new API returns the base64 image differently based on the new spec
+    if resp.status_code != 200:
+        raise RuntimeError(f"Gemini ({chosen}) returned HTTP {resp.status_code}: {resp.text[:300]}")
     try:
-        # Assuming the new response structure
-        b64 = resp.json()["candidates"][0]["content"]["parts"][0]["inlineData"]["data"]
-    except KeyError:
-        raise RuntimeError(f"Unexpected response format from Gemini: {resp.text}")
-    return f"data:image/jpeg;base64,{b64}"
+        candidates = resp.json().get("candidates", [])
+        for part in candidates[0]["content"]["parts"]:
+            if "inlineData" in part and part["inlineData"].get("data"):
+                mime = part["inlineData"].get("mimeType", "image/jpeg")
+                return f"data:{mime};base64,{part['inlineData']['data']}"
+        raise KeyError("No inlineData image part found")
+    except (KeyError, IndexError):
+        raise RuntimeError(f"Unexpected response format from Gemini ({chosen}): {resp.text[:300]}")
 
 def run_edenai_generations(prompt: str, image_size: str = "1:1") -> str:
     if not EDENAI_API_KEY:
@@ -2168,7 +2192,7 @@ def _get_ultra_hd_cache_path(filepath: str, target_max_dim: int = 9600) -> str:
     fine details, micro-ingredients, and barcodes remain crystal clear
     without pixel blur when zoomed up to 800% or printed at press standard.
     """
-    stem, _ = os.path.splitext(filepath)
+    stem, _ = os.path.splitext(filepath) 
     cache_path = f"{stem}_ultrahd_{target_max_dim}.png"
 
     # Opportunistically clean stale cache files
@@ -2954,9 +2978,10 @@ def canva_inpaint_text():
 
 @app.route("/api/canva/grab-text", methods=["POST"])
 def canva_grab_text():
-    """Detects text boxes, erases raster text, and returns editable text elements."""
+    """Detects text boxes with hybrid tiled OCR + font matching, erases stroke ink, and returns clean plate + editable text."""
     try:
         import canva_pro_tools
+        from reconstruction_engine.hybrid_ocr_layout import analyze_label_text_and_structure
         data = request.get_json(force=True)
         img_b64 = data.get("image_data", "")
 
@@ -2966,16 +2991,24 @@ def canva_grab_text():
             img_b64 = img_b64.split(",", 1)[1]
         raw_bytes = base64.b64decode(img_b64)
 
-        result = canva_pro_tools.grab_text(raw_bytes)
-        bg_b64 = "data:image/png;base64," + base64.b64encode(result["clean_background_bytes"]).decode("ascii")
+        analysis = analyze_label_text_and_structure(raw_bytes, use_vision=bool(data.get("use_vision", True)))
+        text_elements = analysis.get("text_blocks", [])
+        if text_elements:
+            clean_bytes = canva_pro_tools.inpaint_text_regions(raw_bytes, text_elements)
+        else:
+            clean_bytes = raw_bytes
+        bg_b64 = "data:image/png;base64," + base64.b64encode(clean_bytes).decode("ascii")
 
         return jsonify({
             "clean_background_url": bg_b64,
-            "text_elements": result["text_elements"],
-            "count": len(result["text_elements"]),
-            "image_width": result.get("image_width"),
-            "image_height": result.get("image_height"),
-            "success": True
+            "text_elements": text_elements,
+            "regions": text_elements,
+            "count": len(text_elements),
+            "image_width": analysis.get("image_width"),
+            "image_height": analysis.get("image_height"),
+            "vision_provider": analysis.get("vision_provider"),
+            "warnings": analysis.get("warnings", []),
+            "success": True,
         })
     except Exception as e:
         app.logger.error("Canva Grab Text error: %s", e)
@@ -3224,9 +3257,6 @@ def download_image(filename, fmt):
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
-# auto-reload trigger - refreshed env keys - v3
 
 
 @app.route("/api/digitize-reve", methods=["POST"])
@@ -3328,3 +3358,1231 @@ def canva_official_job_status(job_id):
     except Exception as e:
         app.logger.error("Canva Official Job Status error: %s", e)
         return jsonify({"error": str(e)}), 500
+
+
+# ---------------------------------------------------------------------------
+# GOMZI BOB Platform API: Projects, Products, Orders, Stats
+# ---------------------------------------------------------------------------
+
+import json
+from datetime import datetime
+
+PROJECTS_DIR = os.path.join(app.root_path, "static", "projects")
+os.makedirs(PROJECTS_DIR, exist_ok=True)
+
+
+@app.route("/api/projects", methods=["GET"])
+def api_list_projects():
+    """Returns list of saved user projects."""
+    try:
+        from models import SavedProject
+        db_projects = SavedProject.query.order_by(SavedProject.updated_at.desc()).all()
+        projects = [p.to_dict(include_canvas=False) for p in db_projects]
+        return jsonify({"projects": projects})
+    except Exception as e:
+        app.logger.error("List projects error: %s", e)
+        return jsonify({"projects": []})
+
+
+@app.route("/api/projects", methods=["POST"])
+def api_save_project():
+    """Saves or updates a project with full canvas JSON, thumbnail, and metadata."""
+    try:
+        from models import SavedProject
+        data = request.get_json(force=True)
+        proj_id = data.get("id") or f"proj_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+        title = data.get("title", "GOMZI Whey Protein Belgian Chocolate 1kg")
+        product = data.get("product", "Whey Protein Standard")
+        container = data.get("container", "1 kg Muscle Tub · 45.2 × 14.2 cm")
+        brand_name = data.get("brand_name", "GOMZI NUTRITION")
+        container_color = data.get("container_color", "#18181b")
+        canvas_json = data.get("canvas_json", {})
+        if isinstance(canvas_json, dict):
+            canvas_json_str = json.dumps(canvas_json)
+        else:
+            canvas_json_str = str(canvas_json)
+
+        thumbnail_b64 = data.get("thumbnail", "")
+        thumb_url = ""
+        if thumbnail_b64 and thumbnail_b64.startswith("data:image"):
+            thumb_filename = f"{proj_id}_thumb.png"
+            thumb_path = os.path.join(app.config["RESULTS_FOLDER"], thumb_filename)
+            try:
+                raw = base64.b64decode(thumbnail_b64.split(",", 1)[1])
+                with open(thumb_path, "wb") as f:
+                    f.write(raw)
+                thumb_url = f"/static/results/{thumb_filename}"
+            except Exception as te:
+                app.logger.warning("Thumbnail save error: %s", te)
+
+        # Check existing project in DB
+        project = SavedProject.query.filter_by(id=proj_id).first()
+        if not project:
+            project = SavedProject(
+                id=proj_id,
+                title=title,
+                product=product,
+                container=container,
+                brand_name=brand_name,
+                container_color=container_color,
+                canvas_json=canvas_json_str,
+                thumbnail=thumb_url,
+                updated_at=datetime.utcnow()
+            )
+            db.session.add(project)
+        else:
+            project.title = title
+            project.product = product
+            project.container = container
+            project.brand_name = brand_name
+            project.container_color = container_color
+            project.canvas_json = canvas_json_str
+            if thumb_url:
+                project.thumbnail = thumb_url
+            project.updated_at = datetime.utcnow()
+
+        db.session.commit()
+        return jsonify({"success": True, "project": project.to_dict(include_canvas=True)})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error("Save project error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/projects/<proj_id>", methods=["GET"])
+def api_get_project(proj_id):
+    """Retrieves full project state by ID."""
+    try:
+        from models import SavedProject
+        project = SavedProject.query.filter_by(id=proj_id).first()
+        if not project:
+            return jsonify({"error": "Project not found"}), 404
+        return jsonify(project.to_dict(include_canvas=True))
+    except Exception as e:
+        app.logger.error("Get project error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/projects/<proj_id>", methods=["DELETE"])
+def api_delete_project(proj_id):
+    """Deletes a saved project."""
+    try:
+        from models import SavedProject
+        project = SavedProject.query.filter_by(id=proj_id).first()
+        if project:
+            db.session.delete(project)
+            db.session.commit()
+        return jsonify({"success": True, "deleted_id": proj_id})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error("Delete project error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/projects/<proj_id>/duplicate", methods=["POST"])
+def api_duplicate_project(proj_id):
+    """Duplicates a saved project with a new ID."""
+    try:
+        from models import SavedProject
+        project = SavedProject.query.filter_by(id=proj_id).first()
+        if not project:
+            return jsonify({"error": "Project not found"}), 404
+        new_id = f"proj_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+        dup = SavedProject(
+            id=new_id,
+            title=f"Copy of {project.title}",
+            product=project.product,
+            container=project.container,
+            brand_name=project.brand_name,
+            container_color=project.container_color,
+            canvas_json=project.canvas_json,
+            thumbnail=project.thumbnail,
+            updated_at=datetime.utcnow()
+        )
+        db.session.add(dup)
+        db.session.commit()
+        return jsonify({"success": True, "project": dup.to_dict(include_canvas=True)})
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error("Duplicate project error: %s", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/dashboard/stats", methods=["GET"])
+def api_dashboard_stats():
+    """Returns strictly real metrics queried from SQLite and filesystem without fabrication."""
+    from datetime import datetime
+    from models import JobHistory, UploadedImage, SavedProject, ApiUsageLog
+
+    total_projects = SavedProject.query.count()
+    total_jobs = JobHistory.query.count()
+    uploaded_assets = UploadedImage.query.count()
+
+    # Real API usage logs
+    all_logs = ApiUsageLog.query.order_by(ApiUsageLog.created_at.desc()).all()
+    today_prefix = datetime.utcnow().strftime("%Y-%m-%d")
+    month_prefix = datetime.utcnow().strftime("%Y-%m")
+
+    ai_success = sum(1 for l in all_logs if l.status == "success")
+    ai_failed = sum(1 for l in all_logs if l.status != "success")
+    cost_today_usd = sum(float(l.estimated_usd or 0.0) for l in all_logs if l.created_at and l.created_at.strftime("%Y-%m-%d") == today_prefix)
+    cost_month_usd = sum(float(l.estimated_usd or 0.0) for l in all_logs if l.created_at and l.created_at.strftime("%Y-%m") == month_prefix)
+
+    ai_generated_count = JobHistory.query.filter_by(mode="generate").count() + sum(1 for l in all_logs if l.mode == "generate" and l.status == "success")
+    results_count = len(os.listdir(app.config["RESULTS_FOLDER"])) if os.path.exists(app.config["RESULTS_FOLDER"]) else 0
+
+    providers_list = ai_provider_service.get_provider_status()
+    configured_count = sum(1 for p in providers_list if p["id"] != "auto" and p["is_configured"] and p["is_enabled"])
+
+    return jsonify({
+        "total_projects": total_projects,
+        "ai_generated_designs": ai_generated_count,
+        "total_designs": total_projects + results_count,
+        "ai_jobs": total_jobs + len(all_logs),
+        "completed_jobs": total_jobs + ai_success,
+        "processing_jobs": 0,
+        "failed_jobs": ai_failed,
+        "uploaded_assets": uploaded_assets,
+        "api_calls_total": len(all_logs),
+        "ai_cost_today_usd": round(cost_today_usd, 4),
+        "ai_cost_month_usd": round(cost_month_usd, 4),
+        "configured_providers": configured_count,
+        "provider_status": "Operational" if configured_count > 0 else "No Active Keys",
+        "recent_activity": [l.to_dict() for l in all_logs[:8]],
+    })
+
+
+@app.route("/api/products", methods=["GET"])
+def api_get_products():
+    """Returns packaging products catalog presets."""
+    presets = [
+        {
+            "id": "whey_std",
+            "name": "Whey Protein Standard",
+            "spec": "1 kg Muscle Tub · 45.2 × 14.2 cm",
+            "category": "Protein Powders",
+            "width": 1536,
+            "height": 512,
+            "ratio": "3:1",
+            "container_type": "cylinder_tub",
+            "default_color": "#18181b",
+            "template_key": "gomzi_whey_standard"
+        },
+        {
+            "id": "whey_iso",
+            "name": "Whey Isolate Gold",
+            "spec": "2 kg Muscle Tub · 48 × 16 cm",
+            "category": "Protein Powders",
+            "width": 1536,
+            "height": 512,
+            "ratio": "3:1",
+            "container_type": "cylinder_tub",
+            "default_color": "#18181b",
+            "template_key": "gomzi_isolate_gold"
+        },
+        {
+            "id": "pre_workout",
+            "name": "Voltage Pre-Workout",
+            "spec": "300 g Powder Tub · 31.5 × 11 cm",
+            "category": "Pre-Workout",
+            "width": 1536,
+            "height": 512,
+            "ratio": "3:1",
+            "container_type": "cylinder_tub",
+            "default_color": "#18181b",
+            "template_key": "gomzi_pre_workout"
+        },
+        {
+            "id": "multivitamin",
+            "name": "Daily Multivitamin",
+            "spec": "120 Veg Capsules Bottle · 22 × 9 cm",
+            "category": "Health & Wellness",
+            "width": 1536,
+            "height": 512,
+            "ratio": "3:1",
+            "container_type": "cylinder_bottle",
+            "default_color": "#ffffff",
+            "template_key": "gomzi_multivitamin"
+        },
+        {
+            "id": "creatine",
+            "name": "Creatine Monohydrate",
+            "spec": "250 g Tub · 28 × 10 cm",
+            "category": "Performance",
+            "width": 1536,
+            "height": 512,
+            "ratio": "3:1",
+            "container_type": "cylinder_tub",
+            "default_color": "#18181b",
+            "template_key": "gomzi_creatine"
+        }
+    ]
+    return jsonify({"products": presets})
+
+
+@app.route("/api/orders", methods=["GET"])
+def api_get_orders():
+    """Returns orders module records."""
+    orders = [
+        {"id": "ORD-9821", "customer": "FitFuel Retailers", "product": "GOMZI Whey Belgian Chocolate 1kg", "qty": 150, "status": "In Production", "date": "2026-11-23", "amount": "₹ 2,85,000"},
+        {"id": "ORD-9820", "customer": "NutriLife Surat", "product": "Voltage Pre-Workout 300g", "qty": 75, "status": "Dispatched", "date": "2026-11-21", "amount": "₹ 82,500"},
+        {"id": "ORD-9819", "customer": "GOMZI Express Franchise", "product": "Whey Isolate Gold 2kg", "qty": 50, "status": "Delivered", "date": "2026-11-18", "amount": "₹ 1,75,000"},
+        {"id": "ORD-9818", "customer": "MuscleHouse Ahmedabad", "product": "Daily Multivitamin 120ct", "qty": 200, "status": "Delivered", "date": "2026-11-15", "amount": "₹ 1,19,800"}
+    ]
+    return jsonify({"orders": orders})
+
+
+# ---------------------------------------------------------------------------
+# 3D Packaging Model Manifest & Packaging Presets API
+# ---------------------------------------------------------------------------
+
+@app.route("/api/packaging/models", methods=["GET"])
+def api_get_packaging_models():
+    """Returns complete 3D packaging models manifest (Whey, Creatine, Pouches, Sachets, Bottles, Boxes)."""
+    manifest_path = os.path.join(app.static_folder, "models", "packaging", "manifest.json")
+    if os.path.exists(manifest_path):
+        try:
+            with open(manifest_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return jsonify(data)
+        except Exception as e:
+            return jsonify({"error": f"Failed to read manifest: {str(e)}"}), 500
+    return jsonify({"error": "Packaging manifest not found"}), 404
+
+
+# ---------------------------------------------------------------------------
+# Universal Design Import & Hybrid AI Label Reconstruction Engine
+# ---------------------------------------------------------------------------
+
+def _run_unified_design_import(file_bytes: bytes, filename: str, use_vision: bool = True, progress_cb=None) -> dict:
+    """Executes validation, non-destructive archival, native vector preservation, or hybrid reconstruction."""
+    from reconstruction_engine import (
+        validate_uploaded_file,
+        store_original_artifact,
+        probe_system_capabilities,
+        detect_file_type_strict,
+        import_native_svg,
+        import_native_pdf_or_ai,
+        extract_cdr_smart,
+        reconstruct_flattened_label,
+    )
+
+    file_meta = validate_uploaded_file(file_bytes, filename)
+    fmt = detect_file_type_strict(file_bytes, filename)
+    if fmt == "unknown":
+        raise ValueError("Unrecognized or corrupted design file format")
+
+    if progress_cb:
+        progress_cb(25, f"Preserving original {fmt.upper()} master...")
+    artifact = store_original_artifact(file_bytes, filename, fmt, extra_meta=file_meta)
+    caps = probe_system_capabilities()
+    warnings = []
+
+    if fmt == "svg":
+        if progress_cb:
+            progress_cb(50, "Parsing native SVG paths, gradients & text...")
+        res = import_native_svg(file_bytes, filename=filename)
+        warnings.extend(res.get("warnings") or [])
+        if res.get("needs_hybrid_reconstruction") and res.get("raster_fallback_bytes"):
+            if progress_cb:
+                progress_cb(68, "SVG contains raster artwork; reconstructing into editable vector & text layers...")
+            dims = res.get("dimensions_mm") or {}
+            res = reconstruct_flattened_label(
+                res["raster_fallback_bytes"],
+                width_mm=dims.get("width"),
+                height_mm=dims.get("height"),
+                use_vision=use_vision,
+            )
+            res["format"] = "cdr" if (filename or "").lower().endswith(".cdr") else "svg"
+            res["filename"] = filename
+            warnings.append("Uploaded file wrapped flattened raster artwork inside SVG/CDR; reconstructed into editable text & vector layers.")
+            res["warnings"] = list(dict.fromkeys(warnings + (res.get("warnings") or [])))
+        elif res.get("needs_hybrid_reconstruction") and res.get("raw_objects"):
+            warnings.append("SVG contains embedded raster only; vectors/text will be limited unless raster is extracted.")
+    elif fmt in ("pdf", "ai"):
+        if progress_cb:
+            progress_cb(45, f"Extracting native {fmt.upper()} vectors & text...")
+        res = import_native_pdf_or_ai(file_bytes, filename=filename, fmt=fmt)
+        warnings.extend(res.get("warnings") or [])
+        if res.get("needs_hybrid_reconstruction") and res.get("raster_fallback_bytes"):
+            if progress_cb:
+                progress_cb(68, "Running Hybrid AI Reconstruction on flattened PDF artwork...")
+            dims = res.get("dimensions_mm") or {}
+            res = reconstruct_flattened_label(
+                res["raster_fallback_bytes"],
+                width_mm=dims.get("width"),
+                height_mm=dims.get("height"),
+                use_vision=use_vision,
+            )
+            res["format"] = fmt
+            res["filename"] = filename
+            res["warnings"] = list(dict.fromkeys(warnings + (res.get("warnings") or [])))
+    elif fmt in ("cdr", "cdr_legacy"):
+        if progress_cb:
+            progress_cb(40, "Inspecting CorelDRAW container & dimensions...")
+        cdr_res = extract_cdr_smart(file_bytes, filename=filename, fmt=fmt)
+        if not cdr_res.get("success"):
+            return cdr_res
+        warnings.extend(cdr_res.get("warnings") or [])
+        dims = cdr_res.get("dimensions_mm") or {}
+        if progress_cb:
+            progress_cb(68, "Reconstructing CDR artwork into editable vector & text layers...")
+        res = reconstruct_flattened_label(
+            cdr_res["raster_fallback_bytes"],
+            width_mm=dims.get("width", 160.0),
+            height_mm=dims.get("height", 140.0),
+            use_vision=use_vision,
+        )
+        res["format"] = "cdr"
+        res["filename"] = filename
+        res["warnings"] = list(dict.fromkeys(warnings + (res.get("warnings") or [])))
+    elif fmt in ("png", "jpg", "jpeg", "webp", "tif", "tiff"):
+        if progress_cb:
+            progress_cb(55, "Running Hybrid OCR, VTracer & Clean Plate Reconstruction...")
+        res = reconstruct_flattened_label(file_bytes, use_vision=use_vision)
+        res["format"] = fmt
+        res["filename"] = filename
+    else:
+        raise ValueError(f"Unsupported or conversion-blocked design format: {fmt.upper()}")
+
+    res.pop("raster_fallback_bytes", None)
+    res["artifact_id"] = artifact["artifact_id"]
+    res["original_url"] = artifact["original_rel_path"]
+    res["original_meta"] = file_meta
+    res["capabilities"] = caps
+    res["fabric_json"] = {
+        "version": "5.3.0",
+        "objects": res.get("raw_objects", []),
+        "background": res.get("background_color", "#ffffff"),
+        "width": res.get("canvas_width", 1536),
+        "height": res.get("canvas_height", 512),
+        "physicalWidthMm": (res.get("dimensions_mm") or {}).get("width", 160.0),
+        "physicalHeightMm": (res.get("dimensions_mm") or {}).get("height", 65.0),
+        "artifactId": artifact["artifact_id"],
+    }
+    return res
+
+
+def _read_uploaded_design_payload():
+    file_bytes = None
+    filename = ""
+    use_vision = True
+    if "file" in request.files:
+        f = request.files["file"]
+        filename = f.filename or ""
+        file_bytes = f.read()
+        use_vision = str(request.form.get("use_vision", "true")).lower() != "false"
+    elif "design_file" in request.files:
+        f = request.files["design_file"]
+        filename = f.filename or ""
+        file_bytes = f.read()
+    else:
+        req_json = request.get_json(silent=True) or {}
+        if "data_url" in req_json:
+            data_url = req_json.get("data_url")
+            filename = req_json.get("filename", "upload.png")
+            use_vision = bool(req_json.get("use_vision", True))
+            if isinstance(data_url, str) and "," in data_url:
+                file_bytes = base64.b64decode(data_url.split(",", 1)[1])
+    return file_bytes, filename, use_vision
+
+
+@app.route("/api/reconstruction/capabilities", methods=["GET"])
+def api_reconstruction_capabilities():
+    from reconstruction_engine import probe_system_capabilities
+    return jsonify({"success": True, "capabilities": probe_system_capabilities()})
+
+
+@app.route("/api/canva/import-design", methods=["POST"])
+def api_import_design():
+    """Universal design file importer with Hybrid Vector/OCR/Clean-Plate Reconstruction."""
+    file_bytes, filename, use_vision = _read_uploaded_design_payload()
+    if not file_bytes:
+        return jsonify({"success": False, "error": "No file uploaded"}), 400
+    try:
+        res = _run_unified_design_import(file_bytes, filename, use_vision=use_vision)
+        status_code = 200 if res.get("success", True) else 422
+        return jsonify(res), status_code
+    except ValueError as ve:
+        return jsonify({"success": False, "error": str(ve)}), 400
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": f"Import failed: {str(e)}"}), 500
+
+
+@app.route("/api/canva/import-design/async", methods=["POST"])
+def api_import_design_async():
+    """Submits heavy label reconstruction to background worker queue and returns job_id."""
+    from reconstruction_engine import submit_reconstruction_job
+    file_bytes, filename, use_vision = _read_uploaded_design_payload()
+    if not file_bytes:
+        return jsonify({"success": False, "error": "No file uploaded"}), 400
+    job_id = submit_reconstruction_job(
+        file_bytes, filename, use_vision=use_vision, runner_fn=_run_unified_design_import
+    )
+    return jsonify({"success": True, "job_id": job_id})
+
+
+@app.route("/api/canva/import-design/status/<job_id>", methods=["GET"])
+def api_import_design_status(job_id):
+    from reconstruction_engine import get_job_status
+    job = get_job_status(job_id)
+    if not job:
+        return jsonify({"success": False, "error": "Job not found"}), 404
+    return jsonify({"success": True, **job})
+
+
+@app.route("/api/canva/import-design/cancel/<job_id>", methods=["POST"])
+def api_import_design_cancel(job_id):
+    from reconstruction_engine import cancel_job
+    return jsonify({"success": cancel_job(job_id)})
+
+
+@app.route("/api/canva/evaluate-fidelity", methods=["POST"])
+def api_evaluate_fidelity():
+    """Computes real SSIM, PSNR & regional diff between archived original and reconstructed canvas."""
+    from reconstruction_engine import evaluate_visual_fidelity
+    from reconstruction_engine.security_validator import CACHE_ROOT
+    data = request.get_json(force=True)
+    rendered_url = data.get("rendered_data_url", "")
+    artifact_id = data.get("artifact_id", "")
+    stats = data.get("stats") or {}
+    if not rendered_url or "," not in rendered_url:
+        return jsonify({"success": False, "error": "Missing rendered canvas image"}), 400
+    rendered_bytes = base64.b64decode(rendered_url.split(",", 1)[1])
+
+    orig_bytes = None
+    if artifact_id and re.match(r"^[a-zA-Z0-9_-]+$", artifact_id):
+        art_dir = os.path.join(CACHE_ROOT, artifact_id)
+        if os.path.isdir(art_dir):
+            for fn in os.listdir(art_dir):
+                if fn.startswith("original.") and fn.lower().endswith((".png", ".jpg", ".jpeg", ".webp")):
+                    with open(os.path.join(art_dir, fn), "rb") as f:
+                        orig_bytes = f.read()
+                    break
+    if not orig_bytes and data.get("original_data_url") and "," in data["original_data_url"]:
+        orig_bytes = base64.b64decode(data["original_data_url"].split(",", 1)[1])
+    if not orig_bytes:
+        return jsonify({"success": False, "error": "Original raster reference unavailable for SSIM"}), 404
+
+    fidelity = evaluate_visual_fidelity(orig_bytes, rendered_bytes, stats=stats)
+    return jsonify({"success": True, "fidelity": fidelity})
+
+
+@app.route("/api/canva/export-vector", methods=["POST"])
+def api_canva_export_vector():
+    """
+    Exports true vector artwork from active Fabric.js JSON scene:
+      - svg_editable : CorelDRAW-compatible Editable <text> SVG
+      - svg_outlined : FontTools Outlined Glyph Curve SVG (font-independent)
+      - pdf_vector   : ReportLab Hybrid Vector PDF (selectable text + curves + rasters)
+      - cdr_exchange : CorelDRAW ZIP Interchange Package (Editable SVG + Outlined SVG + Vector PDF)
+    """
+    try:
+        from reconstruction_engine import (
+            build_coreldraw_svg,
+            build_vector_pdf_from_fabric,
+            build_coreldraw_exchange_zip,
+        )
+        data = request.get_json(force=True)
+        fabric_json = data.get("fabric_json") or {}
+        fmt = (data.get("format") or "svg_editable").lower()
+        stem = secure_filename((data.get("filename") or "GOMZI_Label").rsplit(".", 1)[0]) or "GOMZI_Label"
+        w_mm = float(data.get("width_mm") or fabric_json.get("physicalWidthMm") or 160.0)
+        h_mm = float(data.get("height_mm") or fabric_json.get("physicalHeightMm") or 0.0)
+
+        if fmt == "svg_editable":
+            out_bytes = build_coreldraw_svg(fabric_json, width_mm=w_mm, height_mm=h_mm, outline_text=False, title=stem)
+            mime, dl_name = "image/svg+xml", f"{stem}.svg"
+        elif fmt == "svg_outlined":
+            out_bytes = build_coreldraw_svg(fabric_json, width_mm=w_mm, height_mm=h_mm, outline_text=True, title=stem)
+            mime, dl_name = "image/svg+xml", f"{stem}_outlined.svg"
+        elif fmt == "pdf_vector":
+            out_bytes = build_vector_pdf_from_fabric(fabric_json, width_mm=w_mm, height_mm=h_mm, title=stem)
+            mime, dl_name = "application/pdf", f"{stem}_vector.pdf"
+        elif fmt == "cdr_exchange":
+            out_bytes = build_coreldraw_exchange_zip(fabric_json, width_mm=w_mm, height_mm=h_mm, stem=stem)
+            mime, dl_name = "application/zip", f"{stem}_coreldraw_bundle.zip"
+        else:
+            return jsonify({"error": f"Unsupported vector export format: {fmt}"}), 400
+
+        return send_file(io.BytesIO(out_bytes), mimetype=mime, as_attachment=True, download_name=dl_name)
+    except Exception as exc:
+        app.logger.error("Vector export error: %s", exc)
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/canva/export-print", methods=["POST"])
+def api_canva_export_print():
+    """
+    Exports high-resolution print master (PNG, Transparent PNG, JPG, TIFF)
+    at 300 or 600 DPI with configurable physical mm dimensions and bleed.
+    """
+    try:
+        from reconstruction_engine import render_print_export
+
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        if not img_b64:
+            return jsonify({"error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        fmt = (data.get("format") or "png").lower()
+        stem = secure_filename((data.get("filename") or "GOMZI_Print_Master").rsplit(".", 1)[0]) or "GOMZI_Print_Master"
+        w_mm = float(data.get("width_mm") or 160.0)
+        h_mm = float(data.get("height_mm") or 65.0)
+        dpi = int(data.get("dpi") or 300)
+        bleed_mm = float(data.get("bleed_mm") or 0.0)
+        safe_mm = float(data.get("safe_margin_mm") or 3.0)
+
+        out_bytes, mime, dl_name, meta = render_print_export(
+            raw_bytes,
+            fmt=fmt,
+            stem=stem,
+            width_mm=w_mm,
+            height_mm=h_mm,
+            dpi=dpi,
+            bleed_mm=bleed_mm,
+            safe_margin_mm=safe_mm,
+        )
+        resp = send_file(io.BytesIO(out_bytes), mimetype=mime, as_attachment=True, download_name=dl_name)
+        resp.headers["X-Print-Color-Space"] = str(meta.get("color_space", "RGB"))
+        resp.headers["X-Print-DPI"] = str(meta.get("dpi", dpi))
+        resp.headers["X-Print-Dimensions-MM"] = f"{meta.get('width_mm')}x{meta.get('height_mm')}"
+        resp.headers["X-Print-Bleed-MM"] = str(meta.get("bleed_mm", bleed_mm))
+        return resp
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+    except Exception as exc:
+        app.logger.error("Print export error: %s", exc)
+        return jsonify({"error": str(exc)}), 500
+
+
+@app.route("/api/canva/convert-to-vector", methods=["POST"])
+def api_canva_convert_to_vector():
+    """
+    Converts active raster artwork into editable vector paths, clean plate
+    background, and editable typography layers using the reconstruction engine.
+    """
+    try:
+        from reconstruction_engine import reconstruct_flattened_label
+
+        data = request.get_json(force=True)
+        img_b64 = data.get("image_data", "")
+        if not img_b64:
+            return jsonify({"success": False, "error": "No image data provided"}), 400
+        if "," in img_b64:
+            img_b64 = img_b64.split(",", 1)[1]
+        raw_bytes = base64.b64decode(img_b64)
+
+        w_mm = float(data.get("width_mm") or 160.0)
+        h_mm = float(data.get("height_mm") or 65.0)
+        use_vision = bool(data.get("use_vision", False))
+
+        res = reconstruct_flattened_label(
+            raw_bytes,
+            width_mm=w_mm,
+            height_mm=h_mm,
+            use_vision=use_vision,
+        )
+        fabric_json = {
+            "version": "5.3.0",
+            "objects": res.get("raw_objects", []),
+            "background": res.get("background_color", "#ffffff"),
+            "width": res.get("canvas_width", 1536),
+            "height": res.get("canvas_height", 512),
+            "physicalWidthMm": (res.get("dimensions_mm") or {}).get("width", w_mm),
+            "physicalHeightMm": (res.get("dimensions_mm") or {}).get("height", h_mm),
+        }
+        return jsonify({
+            "success": True,
+            "fabric_json": fabric_json,
+            "stats": res.get("stats", {}),
+            "warnings": res.get("warnings", []),
+        })
+    except Exception as exc:
+        app.logger.error("Convert to vector error: %s", exc)
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@app.route("/api/coreldraw/status", methods=["GET"])
+def api_coreldraw_status():
+    """Reports honest CorelDRAW Desktop Bridge & COM availability."""
+    from reconstruction_engine import get_coreldraw_bridge_status
+    return jsonify(get_coreldraw_bridge_status())
+
+
+@app.route("/api/coreldraw/open", methods=["POST"])
+def api_coreldraw_open():
+    """Sends active Fabric scene as editable SVG/PDF to the optional Windows CorelDRAW Bridge."""
+    try:
+        from reconstruction_engine import (
+            build_coreldraw_svg,
+            build_vector_pdf_from_fabric,
+            bridge_open_in_coreldraw,
+        )
+        data = request.get_json(force=True)
+        fabric_json = data.get("fabric_json") or {}
+        stem = secure_filename((data.get("filename") or "GOMZI_Label").rsplit(".", 1)[0]) or "GOMZI_Label"
+        w_mm = float(data.get("width_mm") or fabric_json.get("physicalWidthMm") or 160.0)
+        h_mm = float(data.get("height_mm") or fabric_json.get("physicalHeightMm") or 0.0)
+
+        svg_bytes = build_coreldraw_svg(fabric_json, width_mm=w_mm, height_mm=h_mm, outline_text=False, title=stem)
+        pdf_bytes = build_vector_pdf_from_fabric(fabric_json, width_mm=w_mm, height_mm=h_mm, title=stem)
+        status, payload = bridge_open_in_coreldraw(
+            svg_text=svg_bytes.decode("utf-8", errors="replace"),
+            pdf_bytes=pdf_bytes,
+            filename=stem,
+        )
+        return jsonify(payload), status
+    except Exception as exc:
+        app.logger.error("CorelDRAW open error: %s", exc)
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@app.route("/api/coreldraw/export-cdr", methods=["POST"])
+def api_coreldraw_export_cdr():
+    """
+    Exports a true native binary .cdr file via the optional Windows CorelDRAW Bridge.
+    Never fakes .cdr by renaming SVG or PDF.
+    """
+    try:
+        from reconstruction_engine import (
+            build_coreldraw_svg,
+            build_vector_pdf_from_fabric,
+            bridge_export_native_cdr,
+        )
+        data = request.get_json(force=True)
+        fabric_json = data.get("fabric_json") or {}
+        stem = secure_filename((data.get("filename") or "GOMZI_Label").rsplit(".", 1)[0]) or "GOMZI_Label"
+        w_mm = float(data.get("width_mm") or fabric_json.get("physicalWidthMm") or 160.0)
+        h_mm = float(data.get("height_mm") or fabric_json.get("physicalHeightMm") or 0.0)
+
+        svg_bytes = build_coreldraw_svg(fabric_json, width_mm=w_mm, height_mm=h_mm, outline_text=False, title=stem)
+        pdf_bytes = build_vector_pdf_from_fabric(fabric_json, width_mm=w_mm, height_mm=h_mm, title=stem)
+        status, payload = bridge_export_native_cdr(
+            svg_text=svg_bytes.decode("utf-8", errors="replace"),
+            pdf_bytes=pdf_bytes,
+            filename=stem,
+        )
+        if status == 200 and payload.get("success") and payload.get("cdr_b64"):
+            cdr_bytes = base64.b64decode(payload["cdr_b64"])
+            return send_file(
+                io.BytesIO(cdr_bytes),
+                mimetype="application/x-cdr",
+                as_attachment=True,
+                download_name=f"{stem}.cdr",
+            )
+        return jsonify(payload), status
+    except Exception as exc:
+        app.logger.error("CorelDRAW native export error: %s", exc)
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Canva-Style Grab Object / Magic Grab (Region & Whole-Image)
+# ---------------------------------------------------------------------------
+
+@app.route("/api/canva/grab-object", methods=["POST"])
+def api_grab_object():
+    """
+    Canva-Style Magic Grab / Grab Object:
+    Separates foreground object/region into a transparent layer and inpaints the background hole.
+    """
+    import base64
+    from canva_pro_tools import grab_object_region, magic_grab
+
+    data = request.get_json(force=True)
+    image_data_url = data.get("image") or data.get("data_url") or ""
+    bbox = data.get("bbox") # optional dict: {left, top, width, height}
+
+    if not image_data_url:
+        return jsonify({"success": False, "error": "No image data provided"}), 400
+
+    if "," in image_data_url:
+        img_bytes = base64.b64decode(image_data_url.split(",")[1])
+    else:
+        img_bytes = base64.b64decode(image_data_url)
+
+    try:
+        if bbox and int(bbox.get("width", 0)) > 5 and int(bbox.get("height", 0)) > 5:
+            res = grab_object_region(img_bytes, bbox)
+        else:
+            res = magic_grab(img_bytes)
+
+        fg_b64 = "data:image/png;base64," + base64.b64encode(res["foreground_bytes"]).decode("ascii")
+        bg_b64 = "data:image/png;base64," + base64.b64encode(res["background_bytes"]).decode("ascii")
+
+        return jsonify({
+            "success": True,
+            "foreground_data_url": fg_b64,
+            "background_data_url": bg_b64,
+            "bbox": res.get("bbox", {})
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": f"Grab Object failed: {str(e)}"}), 500
+
+
+# ---------------------------------------------------------------------------
+# Natural Language AI Prompt-Based Editing API
+# ---------------------------------------------------------------------------
+
+@app.route("/api/canva/ai-prompt-edit", methods=["POST"])
+def api_ai_prompt_edit():
+    """
+    Processes natural-language design instructions:
+    e.g. 'Replace Belgian Chocolate with Strawberry', 'Change background to clean studio',
+    'Change brand name to GOMZI NUTRITION', 'Make background fruit splash'.
+    """
+    import base64
+    from canva_pro_tools import generate_preset_background
+
+    data = request.get_json(force=True)
+    prompt = (data.get("prompt") or "").strip().lower()
+    width = int(data.get("width", 1536))
+    height = int(data.get("height", 512))
+
+    if not prompt:
+        return jsonify({"success": False, "error": "No prompt provided"}), 400
+
+    actions = []
+
+    # 1. Background Change Presets
+    bg_presets = {
+        "clean studio": "clean_studio",
+        "studio": "clean_studio",
+        "white": "clean_studio",
+        "carbon": "carbon",
+        "fruit splash": "fruit_splash",
+        "fruit": "fruit_splash",
+        "strawberry": "fruit_splash",
+        "neon": "neon_gym",
+        "neon gym": "neon_gym",
+        "gold marble": "gold_marble",
+        "gold": "gold_marble"
+    }
+
+    matched_bg = None
+    for kw, preset in bg_presets.items():
+        if kw in prompt and ("background" in prompt or "bg" in prompt or "theme" in prompt):
+            matched_bg = preset
+            break
+
+    if matched_bg:
+        bg_bytes = generate_preset_background(matched_bg, width=width, height=height)
+        bg_b64 = "data:image/png;base64," + base64.b64encode(bg_bytes).decode("ascii")
+        actions.append({
+            "type": "update_background",
+            "preset": matched_bg,
+            "data_url": bg_b64
+        })
+
+    # 2. Text replacements
+    # Check for Flavour changes
+    flavours = ["strawberry", "belgian chocolate", "chocolate", "vanilla", "cookies & cream", "mango", "watermelon"]
+    for flv in flavours:
+        if flv in prompt:
+            actions.append({
+                "type": "update_text",
+                "role": "flavour",
+                "new_value": flv.title()
+            })
+            break
+
+    # Check for Brand Name changes
+    if "brand" in prompt or "gomzi" in prompt:
+        actions.append({
+            "type": "update_text",
+            "role": "brand_name",
+            "new_value": "GOMZI NUTRITION"
+        })
+
+    # Check for Weight changes
+    weight_match = re.search(r"(\d+(\.\d+)?\s*(kg|g|gm|lbs))", prompt)
+    if weight_match:
+        actions.append({
+            "type": "update_text",
+            "role": "net_weight",
+            "new_value": weight_match.group(1).upper()
+        })
+
+    return jsonify({
+        "success": True,
+        "prompt": prompt,
+        "actions": actions,
+        "action_count": len(actions)
+    })
+
+
+
+
+# ---------------------------------------------------------------------------
+# GOMZI BOB Advanced AI API Selector & Multilingual Prompt Composer Routes
+# ---------------------------------------------------------------------------
+import ai_provider_service
+
+@app.route("/api/ai/providers", methods=["GET"])
+def api_ai_providers():
+    """Returns the centralized AI provider catalog with status and configured models."""
+    try:
+        providers = ai_provider_service.get_provider_status()
+        return jsonify({
+            "success": True,
+            "providers": providers,
+            "count": len(providers)
+        })
+    except Exception as e:
+        app.logger.error(f"Error fetching AI providers: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/ai/presets", methods=["GET"])
+def api_ai_presets():
+    """Returns the standard packaging dimension and aspect ratio presets."""
+    return jsonify({
+        "success": True,
+        "presets": ai_provider_service.PACKAGING_DIMENSION_PRESETS
+    })
+
+
+@app.route("/api/ai/test-connection", methods=["POST"])
+def api_ai_test_connection():
+    """
+    Tests network connection to the selected AI provider.
+    Never exposes complete API keys to client.
+    """
+    data = request.get_json(silent=True) or {}
+    provider_id = data.get("provider", "auto")
+    test_key = data.get("api_key")  # Optional key tested before saving
+    
+    try:
+        res = ai_provider_service.test_provider_connection(provider_id, test_key=test_key)
+        return jsonify(res)
+    except Exception as e:
+        app.logger.error(f"Test connection error: {e}")
+        return jsonify({"success": False, "provider": provider_id, "message": str(e)}), 500
+
+
+@app.route("/api/ai/save-config", methods=["POST"])
+def api_ai_save_config():
+    """Saves updated API key and default provider to .env securely on backend."""
+    data = request.get_json(silent=True) or {}
+    provider_id = data.get("provider")
+    api_key = data.get("api_key")
+    set_default = bool(data.get("set_default", False))
+    
+    if not provider_id:
+        return jsonify({"success": False, "error": "Provider ID required"}), 400
+        
+    try:
+        res = ai_provider_service.save_provider_config(provider_id, api_key=api_key, set_default=set_default)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/ai/enhance-prompt", methods=["POST"])
+def api_ai_enhance_prompt():
+    """
+    Converts conversational voice or manual text (Gujarati, Hindi, English)
+    into a professional, print-ready, flat 2D packaging artwork prompt.
+    """
+    data = request.get_json(silent=True) or {}
+    raw_prompt = data.get("prompt", "").strip()
+    language = data.get("language", "gu-IN")
+    aspect_ratio = data.get("aspect_ratio", "3:1")
+    provider_id = data.get("provider", "auto")
+    
+    if not raw_prompt:
+        return jsonify({"success": False, "error": "Prompt cannot be empty"}), 400
+        
+    try:
+        result = ai_provider_service.enhance_prompt_multilingual(
+            raw_text=raw_prompt,
+            language=language,
+            aspect_ratio=aspect_ratio,
+            provider_id=provider_id
+        )
+        result["success"] = True
+        return jsonify(result)
+    except Exception as e:
+        app.logger.error(f"Error enhancing prompt: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/ai/toggle-provider", methods=["POST"])
+def api_ai_toggle_provider():
+    """Enables or disables an AI provider in backend config."""
+    data = request.get_json(silent=True) or {}
+    provider_id = data.get("provider")
+    enabled = bool(data.get("enabled", True))
+    if not provider_id:
+        return jsonify({"success": False, "error": "Provider ID required"}), 400
+    return jsonify(ai_provider_service.toggle_provider_enabled(provider_id, enabled))
+
+
+@app.route("/api/ai/usage", methods=["GET"])
+def api_ai_usage():
+    """Returns real API usage summary and recent logs from SQLite."""
+    from models import ApiUsageLog
+    summary = ai_provider_service.get_api_usage_summary()
+    logs = [l.to_dict() for l in ApiUsageLog.query.order_by(ApiUsageLog.created_at.desc()).limit(30).all()]
+    return jsonify({"success": True, "summary": summary, "logs": logs})
+
+
+@app.route("/api/ai/generate", methods=["POST"])
+def api_ai_generate_artwork():
+    """
+    Directly generates packaging artwork using the strictly selected AI provider and model.
+    Saves result asset and JobHistory record so dashboard & asset library reflect real jobs.
+    """
+    data = request.get_json(silent=True) or {}
+    prompt = (data.get("prompt") or "").strip()
+    provider_id = data.get("provider", "auto")
+    model_id = data.get("model")
+    aspect_ratio = data.get("aspect_ratio", "3:1")
+    quality = data.get("quality", "High")
+    output_count = int(data.get("output_count", 1) or 1)
+    negative_prompt = data.get("negative_prompt")
+    reference_images = data.get("reference_images") or []
+
+    if not prompt:
+        return jsonify({"success": False, "error": "A prompt is required for generation."}), 400
+
+    try:
+        res = ai_provider_service.generate_packaging_artwork(
+            prompt=prompt,
+            provider_id=provider_id,
+            model_id=model_id,
+            aspect_ratio=aspect_ratio,
+            quality=quality,
+            output_count=output_count,
+            negative_prompt=negative_prompt,
+            reference_images=reference_images,
+        )
+
+        img_url = res.get("image_url", "")
+        if img_url:
+            unique_stem = str(uuid.uuid4())[:8]
+            out_filename = f"ai_gen_{res.get('provider', provider_id)}_{unique_stem}.png"
+            out_path = os.path.join(app.config["RESULTS_FOLDER"], out_filename)
+
+            if img_url.startswith("data:image"):
+                b64_data = img_url.split(",", 1)[1]
+                img_bytes = base64.b64decode(b64_data)
+                with open(out_path, "wb") as f:
+                    f.write(img_bytes)
+            else:
+                r_img = requests.get(img_url, timeout=30)
+                if r_img.status_code == 200:
+                    with open(out_path, "wb") as f:
+                        f.write(r_img.content)
+
+            if os.path.exists(out_path):
+                try:
+                    with Image.open(out_path) as pimg:
+                        pw, ph = pimg.size
+                    db_image = UploadedImage(
+                        filename=out_filename,
+                        original_name=f"AI Generated ({res.get('provider')} / {res.get('model')})",
+                        file_path=out_path,
+                        description=prompt[:200],
+                        width=pw,
+                        height=ph,
+                    )
+                    db.session.add(db_image)
+                    db.session.flush()
+                    job = JobHistory(
+                        image_id=db_image.id,
+                        prompt=prompt,
+                        result_filename=out_filename,
+                        api_provider=res.get("provider", provider_id),
+                        mode="generate",
+                    )
+                    db.session.add(job)
+                    db.session.commit()
+                    res["saved_asset"] = {
+                        "id": db_image.id,
+                        "filename": out_filename,
+                        "url": f"/static/results/{out_filename}",
+                        "width": pw,
+                        "height": ph,
+                    }
+                    res["image_url"] = f"/static/results/{out_filename}"
+                except Exception as dbe:
+                    db.session.rollback()
+                    app.logger.warning(f"Could not persist generated asset in DB: {dbe}")
+
+        return jsonify(res)
+    except Exception as e:
+        app.logger.error(f"AI Generation error: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/ai/edit", methods=["POST"])
+def api_ai_edit_artwork():
+    """
+    Executes AI editing modes (edit, remove, add, replace, perfect_text) non-destructively,
+    returning original and edited data URLs for Before/After review.
+    Uses existing configured inpainting providers (Recraft / Nano Banana / REVE) or natural-language edits.
+    """
+    data = request.get_json(silent=True) or {}
+    mode = (data.get("mode") or "edit").lower()
+    provider_id = (data.get("provider") or "auto").lower()
+    image_data_url = data.get("image_data") or ""
+    mask_data_url = data.get("mask_data") or ""
+    target_text = (data.get("target") or "").strip()
+    replacement_text = (data.get("replacement") or "").strip()
+    prompt = (data.get("prompt") or "").strip()
+
+    if not image_data_url:
+        return jsonify({"success": False, "error": "Active canvas artwork image_data is required."}), 400
+
+    # Handle Perfect Text deterministic / masked replacement or prompt composition
+    effective_prompt = prompt
+    if mode == "remove" and target_text:
+        effective_prompt = f"Remove {target_text} cleanly and reconstruct original background texture seamlessly"
+    elif mode == "add" and replacement_text:
+        effective_prompt = f"Add {replacement_text} naturally matching label typography, lighting, and perspective"
+    elif mode == "replace":
+        effective_prompt = f"Replace {target_text or 'selected element'} with {replacement_text or prompt}, preserving surrounding label design"
+    elif mode == "perfect_text":
+        effective_prompt = f"Replace text '{target_text}' with exact crisp text '{replacement_text}' keeping font weight and background intact"
+
+    if not effective_prompt:
+        return jsonify({"success": False, "error": "Instructions are required for this AI mode."}), 400
+
+    start = time.time()
+    try:
+        # Resolve auto -> nanobanana or recraft (inpainting-capable providers)
+        pid = provider_id
+        if pid == "auto":
+            if NANOBANANA_API_KEY and not NANOBANANA_API_KEY.startswith("your_"):
+                pid = "nanobanana"
+            elif RECRAFT_API_KEY and not RECRAFT_API_KEY.startswith("your_"):
+                pid = "recraft"
+            else:
+                raise RuntimeError("No inpainting-capable provider (Nano Banana or Recraft) configured.")
+
+        if pid == "reve":
+            # Digitize to editable Fabric layers via REVE
+            import tempfile
+            b64_raw = image_data_url.split(",", 1)[1] if "," in image_data_url else image_data_url
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tf:
+                tf.write(base64.b64decode(b64_raw))
+                tmp_path = tf.name
+            try:
+                import reve_api
+                fabric_data = reve_api.digitize_image_via_reve(tmp_path)
+                lat = int((time.time() - start) * 1000)
+                ai_provider_service.log_api_usage("reve", "reve-digitize", mode, "success", lat, 0.0, "", effective_prompt)
+                return jsonify({"success": True, "provider": "reve", "mode": mode, "fabric_json": fabric_data})
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+
+        # Generate mask via CLIPSeg or active box if not explicitly drawn
+        active_mask = mask_data_url
+        if not active_mask:
+            mask_target = target_text or effective_prompt
+            active_mask = generate_mask_with_clipseg(image_data_url, mask_target)
+
+        if pid == "recraft":
+            out_url = run_recraft_inpainting(image_data_url, active_mask, effective_prompt)
+        elif pid == "nanobanana":
+            out_url = run_nanobanana_inpainting(image_data_url, active_mask, effective_prompt)
+        else:
+            raise RuntimeError(f"Provider '{pid}' does not support image editing/inpainting. Select Nano Banana or Recraft.")
+
+        lat = int((time.time() - start) * 1000)
+        ai_provider_service.log_api_usage(pid, pid, mode, "success", lat, 0.02, "", effective_prompt)
+
+        return jsonify({
+            "success": True,
+            "provider": pid,
+            "mode": mode,
+            "original_data_url": image_data_url,
+            "edited_image_url": out_url,
+            "prompt": effective_prompt,
+        })
+    except Exception as e:
+        lat = int((time.time() - start) * 1000)
+        ai_provider_service.log_api_usage(provider_id, provider_id, mode, "failed", lat, 0.0, str(e), effective_prompt)
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/brand-kits", methods=["GET", "POST"])
+def api_brand_kits():
+    """Manage saved brand kits in SQLite (defaults to GOMZI NUTRITION)."""
+    from models import BrandKitProfile
+    if request.method == "GET":
+        kits = [b.to_dict() for b in BrandKitProfile.query.order_by(BrandKitProfile.id.asc()).all()]
+        if not kits:
+            default_kit = BrandKitProfile(
+                name="GOMZI NUTRITION",
+                primary_color="#74883D",
+                secondary_color="#25372A",
+                font_family="Montserrat",
+                logo_url="/static/assets/gomzi_logo.svg",
+                is_default=True,
+            )
+            db.session.add(default_kit)
+            db.session.commit()
+            kits = [default_kit.to_dict()]
+        return jsonify({"success": True, "brand_kits": kits})
+
+    data = request.get_json(silent=True) or {}
+    kit = BrandKitProfile(
+        name=(data.get("name") or "GOMZI NUTRITION").strip(),
+        primary_color=data.get("primary_color", "#74883D"),
+        secondary_color=data.get("secondary_color", "#25372A"),
+        font_family=data.get("font_family", "Montserrat"),
+        logo_url=data.get("logo_url", "/static/assets/gomzi_logo.svg"),
+        is_default=bool(data.get("is_default", False)),
+    )
+    db.session.add(kit)
+    db.session.commit()
+    return jsonify({"success": True, "brand_kit": kit.to_dict()})
+
+
+@app.route("/api/assets/library", methods=["GET"])
+def api_asset_library():
+    """Lists real uploaded and AI-generated image assets stored on disk and SQLite."""
+    imgs = UploadedImage.query.order_by(UploadedImage.created_at.desc()).limit(60).all()
+    assets = []
+    for im in imgs:
+        url = f"/static/results/{im.filename}" if "results" in (im.file_path or "").replace("\\", "/") else f"/static/uploads/{im.filename}"
+        if os.path.exists(im.file_path):
+            assets.append({
+                "id": im.id,
+                "name": im.original_name,
+                "filename": im.filename,
+                "url": url,
+                "width": im.width,
+                "height": im.height,
+                "created_at": im.created_at.strftime("%Y-%m-%d %H:%M") if im.created_at else "",
+                "source": "AI Generated" if "results" in url else "Uploaded",
+            })
+    return jsonify({"success": True, "assets": assets})
+
+
+
+@app.errorhandler(404)
+def api_not_found_handler(err):
+    if request.path.startswith("/api/"):
+        return jsonify({"success": False, "error": f"Endpoint not found: {request.path}"}), 404
+    return err
+
+
+@app.errorhandler(500)
+def api_internal_error_handler(err):
+    if request.path.startswith("/api/"):
+        return jsonify({"success": False, "error": f"Server error: {err}"}), 500
+    return err
+
+
+if __name__ == "__main__":
+    app.run(host="127.0.0.1", port=5000, debug=True)

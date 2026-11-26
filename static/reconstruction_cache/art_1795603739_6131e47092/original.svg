@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="150mm" height="60mm" viewBox="0 0 1500 600">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+  <g id="Background">
+    <rect x="0" y="0" width="1500" height="600" fill="url(#bgGrad)" />
+    <path d="M 0 480 Q 380 410 750 490 T 1500 470 L 1500 600 L 0 600 Z" fill="#991b1b" />
+  </g>
+  <g id="Product_Title">
+    <text x="750" y="180" font-family="Montserrat" font-size="78" font-weight="bold" fill="#7f1d1d" text-anchor="middle">NATIVE SVG HERBAL</text>
+    <rect x="610" y="230" width="280" height="54" rx="27" fill="#991b1b" />
+    <text x="750" y="267" font-family="Inter" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">500 MG CAPSULE</text>
+  </g>
+</svg>

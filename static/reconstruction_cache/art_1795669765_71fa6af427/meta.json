@@ -1,0 +1,14 @@
+{
+  "artifact_id": "art_1795669765_71fa6af427",
+  "original_filename": "label_test.tiff",
+  "format": "tiff",
+  "sha256": "71fa6af42775e8107e4bcc3c77a7886fab45761926c183f26ac2fecd289ce437",
+  "byte_size": 499340,
+  "original_rel_path": "/static/reconstruction_cache/art_1795669765_71fa6af427/original.tiff",
+  "created_at": 1795669765,
+  "safe_filename": "label_test.tiff",
+  "pixel_width": 640,
+  "pixel_height": 260,
+  "color_mode": "RGB",
+  "icc_profile": false
+}

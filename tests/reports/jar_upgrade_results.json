@@ -1,0 +1,55 @@
+{
+  "results": [
+    {
+      "test": "Jar GLB Mesh Anatomy",
+      "status": "PASS",
+      "detail": "meshes=['BottomRing', 'JarBody', 'JarShoulder', 'JarNeck', 'CapGripRibs', 'CapCrown', 'LabelSurface'], counts=(body=4, lid=2, lbl=1)"
+    },
+    {
+      "test": "Load Essential Whey JPG Full Label",
+      "status": "PASS",
+      "detail": "Loaded tests/fixtures/label_essential_whey.jpg onto 3D Jar"
+    },
+    {
+      "test": "Black Body + Red Cap",
+      "status": "PASS",
+      "detail": "body=#16181a, lid=#b91c1c"
+    },
+    {
+      "test": "White Body + White Cap",
+      "status": "PASS",
+      "detail": "White HDPE #F2F4F7 applied"
+    },
+    {
+      "test": "Matte vs Glossy HDPE & Label PBR",
+      "status": "PASS",
+      "detail": "matte(rough=0.58, cc=0.12, nmap=True) vs glossy(rough=0.14, cc=0.85, lblCC=0.48)"
+    },
+    {
+      "test": "All Viewing Angles & 360 Spin",
+      "status": "PASS",
+      "detail": "maxAbsNdc=0.901, spinRotY=0.19"
+    },
+    {
+      "test": "Capacity-Specific Proportions & Framing",
+      "status": "PASS",
+      "detail": "250g(H/W=0.738, W=0.761), 500g(H/W=0.92), 1kg(W=1.192), 5kg(W=1.986, H/W=0.938), allFramed=True"
+    },
+    {
+      "test": "Live Sync Canvas->3D Update",
+      "status": "PASS",
+      "detail": "textureUUID D0E58DDF -> B85F845B"
+    },
+    {
+      "test": "PNG 2048px & 4K Export",
+      "status": "PASS",
+      "detail": "2K=1136696 bytes, 4K=3390294 bytes"
+    },
+    {
+      "test": "Zero Runtime JS Page Errors",
+      "status": "PASS",
+      "detail": "errors=[]"
+    }
+  ],
+  "js_errors": []
+}

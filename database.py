@@ -25,7 +25,7 @@ def init_db(app):
     db.init_app(app)
 
     # Import models so SQLAlchemy knows about them before create_all()
-    from models import UploadedImage, JobHistory  # noqa: F401
+    from models import UploadedImage, JobHistory, SavedProject, ApiUsageLog, BrandKitProfile  # noqa: F401
 
     with app.app_context():
         db.create_all()

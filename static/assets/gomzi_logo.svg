@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <style>
+      .gomzi-text { font-family: 'Montserrat', 'Inter', sans-serif; font-weight: 900; font-style: italic; font-size: 58px; fill: #708238; letter-spacing: 1px; }
+      .nutrition-text { font-family: 'Montserrat', 'Inter', sans-serif; font-weight: 800; font-size: 20px; fill: #334155; letter-spacing: 7px; }
+    </style>
+  </defs>
+  <text x="200" y="62" text-anchor="middle" class="gomzi-text">GOMZI</text>
+  <text x="204" y="98" text-anchor="middle" class="nutrition-text">NUTRITION</text>
+</svg>

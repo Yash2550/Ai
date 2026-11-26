@@ -1,0 +1,451 @@
+{
+  "platform": "GOMZI BOB 3D Packaging Studio",
+  "version": "3.0.0",
+  "engine": "Three.js / WebGL / GLTFLoader / PBR",
+  "categories": [
+    {
+      "id": "jar",
+      "name": "Protein Jar",
+      "thumbnail": "/static/models/packaging/thumbnails/jar.png",
+      "presets": [
+        {
+          "id": "jar_100g",
+          "name": "100 g Jar",
+          "capacity": "100 g",
+          "dia": 72,
+          "h": 88,
+          "label_w": 225,
+          "label_h": 55,
+          "file": "whey/whey_100g.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_250g",
+          "name": "250 g Jar",
+          "capacity": "250 g",
+          "dia": 92,
+          "h": 110,
+          "label_w": 288,
+          "label_h": 72,
+          "file": "whey/whey_250g.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_300g",
+          "name": "300 g Pre-Workout Jar",
+          "capacity": "300 g",
+          "dia": 98,
+          "h": 118,
+          "label_w": 308,
+          "label_h": 78,
+          "file": "whey/whey_300g.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_500g",
+          "name": "500 g Protein Jar",
+          "capacity": "500 g",
+          "dia": 108,
+          "h": 162,
+          "label_w": 338,
+          "label_h": 110,
+          "file": "whey/whey_500g.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_1kg",
+          "name": "1 kg (1000 g)",
+          "capacity": "1 kg (1000 g)",
+          "dia": 144,
+          "h": 215,
+          "label_w": 452,
+          "label_h": 142,
+          "file": "whey/whey_1kg.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_2kg",
+          "name": "2 kg (2000 g)",
+          "capacity": "2 kg (2000 g)",
+          "dia": 178,
+          "h": 272,
+          "label_w": 560,
+          "label_h": 178,
+          "file": "whey/whey_2kg.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_2_5kg",
+          "name": "2.5 kg Tub",
+          "capacity": "2.5 kg",
+          "dia": 190,
+          "h": 295,
+          "label_w": 595,
+          "label_h": 192,
+          "file": "whey/whey_2_5kg.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_3kg",
+          "name": "3 kg Mass Gainer",
+          "capacity": "3 kg",
+          "dia": 205,
+          "h": 318,
+          "label_w": 640,
+          "label_h": 205,
+          "file": "whey/whey_3kg.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "jar_5kg",
+          "name": "5 kg Mega Tub",
+          "capacity": "5 kg",
+          "dia": 240,
+          "h": 370,
+          "label_w": 750,
+          "label_h": 240,
+          "file": "whey/whey_5kg.glb",
+          "recommended_ratio": "3:1"
+        }
+      ]
+    },
+    {
+      "id": "pouch",
+      "name": "Pouch",
+      "thumbnail": "/static/models/packaging/thumbnails/pouch.png",
+      "presets": [
+        {
+          "id": "pouch_100g",
+          "name": "100 g Stand-up Zipper",
+          "capacity": "100 g",
+          "w": 110,
+          "h": 170,
+          "depth": 60,
+          "label_w": 110,
+          "label_h": 140,
+          "file": "pouches/standup_100g.glb",
+          "recommended_ratio": "2:3"
+        },
+        {
+          "id": "pouch_250g",
+          "name": "250 g Stand-up Zipper",
+          "capacity": "250 g",
+          "w": 130,
+          "h": 200,
+          "depth": 70,
+          "label_w": 130,
+          "label_h": 170,
+          "file": "pouches/standup_250g.glb",
+          "recommended_ratio": "2:3"
+        },
+        {
+          "id": "pouch_500g",
+          "name": "500 g Stand-up Pouch",
+          "capacity": "500 g",
+          "w": 160,
+          "h": 240,
+          "depth": 80,
+          "label_w": 160,
+          "label_h": 200,
+          "file": "pouches/standup_500g.glb",
+          "recommended_ratio": "2:3"
+        },
+        {
+          "id": "pouch_1kg",
+          "name": "1 kg Protein Refill Pouch",
+          "capacity": "1 kg",
+          "w": 190,
+          "h": 290,
+          "depth": 90,
+          "label_w": 190,
+          "label_h": 240,
+          "file": "pouches/standup_1kg.glb",
+          "recommended_ratio": "2:3"
+        },
+        {
+          "id": "pouch_2kg",
+          "name": "2 kg Flat-Bottom Pouch",
+          "capacity": "2 kg",
+          "w": 240,
+          "h": 340,
+          "depth": 110,
+          "label_w": 240,
+          "label_h": 280,
+          "file": "pouches/standup_2kg.glb",
+          "recommended_ratio": "2:3"
+        }
+      ]
+    },
+    {
+      "id": "sachet",
+      "name": "Sachet",
+      "thumbnail": "/static/models/packaging/thumbnails/sachet.png",
+      "presets": [
+        {
+          "id": "sachet_70x110",
+          "name": "70 \u00d7 110 mm Sachet",
+          "capacity": "30 g Serve",
+          "w": 70,
+          "h": 110,
+          "depth": 16,
+          "label_w": 70,
+          "label_h": 110,
+          "file": "sachets/sachet_10g.glb",
+          "recommended_ratio": "7:11"
+        },
+        {
+          "id": "sachet_protein",
+          "name": "Single-Serve Protein Sachet",
+          "capacity": "35 g",
+          "w": 90,
+          "h": 140,
+          "depth": 20,
+          "label_w": 90,
+          "label_h": 140,
+          "file": "sachets/sachet_30g.glb",
+          "recommended_ratio": "7:11"
+        },
+        {
+          "id": "stickpack_5g",
+          "name": "5 g Stick Pack",
+          "capacity": "5 g",
+          "w": 32,
+          "h": 135,
+          "depth": 12,
+          "label_w": 32,
+          "label_h": 135,
+          "file": "sachets/stickpack_5g.glb",
+          "recommended_ratio": "9:16"
+        }
+      ]
+    },
+    {
+      "id": "bottle",
+      "name": "Bottle",
+      "thumbnail": "/static/models/packaging/thumbnails/bottle.png",
+      "presets": [
+        {
+          "id": "capsule_30",
+          "name": "30 Capsules Bottle",
+          "capacity": "30 caps",
+          "dia": 46,
+          "h": 82,
+          "label_w": 144,
+          "label_h": 48,
+          "file": "bottles/capsule_30.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "capsule_60",
+          "name": "60 Capsules Bottle",
+          "capacity": "60 caps",
+          "dia": 54,
+          "h": 98,
+          "label_w": 168,
+          "label_h": 60,
+          "file": "bottles/capsule_60.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "capsule_90",
+          "name": "90 Capsules Bottle",
+          "capacity": "90 caps",
+          "dia": 60,
+          "h": 114,
+          "label_w": 188,
+          "label_h": 72,
+          "file": "bottles/capsule_90.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "capsule_120",
+          "name": "120 Capsules Bottle",
+          "capacity": "120 caps",
+          "dia": 66,
+          "h": 128,
+          "label_w": 206,
+          "label_h": 82,
+          "file": "bottles/capsule_120.glb",
+          "recommended_ratio": "3:1"
+        },
+        {
+          "id": "capsule_180",
+          "name": "180 Capsules Bottle",
+          "capacity": "180 caps",
+          "dia": 74,
+          "h": 148,
+          "label_w": 230,
+          "label_h": 96,
+          "file": "bottles/capsule_180.glb",
+          "recommended_ratio": "3:1"
+        }
+      ]
+    },
+    {
+      "id": "box",
+      "name": "Box",
+      "thumbnail": "/static/models/packaging/thumbnails/box.png",
+      "presets": [
+        {
+          "id": "box_supplement",
+          "name": "Supplement Carton Box",
+          "capacity": "Standard",
+          "w": 120,
+          "h": 180,
+          "depth": 100,
+          "label_w": 120,
+          "label_h": 180,
+          "file": "boxes/carton_box.glb",
+          "recommended_ratio": "2:3"
+        },
+        {
+          "id": "box_square",
+          "name": "Square Gift Carton",
+          "capacity": "120\u00d7120\u00d7120",
+          "w": 120,
+          "h": 120,
+          "depth": 120,
+          "label_w": 120,
+          "label_h": 120,
+          "file": "boxes/square_box.glb",
+          "recommended_ratio": "1:1"
+        },
+        {
+          "id": "box_cosmetic",
+          "name": "Medicine / Cosmetic Box",
+          "capacity": "65\u00d7145\u00d750",
+          "w": 65,
+          "h": 145,
+          "depth": 50,
+          "label_w": 65,
+          "label_h": 145,
+          "file": "boxes/cosmetic_box.glb",
+          "recommended_ratio": "2:3"
+        }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "id": "matte",
+      "name": "Matte Plastic",
+      "roughness": 0.68,
+      "metalness": 0.02,
+      "clearcoat": 0.05
+    },
+    {
+      "id": "glossy",
+      "name": "Glossy Plastic",
+      "roughness": 0.14,
+      "metalness": 0.02,
+      "clearcoat": 0.85
+    },
+    {
+      "id": "satin",
+      "name": "Satin Plastic",
+      "roughness": 0.36,
+      "metalness": 0.03,
+      "clearcoat": 0.35
+    },
+    {
+      "id": "soft_touch",
+      "name": "Soft Touch",
+      "roughness": 0.82,
+      "metalness": 0.0,
+      "clearcoat": 0.0
+    },
+    {
+      "id": "transparent",
+      "name": "Transparent PET",
+      "roughness": 0.08,
+      "metalness": 0.0,
+      "transmission": 0.85,
+      "opacity": 0.55
+    },
+    {
+      "id": "frosted",
+      "name": "Frosted Plastic",
+      "roughness": 0.45,
+      "metalness": 0.0,
+      "transmission": 0.6,
+      "opacity": 0.75
+    },
+    {
+      "id": "metallic_foil",
+      "name": "Metallic Foil",
+      "roughness": 0.24,
+      "metalness": 0.88,
+      "clearcoat": 0.35
+    },
+    {
+      "id": "matte_foil",
+      "name": "Matte Foil",
+      "roughness": 0.48,
+      "metalness": 0.72,
+      "clearcoat": 0.1
+    },
+    {
+      "id": "glossy_foil",
+      "name": "Glossy Foil",
+      "roughness": 0.14,
+      "metalness": 0.9,
+      "clearcoat": 0.85
+    },
+    {
+      "id": "kraft_paper",
+      "name": "Kraft Paper",
+      "roughness": 0.88,
+      "metalness": 0.0,
+      "clearcoat": 0.0
+    },
+    {
+      "id": "cardboard",
+      "name": "Cardboard",
+      "roughness": 0.82,
+      "metalness": 0.0,
+      "clearcoat": 0.0
+    }
+  ],
+  "lighting_presets": [
+    {
+      "id": "studio",
+      "name": "Studio",
+      "key": "#ffffff",
+      "fill": "#e8edf2",
+      "rim": "#cbd5e1",
+      "keyInt": 1.15,
+      "fillInt": 0.72,
+      "env": 1.0
+    },
+    {
+      "id": "soft",
+      "name": "Soft",
+      "key": "#fffdf7",
+      "fill": "#f1f5f9",
+      "rim": "#cbd5e1",
+      "keyInt": 0.88,
+      "fillInt": 0.85,
+      "env": 0.9
+    },
+    {
+      "id": "natural",
+      "name": "Natural",
+      "key": "#fff5d6",
+      "fill": "#dceeff",
+      "rim": "#fed7aa",
+      "keyInt": 1.08,
+      "fillInt": 0.76,
+      "env": 0.95
+    },
+    {
+      "id": "dramatic",
+      "name": "Dramatic",
+      "key": "#ffffff",
+      "fill": "#475569",
+      "rim": "#e2e8f0",
+      "keyInt": 1.55,
+      "fillInt": 0.35,
+      "env": 0.65
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "results": [
+    {
+      "test": "System Capabilities Probe",
+      "status": "PASS",
+      "detail": "pdf=True, vtracer=True, native_cdr=False"
+    },
+    {
+      "test": "Biotin Full Reconstruction & Elements Recall",
+      "status": "PASS",
+      "detail": "summary={'total': 44, 'textCount': 26, 'vectorCount': 18, 'imageCount': 0, 'hasBiotin': True, 'has15mg': True, 'has60Caps': True, 'hasNutrition': True, 'hasDescription': True, 'hasManufacturer': True, 'hasMarketed': True, 'hasBatch': True, 'hasIllustration': True, 'hasVegMark': True, 'hasWave': True, 'benefitIcons': 3}, modal=187 (1 illust., 3 icons, 0 raster)"
+    },
+    {
+      "test": "Section 19 All 11 Independent Edits + 3D Live Sync",
+      "status": "PASS",
+      "detail": "edited=['title', 'strength', 'qty', 'accent', 'nutCell', 'mfg', 'mkt', 'illust', 'bg', 'veg', 'batch']"
+    },
+    {
+      "test": "Undo After Edit Verification",
+      "status": "PASS",
+      "detail": "restoredTitle=BIOTIN"
+    },
+    {
+      "test": "Editable SVG Export (No Fake PNG)",
+      "status": "PASS",
+      "detail": "len=144603, hasText=True, embeddedImg=False"
+    },
+    {
+      "test": "Outlined Text SVG Export (FontTools)",
+      "status": "PASS",
+      "detail": "len=784178, zeroTextNodes=True"
+    },
+    {
+      "test": "Vector PDF Export (PyMuPDF Verified)",
+      "status": "PASS",
+      "detail": "drawings=188, hasBIOTIN=True"
+    },
+    {
+      "test": "CorelDRAW Exchange ZIP Bundle",
+      "status": "PASS",
+      "detail": "files=['biotin_sample_label_editable.svg', 'biotin_sample_label_outlined.svg', 'biotin_sample_label_vector.pdf', 'README_CORELDRAW_IMPORT.txt']"
+    },
+    {
+      "test": "Vector Zoom Sharpness Check (100% & 1600%)",
+      "status": "PASS",
+      "detail": "Rendered outlined SVG at 16x scale without bitmap pixellation"
+    },
+    {
+      "test": "Project Save & Reopen Editable Layers",
+      "status": "PASS",
+      "detail": "proj=proj_1795666574_f3d561, restored={'total': 44, 'texts': 26}"
+    },
+    {
+      "test": "Native SVG Preserves Editable Vectors & Text",
+      "status": "PASS",
+      "detail": "svgCanvas={'n': 5, 'vecs': 3, 'imgs': 0}"
+    },
+    {
+      "test": "XSS / Script Sanitization in SVG Import",
+      "status": "PASS",
+      "detail": "warnings=['Removed unsafe SVG element <script>', 'Removed unsafe SVG element <foreignobject>', \"Stripped script handler 'onclick'\"]"
+    },
+    {
+      "test": "Native Vector PDF Extraction (No Bitmap Flatten)",
+      "status": "PASS",
+      "detail": "stats={'format_type': 'Native PDF Vector Document', 'image_objects': 0, 'text_objects': 2, 'total_objects': 4, 'vector_objects': 2}"
+    },
+    {
+      "test": "Modern CDR Archive Reconstruction",
+      "status": "PASS",
+      "detail": "stats={'geometric_shapes': 12, 'icons_vectorized': 3, 'illustrations_vectorized': 1, 'image_objects': 0, 'low_conf_texts': 0, 'retained_rasters': 0, 'table_cells': 6, 'text_objects': 28, 'total_objects': 44, 'vector_objects': 184, 'vector_only_background': True, 'vector_paths': 172}, warns=1"
+    },
+    {
+      "test": "Legacy RIFF CDR Honest Converter Warning",
+      "status": "PASS",
+      "detail": "status=422, err=Legacy binary CorelDRAW (RIFF CDR) requires LibreOffice/libcdr or licensed Corel"
+    },
+    {
+      "test": "Calcium Black & Gold Label Reconstruction",
+      "status": "PASS",
+      "detail": "stats={'geometric_shapes': 4, 'icons_vectorized': 0, 'illustrations_vectorized': 1, 'image_objects': 1, 'low_conf_texts': 1, 'retained_rasters': 0, 'table_cells': 2, 'text_objects': 13, 'total_objects': 21, 'vector_objects': 21, 'vector_only_background': False, 'vector_paths': 17}"
+    },
+    {
+      "test": "Essential Whey Horizontal Wrap Label",
+      "status": "PASS",
+      "detail": "stats={'geometric_shapes': 6, 'icons_vectorized': 2, 'illustrations_vectorized': 1, 'image_objects': 1, 'low_conf_texts': 0, 'retained_rasters': 0, 'table_cells': 1, 'text_objects': 24, 'total_objects': 33, 'vector_objects': 172, 'vector_only_background': False, 'vector_paths': 166}"
+    },
+    {
+      "test": "Multicolor Gradient Label Reconstruction",
+      "status": "PASS",
+      "detail": "stats={'geometric_shapes': 6, 'icons_vectorized': 0, 'illustrations_vectorized': 0, 'image_objects': 1, 'low_conf_texts': 0, 'retained_rasters': 1, 'table_cells': 6, 'text_objects': 14, 'total_objects': 23, 'vector_objects': 24, 'vector_only_background': True, 'vector_paths': 18}"
+    },
+    {
+      "test": "Grab Text API Regions & Clean Plate",
+      "status": "PASS",
+      "detail": "regions=26"
+    },
+    {
+      "test": "Zero Uncaught Page JS Exceptions",
+      "status": "PASS",
+      "detail": "errors=[]"
+    }
+  ],
+  "js_errors": []
+}
